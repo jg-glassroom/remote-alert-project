@@ -11,4 +11,4 @@ RUN npm run build
 FROM nginx:alpine
 EXPOSE 8080
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build /app/dist/alert-project /usr/share/nginx/html
+COPY --from=build /app/dist/alert-project/ /usr/share/nginx/html/
