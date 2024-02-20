@@ -1,14 +1,17 @@
-FROM node:16 AS build
-WORKDIR /app
-COPY ./package*.json .
-RUN npm install
+FROM node:16.14.0 as build
 
+WORKDIR /source
+
+# Copy the package lock file into the container
+COPY package*.json ./
+# Run ci only for the production dependencies
 RUN npm ci
 
+# Copy the rest of the files into the container and build
 COPY . .
-RUN npm run build
+RUN npm run build –prod
 
 FROM nginx:alpine
+COPY –from=build /source/dist/todo /usr/share/nginx/html
+COPY –from=build /source/nginx.conf /etc/nginx/conf.d/
 EXPOSE 8080
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build /app/dist/alert-project /usr/share/nginx/html
