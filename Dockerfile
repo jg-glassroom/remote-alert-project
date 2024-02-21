@@ -6,7 +6,8 @@ COPY . .
 RUN npm run build
 
 FROM nginx:alpine
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copiez le fichier de configuration nginx en utilisant un template
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY --from=build /app/dist/alert-project/ /usr/share/nginx/html/
 
 # Au démarrage du conteneur, remplacez le placeholder par la valeur de PORT et démarrez nginx
