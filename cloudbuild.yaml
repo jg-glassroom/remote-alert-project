@@ -3,12 +3,12 @@ steps:
     args:
       - 'build'
       - '-t'
-      - '${_GCR_HOSTNAME}/${PROJECT_ID}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - 'gcr.io/glassroom-apps/alert-project:latest'
       - '.'
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - '${_GCR_HOSTNAME}/${PROJECT_ID}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - 'gcr.io/glassroom-apps/alert-project:latest'
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     args:
       - 'run'
