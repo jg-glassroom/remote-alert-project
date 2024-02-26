@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import firebase from 'firebase/compat/app';
-import { AngularFireAuth} from '@angular/fire/compat/auth';
-import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/compat/firestore'; 
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
 
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -30,13 +30,18 @@ export class AuthService {
 
   async googleSignin() {
     const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/display-video');
+    provider.addScope('https://www.googleapis.com/auth/dfareporting');
+    provider.addScope('https://www.googleapis.com/auth/doubleclicksearch');
+
     const credential = await this.afAuth.signInWithPopup(provider);
-    return this.updateUserData(credential.user);
+    this.updateUserData(credential.user);
+    this.router.navigate(['/home']);
   }
 
   async signOut() {
     await this.afAuth.signOut();
-    return this.router.navigate(['/'])
+    return this.router.navigate(['/']);
   }
 
   private updateUserData(user: any) {
@@ -47,8 +52,7 @@ export class AuthService {
       email: user.email,
       photoURL: user.photoURL,
     };
-    this.router.navigate(['/home'])
 
-    return userRef.set(data, {merge: true});
+    return userRef.set(data, { merge: true });
   }
 }
