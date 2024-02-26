@@ -26,3 +26,8 @@
 .table .row:hover .delete-icon {
   visibility: visible;
 }
+
+table{    
+  border-radius: 10px;
+  overflow:hidden !important;
+}
