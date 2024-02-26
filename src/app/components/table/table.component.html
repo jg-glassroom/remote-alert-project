@@ -1,0 +1,48 @@
+<button mat-raised-button class="create" color="primary" (click)="openDialog()">Create alert rule</button>
+
+<div class="table-container">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 table">
+    
+    <!-- Campaign Name Column -->
+    <ng-container matColumnDef="campaignName">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Name</th>
+      <td mat-cell *matCellDef="let element">{{element.campaignName}}</td>
+    </ng-container>
+    
+    <!-- Campaign Id Column -->
+    <ng-container matColumnDef="campaignId">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Id</th>
+      <td mat-cell *matCellDef="let element">{{element.campaignId}}</td>
+    </ng-container>
+    
+    <!-- Start Date Column -->
+    <ng-container matColumnDef="startDate">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Start Date</th>
+      <td mat-cell *matCellDef="let element">{{element.startDate}}</td>
+    </ng-container>
+    
+    <!-- End Date Column -->
+    <ng-container matColumnDef="endDate">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">End Date</th>
+      <td mat-cell *matCellDef="let element">{{element.endDate}}</td>
+    </ng-container>
+    
+    <!-- Budget Column -->
+    <ng-container matColumnDef="budget">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Budget</th>
+      <td mat-cell *matCellDef="let element">{{element.budget}}</td>
+    </ng-container>
+    
+    <!-- Icon Column -->
+    <ng-container matColumnDef="icon">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'" class="icon-column"></th>
+      <td mat-cell *matCellDef="let element">
+        <mat-icon aria-hidden="false" aria-label="Delete icon" (click)="deleteRow(element, $event)" class="delete-icon">delete</mat-icon>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row class="head-row" *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row class="row" *matRowDef="let row; columns: displayedColumns;" (click)="editRule(row)"></tr>
+
+  </table>
+</div>
