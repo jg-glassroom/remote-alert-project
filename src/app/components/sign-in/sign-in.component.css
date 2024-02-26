@@ -1,0 +1,27 @@
+.google-logo {
+    width: 23px;
+    height: auto;
+    margin-top: 1px;
+    margin-right: 5px; 
+    vertical-align: bottom;
+}
+
+.signin-label {
+    margin-bottom: 50px;
+    vertical-align: bottom;
+}
+
+.signin-button {
+    margin-top: 7%;
+}
+
+.container {
+    padding: 2% 0;
+    text-align: center;
+    position: absolute;
+    top: 40%;
+    left: 40%;
+    width: 20%;
+    border-radius: 10px;
+    box-shadow: 5px 5px 31px 5px rgba(0,0,0,0.59);
+}

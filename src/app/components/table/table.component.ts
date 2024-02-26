@@ -6,6 +6,10 @@ import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from '../../services/auth.service';
+import { take } from 'rxjs/operators';
+import { user } from '@angular/fire/auth';
+
 
 @Component({
   selector: 'app-table',
@@ -18,7 +22,7 @@ export class TableComponent implements OnInit {
   public displayedColumns: string[] = ['campaignName', 'campaignId', 'startDate', 'endDate', 'budget', 'icon'];
   public dataSource: any = [];
 
-  constructor (private db: AngularFirestore, private matDialog: MatDialog) {}
+  constructor (private db: AngularFirestore, private matDialog: MatDialog, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.getSearch()
@@ -31,13 +35,17 @@ export class TableComponent implements OnInit {
   }
 
   public getSearch() {
-    this.db.collection('userSearch').snapshotChanges().subscribe(actions => {
-      this.dataSource = actions.map(a => {
-        const data = a.payload.doc.data() as { [key: string]: any };
-        const id = a.payload.doc.id;
-        return { id, ...data };
-      });
-    });
+    this.authService.user$.pipe(take(1)).subscribe(user => {
+      if (user && user.uid) {
+        this.db.collection('userSearch', ref => ref.where('userId', '==', user.uid)).snapshotChanges().subscribe(actions => {
+          this.dataSource = actions.map(a => {
+            const data = a.payload.doc.data() as { [key: string]: any };
+            const id = a.payload.doc.id;
+            return { id, ...data };
+          });
+        });
+      }
+    })
   }
 
   editRule(row: any) {

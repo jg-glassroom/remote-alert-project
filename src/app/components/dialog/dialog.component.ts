@@ -9,6 +9,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { first, switchMap } from 'rxjs/operators';
 
 
 @Component({
@@ -37,6 +39,7 @@ export class DialogComponent {
     private formBuilder: FormBuilder, 
     private db: AngularFirestore, 
     private dialogRef: MatDialogRef<DialogComponent>,
+    public auth: AuthService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.isEditMode = !!data;
@@ -111,31 +114,32 @@ export class DialogComponent {
   onSubmit() {
     this.submitted = true;
     if (this.formGroup.valid) {
-      const formData = {
-        ...this.formGroup.value,
-        startDate: this.formatDate(this.formGroup.value.startDate),
-        endDate: this.formatDate(this.formGroup.value.endDate),
-      };
-      if (this.isEditMode && this.documentId) {
-        this.db.collection('userSearch').doc(this.documentId).update(formData)
-        .then(() => {
-          console.error("TEST");
-          this.dialogRef.close();
+      this.auth.user$.pipe(
+        first(),
+        switchMap(user => {
+          if (!user) {
+            throw new Error('User not logged in');
+          }
+          const formData = {
+            ...this.formGroup.value,
+            startDate: this.formatDate(this.formGroup.value.startDate),
+            endDate: this.formatDate(this.formGroup.value.endDate),
+            userId: user.uid
+          };
+
+          if (this.isEditMode && this.documentId) {
+            return this.db.collection('userSearch').doc(this.documentId).update(formData);
+          } else {
+            return this.db.collection('userSearch').add(formData);
+          }
         })
-        .catch((error) => {
-          console.error("Error updating document: ", error);
-        });
-      } else {
-        this.db.collection('userSearch').add(formData)
-        .then(() => {
-          this.dialogRef.close();
-        })
-        .catch((error) => {
-          console.error("Error adding document: ", error);
-        });
-      }
+      ).subscribe({
+        next: () => this.dialogRef.close(),
+        error: (error) => console.error("Error processing document: ", error),
+      });
     }
   }
+
 
   onCancel(): void {
     this.dialogRef.close();
