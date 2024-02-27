@@ -1,31 +1,40 @@
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { DialogComponent } from '../dialog/dialog.component';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { take } from 'rxjs/operators';
-import { user } from '@angular/fire/auth';
+
+import { DialogComponent } from '../dialog/dialog.component';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+
+import { MatTableDataSource } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 
 
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, DialogComponent, MatIconModule, ConfirmDialogComponent],
+  imports: [MatTableModule, MatButtonModule, MatPaginatorModule, MatIconModule, DialogComponent, ConfirmDialogComponent],
   templateUrl: './table.component.html',
   styleUrl: './table.component.css'
 })
 export class TableComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   public displayedColumns: string[] = ['campaignName', 'campaignId', 'startDate', 'endDate', 'budget', 'icon'];
-  public dataSource: any = [];
+  public dataSource = new MatTableDataSource<any>([]);
 
   constructor (private db: AngularFirestore, private matDialog: MatDialog, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.getSearch()
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 
   openDialog() {
@@ -38,14 +47,19 @@ export class TableComponent implements OnInit {
     this.authService.user$.pipe(take(1)).subscribe(user => {
       if (user && user.uid) {
         this.db.collection('userSearch', ref => ref.where('userId', '==', user.uid)).snapshotChanges().subscribe(actions => {
-          this.dataSource = actions.map(a => {
-            const data = a.payload.doc.data() as { [key: string]: any };
+          const data = actions.map(a => {
+            const data = a.payload.doc.data();
             const id = a.payload.doc.id;
-            return { id, ...data };
+            if (data) {
+              return { id, ...data };
+            } else {
+              return []
+            }
           });
+          this.dataSource.data = data; 
         });
       }
-    })
+    });
   }
 
   editRule(row: any) {
