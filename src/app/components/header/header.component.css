@@ -1,4 +1,4 @@
-.example-spacer {
+.spacer {
   flex: 1 1 auto;
 }
   
@@ -9,4 +9,41 @@ img {
 
 .log-out-icon {
   margin-right: 1.5%;
+}
+
+.menu-button {
+  margin-left: 1.5%;
+}
+
+mat-drawer {
+  width: 15%;
+}
+
+.list-item {
+  margin-left: 12%;
+  display: flex;
+  align-items: center;
+}
+
+.menu-icon {
+  margin-right: 5px;
+  margin-left: 10px;
+}
+
+.content {
+  text-align: center; 
+  min-height: 90vh;
+  padding-top: 90px;
+}
+
+mat-toolbar {
+  position: fixed; 
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  z-index: 1000; 
+}
+
+mat-nav-list {
+  padding-top: 70px;
 }
