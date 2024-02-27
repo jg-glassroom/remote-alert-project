@@ -18,10 +18,10 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-table',
   standalone: true,
   imports: [MatTableModule, MatButtonModule, MatPaginatorModule, MatIconModule, DialogComponent, ConfirmDialogComponent],
-  templateUrl: './table.component.html',
-  styleUrl: './table.component.css'
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css'
 })
-export class TableComponent implements OnInit {
+export class HomeComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   public displayedColumns: string[] = ['campaignName', 'campaignId', 'startDate', 'endDate', 'budget', 'icon'];
@@ -53,7 +53,7 @@ export class TableComponent implements OnInit {
             if (data) {
               return { id, ...data };
             } else {
-              return []
+              return {};
             }
           });
           this.dataSource.data = data; 
