@@ -33,5 +33,5 @@ jobs:
       run: |-
         docker tag $IMAGE_NAME:latest northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:latest
         docker tag $IMAGE_NAME:latest northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:$GIT_TAG
-        docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:latest
-        docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:$GIT_TAG
+        docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:latest
+        docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:$GIT_TAG
