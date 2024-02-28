@@ -1,0 +1,13 @@
+.table-container {
+    margin: 3% 3%;
+  }
+
+  .table .row:hover {
+    background-color: rgba(158, 159, 159, 0.05); 
+    cursor: pointer; 
+  }
+
+  table {    
+    border-radius: 10px;
+    overflow:hidden !important;
+  }

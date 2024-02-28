@@ -25,7 +25,7 @@ export class AuthService {
           return of(null);
         }
       })
-    )
+    );
   }
 
   async googleSignin() {
@@ -54,5 +54,11 @@ export class AuthService {
     };
 
     return userRef.set(data, { merge: true });
+  }
+
+  async getIdToken(): Promise<string> {
+    const user = await this.afAuth.currentUser;
+    if (!user) throw new Error('User not logged in');
+    return user.getIdToken();
   }
 }
