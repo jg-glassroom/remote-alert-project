@@ -22,4 +22,4 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy alert-project --image northamerica-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/alert-project:latest --region northamerica-northeast1 --platform managed --allow-unauthenticated
+        gcloud run deploy alert-project --image northamerica-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/alert-project/test --region northamerica-northeast1 --platform managed --allow-unauthenticated
