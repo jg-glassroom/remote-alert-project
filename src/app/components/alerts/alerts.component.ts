@@ -1,7 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -12,18 +12,17 @@ import { MatTableModule } from '@angular/material/table';
 @Component({
   selector: 'app-alerts',
   standalone: true,
-  imports: [MatPaginatorModule, MatTableModule, HttpClientModule],
+  imports: [MatPaginatorModule, MatTableModule],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css'
 })
 export class AlertsComponent {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  public displayedColumns: string[] = ['campaignName', 'campaignId', 'startDate', 'endDate', 'budget'];
+  public displayedColumnsAlerts: string[] = ['CampaignName', 'CampaignID', 'ClientName', 'CreatedBy', 'error_rule_message'];
   public dataSource = new MatTableDataSource<any>([]);
-  private functionUrl = 'https://northamerica-northeast1-glassroom-firebase.cloudfunctions.net/queryBigQuery';
 
-  constructor (private db: AngularFirestore, private authService: AuthService, private http: HttpClient) {}
+  constructor (private db: AngularFirestore, private authService: AuthService, private fns: AngularFireFunctions) {}
 
   ngOnInit(): void {
     this.getAlerts()
@@ -34,21 +33,15 @@ export class AlertsComponent {
   }
   
   public getAlerts() {
-    this.authService.getIdToken().then(token => {
-      const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      });
-      this.http.post<any[]>(this.functionUrl, {}, { headers }).subscribe({
-        next: (data) => {
-          console.log(data);
-          this.dataSource.data = data;
-        },
-        error: (error) => console.error(error),
-      });
-    }).catch(error => {
-      console.error('Error fetching Firebase ID token', error);
-    });
+    const callable = this.fns.httpsCallable('queryBigQuery');
+    callable({}).subscribe(
+      (result) => {
+        this.dataSource.data = result; 
+        console.log(result);
+      },
+      (error) => {
+        console.error('Error calling function:', error);
+      }
+    );
   }
-  
 }

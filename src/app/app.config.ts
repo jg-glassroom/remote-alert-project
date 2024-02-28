@@ -10,6 +10,7 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { FIREBASE_OPTIONS } from '@angular/fire/compat';
+import { REGION } from '@angular/fire/compat/functions';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideNativeDateAdapter(),
     provideRouter(routes), 
     { provide: FIREBASE_OPTIONS, useValue: environment.firebaseConfig },
+    { provide: REGION, useValue: 'northamerica-northeast1' },
     provideAnimationsAsync(),
     importProvidersFrom([
       provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),

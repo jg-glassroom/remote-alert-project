@@ -2,38 +2,38 @@
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 table">
     
     <!-- Campaign Name Column -->
-    <ng-container matColumnDef="campaignName">
+    <ng-container matColumnDef="CampaignName">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Name</th>
-      <td mat-cell *matCellDef="let element">{{element.campaignName}}</td>
+      <td mat-cell *matCellDef="let element">{{element.CampaignName}}</td>
     </ng-container>
     
     <!-- Campaign Id Column -->
-    <ng-container matColumnDef="campaignId">
+    <ng-container matColumnDef="CampaignID">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Id</th>
-      <td mat-cell *matCellDef="let element">{{element.campaignId}}</td>
+      <td mat-cell *matCellDef="let element">{{element.CampaignID}}</td>
     </ng-container>
     
-    <!-- Start Date Column -->
-    <ng-container matColumnDef="startDate">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Start Date</th>
-      <td mat-cell *matCellDef="let element">{{element.startDate}}</td>
+    <!-- Client Name Column -->
+    <ng-container matColumnDef="ClientName">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Client Name</th>
+      <td mat-cell *matCellDef="let element">{{element.ClientName}}</td>
     </ng-container>
     
-    <!-- End Date Column -->
-    <ng-container matColumnDef="endDate">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">End Date</th>
-      <td mat-cell *matCellDef="let element">{{element.endDate}}</td>
+    <!-- Created By Column -->
+    <ng-container matColumnDef="CreatedBy">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Created By</th>
+      <td mat-cell *matCellDef="let element">{{element.CreatedBy}}</td>
     </ng-container>
     
-    <!-- Budget Column -->
-    <ng-container matColumnDef="budget">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Budget</th>
-      <td mat-cell *matCellDef="let element">{{element.budget}}</td>
+    <!-- Error Rule Message Column -->
+    <ng-container matColumnDef="error_rule_message">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Error Rule Message</th>
+      <td mat-cell *matCellDef="let element">{{element.error_rule_message}}</td>
     </ng-container>
 
-    <tr mat-header-row class="head-row" *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row class="row" *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr mat-header-row class="head-row" *matHeaderRowDef="displayedColumnsAlerts"></tr>
+    <tr mat-row class="row" *matRowDef="let row; columns: displayedColumnsAlerts;"></tr>
 
   </table>
 </div>
-<mat-paginator [pageSizeOptions]="[6]" showFirstLastButtons></mat-paginator>
+<mat-paginator [pageSizeOptions]="[8]" showFirstLastButtons></mat-paginator>
