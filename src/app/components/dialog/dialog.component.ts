@@ -81,12 +81,13 @@ export class DialogComponent {
 
   createForm() {
     this.formGroup = this.formBuilder.group({
+      partner: [this.data?.partner || null, [Validators.required]],
+      advertiser: [this.data?.advertiser || null, [Validators.required]],
       campaignName: [this.data?.campaignName || null, Validators.required],
       campaignId: [this.data?.campaignId || null, [Validators.required]],
       startDate: [this.data?.startDate ? new Date(this.data.startDate) : null, [Validators.required, this.isValidDate(), this.endDateNotInFuture()]],
       endDate: [this.data?.endDate ? new Date(this.data.endDate) : null, [Validators.required, this.isValidDate(), this.endDateNotInFuture()]],
       budget: [this.data?.budget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
-      partner: [this.data?.partner || null, [Validators.required]],
     });
 
     const startDateControl = this.formGroup.get('startDate');
