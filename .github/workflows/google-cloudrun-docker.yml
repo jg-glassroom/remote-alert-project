@@ -34,6 +34,7 @@ jobs:
         docker tag $IMAGE_NAME:latest northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:latest
         docker tag $IMAGE_NAME:latest northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:$GIT_TAG
         echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+        cat /tmp/gcp-key.json
         gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
         docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:latest
         docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:$GIT_TAG
