@@ -33,5 +33,6 @@ jobs:
       run: |-
         docker tag $IMAGE_NAME:latest northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:latest
         docker tag $IMAGE_NAME:latest northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:$GIT_TAG
+        gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://northamerica-northeast1-docker.pkg.dev
         docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:latest
         docker push northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/alert-project/$IMAGE_NAME:$GIT_TAG
