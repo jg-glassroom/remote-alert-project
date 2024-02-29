@@ -4,11 +4,38 @@
 
   <div class="form-row">
     <mat-form-field class="form-element">
+      <mat-label>Partner</mat-label>
+      <input type="text" placeholder="Select your partner" aria-label="partner" matInput [matAutocomplete]="partnersAuto">
+      <mat-autocomplete #partnersAuto="matAutocomplete" (optionSelected)="getAdvertiser($event)" [displayWith]="displayFn">
+        <mat-option *ngFor="let partner of partners$ | async" [value]="partner">
+          {{ partner.displayName }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field class="form-element">
+      <mat-label>Advertiser</mat-label>
+      <input type="text" placeholder="Select your advertiser" aria-label="advertiser" matInput [matAutocomplete]="advertisersAuto">
+      <mat-autocomplete #advertisersAuto="matAutocomplete" (optionSelected)="getCampaign($event)" [displayWith]="displayFn">
+        <mat-option *ngFor="let advertiser of advertisers$ | async" [value]="advertiser">
+          {{ advertiser.displayName }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <div class="form-row">
+    <mat-form-field class="form-element">
       <mat-label>Campaign Name</mat-label>
-      <input matInput formControlName="campaignName" required>
-          <mat-error *ngIf="(submitted || form['campaignName'].touched) && form['campaignName'].invalid">
-              The field is required
-          </mat-error>
+      <input type="text" placeholder="Select your campaign" aria-label="advertiser" matInput [matAutocomplete]="campaignsAuto">
+      <mat-autocomplete #campaignsAuto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="autoCompleteCampaign($event)">
+        <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
+          {{ campaign.displayName }}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="(submitted || form['campaignName'].touched) && form['campaignName'].invalid">
+          The field is required
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field class="form-element">

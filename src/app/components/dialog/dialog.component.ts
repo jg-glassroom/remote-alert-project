@@ -1,16 +1,21 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormBuilder, FormGroup } from "@angular/forms";
+import { HttpClient } from '@angular/common/http';
+import { Validators, FormsModule, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn, FormBuilder, FormGroup } from '@angular/forms';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+
+import { AuthService } from '../../services/auth.service';
+import { Observable, of, firstValueFrom } from 'rxjs';
+import { first, switchMap } from 'rxjs/operators';
+
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
-import { first, switchMap } from 'rxjs/operators';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 
 @Component({
@@ -23,7 +28,9 @@ import { first, switchMap } from 'rxjs/operators';
     ReactiveFormsModule,
     CommonModule, 
     MatDatepickerModule, 
-    MatButtonModule
+    MatButtonModule,
+    MatAutocompleteModule,
+    MatSelectModule,
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -34,13 +41,17 @@ export class DialogComponent {
   isEditMode: boolean = false;
   initialCampaignName: string = ''; 
   documentId: string | null = null;
+  partners$!: Observable<any[]>;
+  advertisers$!: Observable<any[]>;
+  campaigns$!: Observable<any[]>;
 
   constructor(
     private formBuilder: FormBuilder, 
     private db: AngularFirestore, 
     private dialogRef: MatDialogRef<DialogComponent>,
     public auth: AuthService,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private http: HttpClient
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -55,7 +66,18 @@ export class DialogComponent {
 
   ngOnInit() {
     this.createForm();
+    const cachedPartners = localStorage.getItem('partners');
+    if (cachedPartners) {
+      this.partners$ = of(JSON.parse(cachedPartners));
+    } else {
+      this.partners$ = of([]);
+    }
   }
+
+  displayFn(partner: any): string {
+    return partner && partner.displayName ? partner.displayName : '';
+  }
+
 
   createForm() {
     this.formGroup = this.formBuilder.group({
@@ -64,6 +86,7 @@ export class DialogComponent {
       startDate: [this.data?.startDate ? new Date(this.data.startDate) : null, [Validators.required, this.isValidDate(), this.endDateNotInFuture()]],
       endDate: [this.data?.endDate ? new Date(this.data.endDate) : null, [Validators.required, this.isValidDate(), this.endDateNotInFuture()]],
       budget: [this.data?.budget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
+      partner: [this.data?.partner || null, [Validators.required]],
     });
 
     const startDateControl = this.formGroup.get('startDate');
@@ -75,6 +98,70 @@ export class DialogComponent {
       ]);
       endDateControl.updateValueAndValidity();
     }
+  }
+
+  async getAdvertiser(event: MatAutocompleteSelectedEvent) {
+    const selectedPartner = event.option.value;
+  
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
+    const response$ = this.http.get(`https://displayvideo.googleapis.com/v2/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
+    const data: any = await firstValueFrom(response$);
+
+    const storedData = localStorage.getItem('partners');
+    const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
+    localStorage.setItem('selectedPartner', selectedPartner.partnerId);
+    partnersData.forEach((partner: any) => {
+      if (partner.partnerId === selectedPartner.partnerId) {
+        partner.advertisers = data.advertisers;
+        this.advertisers$ = of(partner.advertisers);
+      }
+    })
+    localStorage.setItem('partners', JSON.stringify(partnersData));
+  }
+
+  async getCampaign(event: MatAutocompleteSelectedEvent) {
+    const selectedAdvertiser = event.option.value;
+  
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
+    const response$ = this.http.get(`https://displayvideo.googleapis.com/v2/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
+    const data: any = await firstValueFrom(response$);
+    localStorage.setItem('selectedAdvertiser', selectedAdvertiser.partnerId);
+
+    const storedData = localStorage.getItem('partners');
+    const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
+    partnersData.forEach((partner: any) => {
+      if (partner.partnerId === localStorage.getItem('selectedPartner')) {
+        partner.advertisers.forEach((advertiser: any) => {
+          if (advertiser.advertiserId === selectedAdvertiser.advertiserId) {
+            advertiser.campaigns = data.campaigns;
+            this.campaigns$ = of(advertiser.campaigns);
+          }
+        })
+      }
+    })
+    localStorage.setItem('partners', JSON.stringify(partnersData));
+  }
+
+  autoCompleteCampaign(event: MatAutocompleteSelectedEvent) {
+    const selectedCampaign = event.option.value;
+    this.formGroup.patchValue({
+      campaignId: selectedCampaign.campaignId,
+    })
+    if (selectedCampaign.campaignFlight && selectedCampaign.campaignFlight.plannedDates) {
+      if (selectedCampaign.campaignFlight.plannedDates.startDate) {
+        const startDate = selectedCampaign.campaignFlight.plannedDates.startDate;
+        this.formGroup.patchValue({
+          startDate: new Date(startDate.year, startDate.month - 1, startDate.day),
+        })
+      }
+      if (selectedCampaign.campaignFlight.plannedDates.endDate) {
+        const endDate = selectedCampaign.campaignFlight.plannedDates.endDate;
+        this.formGroup.patchValue({
+          endDate: new Date(endDate.year, endDate.month - 1, endDate.day),
+        })
+      }
+    }
+    this.formGroup.get('campaignId')!.disable();
   }
 
   formatDate(date: Date): string {
@@ -139,7 +226,6 @@ export class DialogComponent {
       });
     }
   }
-
 
   onCancel(): void {
     this.dialogRef.close();
