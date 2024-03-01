@@ -5,7 +5,7 @@ import { Validators, FormsModule, ReactiveFormsModule, AbstractControl, Validati
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 import { AuthService } from '../../services/auth.service';
-import { Observable, of, firstValueFrom } from 'rxjs';
+import { Observable, of, firstValueFrom, BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
 import { first, switchMap } from 'rxjs/operators';
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -43,6 +43,7 @@ export class DialogComponent {
   documentId: string | null = null;
   partners$!: Observable<any[]>;
   advertisers$!: Observable<any[]>;
+  originalAdvertisers$!: Observable<any[]>;
   campaigns$!: Observable<any[]>;
 
   constructor(
@@ -66,11 +67,44 @@ export class DialogComponent {
 
   ngOnInit() {
     this.createForm();
-    const cachedPartners = localStorage.getItem('partners');
-    if (cachedPartners) {
-      this.partners$ = of(JSON.parse(cachedPartners));
+    this.setupFilteringPartner();
+  }
+
+
+  setupFilteringPartner() {
+    this.partners$ = this.formGroup.get('partner')!.valueChanges.pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value.toLowerCase() : ''),
+      switchMap(name => this.filterPartners(name))
+    );
+  }
+
+
+  setupFilteringAdvertiser() {
+    this.advertisers$ = this.formGroup.get('advertiser')!.valueChanges.pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value.toLowerCase() : ''),
+      switchMap(name => this.filterAdvertisers(name))
+    );
+  }
+
+  filterPartners(filterValue: string): Observable<any[]> {
+    return of(JSON.parse(localStorage.getItem("partners")!)).pipe(
+      map(partners => 
+        partners.filter((partner: any) => partner.displayName.toLowerCase().includes(filterValue))
+      )
+    );
+  }
+
+  filterAdvertisers(filterValue: string): Observable<any[]> {
+    if (this.originalAdvertisers$) {
+      return this.originalAdvertisers$.pipe(
+        map(advertisers => 
+          advertisers.filter((advertiser: any) => advertiser.displayName.toLowerCase().includes(filterValue))
+        )
+      );
     } else {
-      this.partners$ = of([]);
+      return of([]); 
     }
   }
 
@@ -85,8 +119,8 @@ export class DialogComponent {
       advertiser: [this.data?.advertiser || null, [Validators.required]],
       campaignName: [this.data?.campaignName || null, Validators.required],
       campaignId: [this.data?.campaignId || null, [Validators.required]],
-      startDate: [this.data?.startDate ? new Date(this.data.startDate) : null, [Validators.required, this.isValidDate(), this.endDateNotInFuture()]],
-      endDate: [this.data?.endDate ? new Date(this.data.endDate) : null, [Validators.required, this.isValidDate(), this.endDateNotInFuture()]],
+      startDate: [this.data?.startDate ? new Date(this.data.startDate) : null, [Validators.required, this.isValidDate()]],
+      endDate: [this.data?.endDate ? new Date(this.data.endDate) : null, [Validators.required, this.isValidDate()]],
       budget: [this.data?.budget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
     });
 
@@ -115,6 +149,8 @@ export class DialogComponent {
       if (partner.partnerId === selectedPartner.partnerId) {
         partner.advertisers = data.advertisers;
         this.advertisers$ = of(partner.advertisers);
+        this.originalAdvertisers$ = of(partner.advertisers);
+        this.setupFilteringAdvertiser();
       }
     })
     localStorage.setItem('partners', JSON.stringify(partnersData));
@@ -176,15 +212,6 @@ export class DialogComponent {
     return (control: AbstractControl): ValidationErrors | null => {
       const isValid = !isNaN(Date.parse(control.value));
       return isValid ? null : { invalidDate: 'The date is not valid.' };
-    };
-  }
-
-  endDateNotInFuture(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); 
-      const inputDate = new Date(control.value);
-      return inputDate <= today ? null : { futureDate: 'End date cannot be in the future.' };
     };
   }
 

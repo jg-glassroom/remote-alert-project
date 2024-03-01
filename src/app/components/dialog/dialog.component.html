@@ -27,23 +27,23 @@
   <div class="form-row">
     <mat-form-field class="form-element">
       <mat-label>Campaign Name</mat-label>
-      <input type="text" placeholder="Select your campaign" formControlName="campaignName" aria-label="Campaign Name" matInput [matAutocomplete]="campaignsAuto">
+      <input matInput formControlName="campaignName" required>
+          <mat-error *ngIf="(submitted || form['campaignName'].touched) && form['campaignName'].invalid">
+              The field is required
+          </mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="form-element">
+      <mat-label>Campaign Id</mat-label>
+      <input type="text" placeholder="Select your campaign" formControlName="campaignId" aria-label="Campaign Id" matInput [matAutocomplete]="campaignsAuto">
       <mat-autocomplete #campaignsAuto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="autoCompleteCampaign($event)">
         <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-          {{ campaign.displayName }}
+          {{ campaign.displayName }} | {{ campaign.campaignId }}
         </mat-option>
       </mat-autocomplete>
       <mat-error *ngIf="(submitted || form['campaignName'].touched) && form['campaignName'].invalid">
           The field is required
       </mat-error>
-    </mat-form-field>
-
-    <mat-form-field class="form-element">
-      <mat-label>Campaign Id</mat-label>
-      <input matInput formControlName="campaignId" required>
-          <mat-error *ngIf="(submitted || form['campaignId'].touched) && form['campaignId'].invalid">
-              The field is required
-          </mat-error>
     </mat-form-field>
   </div>
 
@@ -74,11 +74,8 @@
         <mat-error *ngIf="form['endDate'].errors?.['invalidDate']">
           Please enter a valid date.
         </mat-error>
-        <mat-error *ngIf="form['endDate'].errors?.['futureDate']">
-          End date cannot be in the future.
-        </mat-error>
         <mat-error *ngIf="form['endDate'].errors?.['dateMismatch']">
-          End date must be after or equal to <section></section>tart date.
+          End date must be after or equal to start date.
         </mat-error>
     </mat-form-field>
   </div>
