@@ -1,11 +1,14 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn, FormBuilder, FormGroup } from '@angular/forms';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { SelectionModel } from '@angular/cdk/collections';
 
 import { AuthService } from '../../services/auth.service';
-import { Observable, of, firstValueFrom, BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
+import { Observable, of, firstValueFrom, map, startWith } from 'rxjs';
 import { first, switchMap } from 'rxjs/operators';
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -13,9 +16,12 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 
 @Component({
@@ -31,6 +37,9 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
     MatButtonModule,
     MatAutocompleteModule,
     MatSelectModule,
+    MatChipsModule,
+    MatIconModule,
+    MatCheckboxModule,
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -44,7 +53,15 @@ export class DialogComponent {
   partners$!: Observable<any[]>;
   advertisers$!: Observable<any[]>;
   originalAdvertisers$!: Observable<any[]>;
+  originalCampaigns$!: Observable<any[]>;
   campaigns$!: Observable<any[]>;
+  campaigns: any = [];
+  separatorKeysCodes: number[] = [ENTER, COMMA];
+  selection = new SelectionModel<any>(true, []);
+
+  @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
+
+  announcer = inject(LiveAnnouncer);
 
   constructor(
     private formBuilder: FormBuilder, 
@@ -64,6 +81,130 @@ export class DialogComponent {
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
   };
+
+  truncateName(obj: any, num: number) {
+    var name = obj.displayName + " | " + obj.campaignId
+    if (name.length > num) {
+      return name.slice(0, num) + "...";
+    } else {
+      return name;
+    }
+  }
+
+  add(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+
+    if (value) {
+      this.campaigns.push(value);
+    }
+
+    event.chipInput!.clear();
+
+    this.formGroup.get('campaignId')!.setValue(null);
+  }
+
+  remove(campaign: string): void {
+    const index = this.campaigns.indexOf(campaign);
+
+    if (index >= 0) {
+      this.campaigns.splice(index, 1);
+      this.selection.deselect(campaign);
+
+      this.announcer.announce(`Removed ${campaign}`);
+    }
+  }
+
+  toggleSelection(campaign: any): void {
+    if (this.selection.isSelected(campaign)) {
+      this.selection.deselect(campaign);
+      this.removeCampaignFromChips(campaign);
+    } else {
+      this.selection.select(campaign);
+      this.addCampaignToChips(campaign);
+    }
+  }
+
+  autoCompleteCampaign() {
+    let selectedCampaign = {
+      campaignId: null,
+      campaignFlight: {
+        plannedDates: {
+          startDate: null,
+          endDate: null,
+        }
+      },
+    };
+    if (this.campaigns.length > 0) {
+      selectedCampaign = this.campaigns[0];
+    }
+    this.formGroup.patchValue({
+      campaignId: selectedCampaign.campaignId,
+    })
+    if (selectedCampaign.campaignFlight && selectedCampaign.campaignFlight.plannedDates) {
+      if (selectedCampaign.campaignFlight.plannedDates.startDate) {
+        const startDate = selectedCampaign.campaignFlight.plannedDates.startDate as { year: number; month: number; day: number; };
+        this.formGroup.patchValue({
+          startDate: new Date(startDate.year, startDate.month - 1, startDate.day),
+        })
+      } else {
+        this.formGroup.patchValue({
+          startDate: null,
+        })
+      }
+      if (selectedCampaign.campaignFlight.plannedDates.endDate) {
+        const endDate = selectedCampaign.campaignFlight.plannedDates.endDate as { year: number; month: number; day: number; };
+        this.formGroup.patchValue({
+          endDate: new Date(endDate.year, endDate.month - 1, endDate.day),
+        })
+      } else {
+        this.formGroup.patchValue({
+          endDate: null,
+        })
+      }
+    }
+  }
+  
+  addCampaignToChips(campaign: any): void {
+    if (!this.campaigns.some((c: any) => c.campaignId === campaign.campaignId)) {
+      this.campaigns.push(campaign);
+      this.autoCompleteCampaign();
+    }
+    this.campaignInput.nativeElement.value = '';
+    this.formGroup.get('campaignId')!.setValue(null);
+  }
+  
+  removeCampaignFromChips(campaign: any): void {
+    const index = this.campaigns.findIndex((c: any) => c.campaignId === campaign.campaignId);
+    if (index >= 0) {
+      this.campaigns.splice(index, 1);
+      this.autoCompleteCampaign();
+    }
+  }
+
+  selected(event: MatAutocompleteSelectedEvent): void {
+    const selectedCampaign = event.option.value;
+    const index = this.campaigns.findIndex((campaign: any) => campaign === selectedCampaign);
+
+    if (this.selection.isSelected(selectedCampaign)) {
+      this.selection.deselect(selectedCampaign);
+    } else {
+      this.selection.select(selectedCampaign);
+    }
+
+    event.option.deselect();
+    event.option._getHostElement().blur();
+  
+    if (index >= 0) {
+      this.campaigns.splice(index, 1);
+      this.announcer.announce(`Removed ${selectedCampaign.displayName}`);
+    } else {
+      this.campaigns.push(selectedCampaign);
+      this.announcer.announce(`Added ${selectedCampaign.displayName}`);
+    }
+  
+    this.campaignInput.nativeElement.value = '';
+    this.formGroup.get('campaignId')!.setValue(null);
+  }
 
   ngOnInit() {
     this.createForm();
@@ -88,6 +229,15 @@ export class DialogComponent {
     );
   }
 
+
+  setupFilteringCampaign() {
+    this.campaigns$ = this.formGroup.get('campaignId')!.valueChanges.pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value.toLowerCase() : ''),
+      switchMap(name => this.filterCampaigns(name))
+    );
+  }
+
   filterPartners(filterValue: string): Observable<any[]> {
     return of(JSON.parse(localStorage.getItem("partners")!)).pipe(
       map(partners => 
@@ -101,6 +251,18 @@ export class DialogComponent {
       return this.originalAdvertisers$.pipe(
         map(advertisers => 
           advertisers.filter((advertiser: any) => advertiser.displayName.toLowerCase().includes(filterValue))
+        )
+      );
+    } else {
+      return of([]); 
+    }
+  }
+
+  filterCampaigns(filterValue: string): Observable<any[]> {
+    if (this.originalCampaigns$) {
+      return this.originalCampaigns$.pipe(
+        map(campaigns => 
+          campaigns.filter((campaign: any) => campaign.displayName.toLowerCase().includes(filterValue))
         )
       );
     } else {
@@ -139,7 +301,7 @@ export class DialogComponent {
     const selectedPartner = event.option.value;
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
-    const response$ = this.http.get(`https://displayvideo.googleapis.com/v2/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
+    const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
     const data: any = await firstValueFrom(response$);
 
     const storedData = localStorage.getItem('partners');
@@ -160,7 +322,7 @@ export class DialogComponent {
     const selectedAdvertiser = event.option.value;
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
-    const response$ = this.http.get(`https://displayvideo.googleapis.com/v2/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
+    const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
     const data: any = await firstValueFrom(response$);
     localStorage.setItem('selectedAdvertiser', selectedAdvertiser.partnerId);
 
@@ -172,33 +334,13 @@ export class DialogComponent {
           if (advertiser.advertiserId === selectedAdvertiser.advertiserId) {
             advertiser.campaigns = data.campaigns;
             this.campaigns$ = of(advertiser.campaigns);
+            this.originalCampaigns$ = of(advertiser.campaigns);
+            this.setupFilteringCampaign();
           }
         })
       }
     })
     localStorage.setItem('partners', JSON.stringify(partnersData));
-  }
-
-  autoCompleteCampaign(event: MatAutocompleteSelectedEvent) {
-    const selectedCampaign = event.option.value;
-    this.formGroup.patchValue({
-      campaignId: selectedCampaign.campaignId,
-    })
-    if (selectedCampaign.campaignFlight && selectedCampaign.campaignFlight.plannedDates) {
-      if (selectedCampaign.campaignFlight.plannedDates.startDate) {
-        const startDate = selectedCampaign.campaignFlight.plannedDates.startDate;
-        this.formGroup.patchValue({
-          startDate: new Date(startDate.year, startDate.month - 1, startDate.day),
-        })
-      }
-      if (selectedCampaign.campaignFlight.plannedDates.endDate) {
-        const endDate = selectedCampaign.campaignFlight.plannedDates.endDate;
-        this.formGroup.patchValue({
-          endDate: new Date(endDate.year, endDate.month - 1, endDate.day),
-        })
-      }
-    }
-    this.formGroup.get('campaignId')!.disable();
   }
 
   formatDate(date: Date): string {

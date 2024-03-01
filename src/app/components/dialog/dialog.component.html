@@ -33,15 +33,33 @@
           </mat-error>
     </mat-form-field>
 
+
     <mat-form-field class="form-element">
-      <mat-label>Campaign Id</mat-label>
-      <input type="text" placeholder="Select your campaign" formControlName="campaignId" aria-label="Campaign Id" matInput [matAutocomplete]="campaignsAuto">
-      <mat-autocomplete #campaignsAuto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="autoCompleteCampaign($event)">
+      <mat-label>Campaign Id*</mat-label>
+
+      <mat-chip-grid #chipGrid aria-label="Campaign Selection">
+        <mat-chip-row *ngFor="let campaign of campaigns" (removed)="remove(campaign)">
+          <span>{{ truncateName(campaign, 25) }}</span>
+          <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      </mat-chip-grid>
+
+      <input placeholder="Select your campaigns" #campaignInput formControlName="campaignId"
+        [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
+        [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+        (matChipInputTokenEnd)="add($event)"/>
+
+      <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selected($event)">
         <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-          {{ campaign.displayName }} | {{ campaign.campaignId }}
+          <mat-checkbox [checked]="selection.isSelected(campaign)" (click)="$event.stopPropagation(); toggleSelection(campaign)">
+            {{ campaign.displayName }} | {{ campaign.campaignId }}
+          </mat-checkbox>
         </mat-option>
       </mat-autocomplete>
-      <mat-error *ngIf="(submitted || form['campaignName'].touched) && form['campaignName'].invalid">
+
+      <mat-error *ngIf="(submitted || form['campaignId'].touched) && form['campaignId'].invalid">
           The field is required
       </mat-error>
     </mat-form-field>

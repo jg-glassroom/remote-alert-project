@@ -84,7 +84,7 @@ export class AuthService {
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
-    const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v2/partners', { headers });
+    const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v3/partners', { headers });
     const data = await firstValueFrom(response$);
   
     this.partners = data.partners;
