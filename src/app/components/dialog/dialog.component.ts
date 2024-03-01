@@ -109,6 +109,7 @@ export class DialogComponent {
     if (index >= 0) {
       this.campaigns.splice(index, 1);
       this.selection.deselect(campaign);
+      this.autoCompleteCampaign();
 
       this.announcer.announce(`Removed ${campaign}`);
     }
@@ -128,6 +129,7 @@ export class DialogComponent {
     let selectedCampaign = {
       campaignId: null,
       campaignFlight: {
+        plannedSpendAmountMicros: null,
         plannedDates: {
           startDate: null,
           endDate: null,
@@ -161,6 +163,15 @@ export class DialogComponent {
           endDate: null,
         })
       }
+    }
+    if (selectedCampaign.campaignFlight && selectedCampaign.campaignFlight.plannedSpendAmountMicros) {
+      this.formGroup.patchValue({
+        budget: Number(selectedCampaign.campaignFlight.plannedSpendAmountMicros) / 1000000,
+      })
+    } else {
+      this.formGroup.patchValue({
+        budget: null,
+      })
     }
   }
   
@@ -273,7 +284,6 @@ export class DialogComponent {
   displayFn(partner: any): string {
     return partner && partner.displayName ? partner.displayName : '';
   }
-
 
   createForm() {
     this.formGroup = this.formBuilder.group({
