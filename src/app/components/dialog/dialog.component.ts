@@ -123,6 +123,9 @@ export class DialogComponent {
       this.selection.select(campaign);
       this.addCampaignToChips(campaign);
     }
+    this.formGroup.patchValue({
+      campaignId: this.campaigns,
+    })
   }
 
   autoCompleteCampaign() {
@@ -290,7 +293,7 @@ export class DialogComponent {
       partner: [this.data?.partner || null, [Validators.required]],
       advertiser: [this.data?.advertiser || null, [Validators.required]],
       campaignName: [this.data?.campaignName || null, Validators.required],
-      campaignId: [this.data?.campaignId || null, [Validators.required]],
+      campaignId: [this.data?.campaignId || [], [Validators.required]],
       startDate: [this.data?.startDate ? new Date(this.data.startDate) : null, [Validators.required, this.isValidDate()]],
       endDate: [this.data?.endDate ? new Date(this.data.endDate) : null, [Validators.required, this.isValidDate()]],
       budget: [this.data?.budget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
@@ -305,10 +308,20 @@ export class DialogComponent {
       ]);
       endDateControl.updateValueAndValidity();
     }
+    if (this.isEditMode) {
+      this.getAdvertiser()
+      this.getCampaign()
+      this.campaigns = this.data?.campaignId
+    }
   }
 
-  async getAdvertiser(event: MatAutocompleteSelectedEvent) {
-    const selectedPartner = event.option.value;
+  async getAdvertiser(event?: MatAutocompleteSelectedEvent) {
+    let selectedPartner: any = null
+    if (event) {
+      selectedPartner = event.option.value;
+    } else {
+      selectedPartner = this.data?.partner
+    }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
     const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
@@ -328,8 +341,13 @@ export class DialogComponent {
     localStorage.setItem('partners', JSON.stringify(partnersData));
   }
 
-  async getCampaign(event: MatAutocompleteSelectedEvent) {
-    const selectedAdvertiser = event.option.value;
+  async getCampaign(event?: MatAutocompleteSelectedEvent) {
+    let selectedAdvertiser: any = null
+    if (event) {
+      selectedAdvertiser = event.option.value;
+    } else {
+      selectedAdvertiser = this.data?.advertiser
+    }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
     const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
@@ -350,6 +368,11 @@ export class DialogComponent {
         })
       }
     })
+    if (this.isEditMode) {
+      this.data.campaignId.forEach((campaign: any) => {
+        this.toggleSelection(campaign)
+      });
+    }
     localStorage.setItem('partners', JSON.stringify(partnersData));
   }
 

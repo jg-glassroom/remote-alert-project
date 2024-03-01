@@ -1,4 +1,5 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AuthService } from '../../services/auth.service';
 import { take } from 'rxjs/operators';
@@ -12,12 +13,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { G } from '@angular/cdk/keycodes';
 
 
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatPaginatorModule, MatIconModule, DialogComponent, ConfirmDialogComponent],
+  imports: [MatTableModule, MatButtonModule, MatPaginatorModule, MatIconModule, DialogComponent, ConfirmDialogComponent, CommonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -62,6 +64,10 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  getConcatenatedCampaignIds(campaigns: any[]): string {
+    return campaigns.map(c => c.campaignId).join(', ');
+  }
+  
   editRule(row: any) {
     this.matDialog.open(DialogComponent, {
       width: '70%',
