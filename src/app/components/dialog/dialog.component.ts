@@ -123,6 +123,7 @@ export class DialogComponent {
       this.selection.select(campaign);
       this.addCampaignToChips(campaign);
     }
+    console.log("AAAAAAAAAAAAAAAA3", this.selection)
     this.formGroup.patchValue({
       campaignId: this.campaigns,
     })
@@ -183,7 +184,9 @@ export class DialogComponent {
       this.campaigns.push(campaign);
       this.autoCompleteCampaign();
     }
-    this.campaignInput.nativeElement.value = '';
+    if (this.campaignInput) {
+      this.campaignInput.nativeElement.value = '';
+    }
     this.formGroup.get('campaignId')!.setValue(null);
   }
   
@@ -312,6 +315,12 @@ export class DialogComponent {
       this.getAdvertiser()
       this.getCampaign()
       this.campaigns = this.data?.campaignId
+      console.log("AAAAAAAAAAAAAAAA", this.selection)
+      this.campaigns.forEach((campaign: any) => {
+        this.selection.isSelected(campaign)
+        this.toggleSelection(campaign)
+      });
+      console.log("AAAAAAAAAAAAAAAA1", this.selection)
     }
   }
 
@@ -357,7 +366,7 @@ export class DialogComponent {
     const storedData = localStorage.getItem('partners');
     const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
     partnersData.forEach((partner: any) => {
-      if (partner.partnerId === localStorage.getItem('selectedPartner')) {
+      if (partner.partnerId === localStorage.getItem('selectedPartner') && partner.advertisers && partner.advertisers.length > 0) {
         partner.advertisers.forEach((advertiser: any) => {
           if (advertiser.advertiserId === selectedAdvertiser.advertiserId) {
             advertiser.campaigns = data.campaigns;
@@ -368,11 +377,6 @@ export class DialogComponent {
         })
       }
     })
-    if (this.isEditMode) {
-      this.data.campaignId.forEach((campaign: any) => {
-        this.toggleSelection(campaign)
-      });
-    }
     localStorage.setItem('partners', JSON.stringify(partnersData));
   }
 

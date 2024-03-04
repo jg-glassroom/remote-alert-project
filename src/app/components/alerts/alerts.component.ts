@@ -37,7 +37,6 @@ export class AlertsComponent {
     callable({}).subscribe(
       (result) => {
         this.dataSource.data = result; 
-        console.log(result);
       },
       (error) => {
         console.error('Error calling function:', error);
