@@ -123,7 +123,6 @@ export class DialogComponent {
       this.selection.select(campaign);
       this.addCampaignToChips(campaign);
     }
-    console.log("AAAAAAAAAAAAAAAA3", this.selection)
     this.formGroup.patchValue({
       campaignId: this.campaigns,
     })
@@ -312,24 +311,33 @@ export class DialogComponent {
       endDateControl.updateValueAndValidity();
     }
     if (this.isEditMode) {
-      this.getAdvertiser()
-      this.getCampaign()
+      this.getAdvertiser(undefined, true)
+      this.getCampaign(undefined, true)
       this.campaigns = this.data?.campaignId
-      console.log("AAAAAAAAAAAAAAAA", this.selection)
       this.campaigns.forEach((campaign: any) => {
         this.selection.isSelected(campaign)
         this.toggleSelection(campaign)
       });
-      console.log("AAAAAAAAAAAAAAAA1", this.selection)
     }
   }
 
-  async getAdvertiser(event?: MatAutocompleteSelectedEvent) {
+  async getAdvertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     let selectedPartner: any = null
     if (event) {
       selectedPartner = event.option.value;
     } else {
       selectedPartner = this.data?.partner
+    }
+
+    if (!edit) {
+      this.formGroup.patchValue({
+        campaignId: [],
+        advertiser: null,
+        startDate: null,
+        endDate: null,
+        budget: null,
+      })
+      this.campaigns = []
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
@@ -350,12 +358,22 @@ export class DialogComponent {
     localStorage.setItem('partners', JSON.stringify(partnersData));
   }
 
-  async getCampaign(event?: MatAutocompleteSelectedEvent) {
+  async getCampaign(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     let selectedAdvertiser: any = null
     if (event) {
       selectedAdvertiser = event.option.value;
     } else {
       selectedAdvertiser = this.data?.advertiser
+    }
+
+    if (!edit) {
+      this.formGroup.patchValue({
+        campaignId: [],
+        startDate: null,
+        endDate: null,
+        budget: null,
+      })
+      this.campaigns = []
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
