@@ -39,7 +39,7 @@ export class AlertsComponent {
         this.dataSource.data = result; 
       },
       (error) => {
-        console.error('Error calling function:', error);
+        console.error('Error calling function: ', error);
       }
     );
   }
