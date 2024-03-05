@@ -38,6 +38,7 @@ export class AuthService {
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/display-video');
     provider.addScope('https://www.googleapis.com/auth/dfareporting');
+    provider.addScope('https://www.googleapis.com/auth/doubleclickbidmanager');
     provider.addScope('https://www.googleapis.com/auth/doubleclicksearch');
     
     const result = await signInWithPopup(getAuth(), provider);

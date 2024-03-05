@@ -37,8 +37,11 @@
     <ng-container matColumnDef="icon">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'" class="icon-column"></th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button class="delete-icon" aria-label="Delete button" (click)="deleteRow(element, $event)">
+        <button mat-icon-button class="icon" aria-label="Delete button" (click)="deleteRow(element, $event)">
             <mat-icon>delete</mat-icon>
+        </button>
+        <button mat-icon-button class="icon" aria-label="Process button" (click)="processReport(element, $event)">
+            <mat-icon>play_arrow</mat-icon>
         </button>
       </td>
     </ng-container>

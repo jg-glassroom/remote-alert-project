@@ -13,16 +13,16 @@
   cursor: pointer; 
 }
 
-.delete-icon {
+.icon {
   float: right;
   visibility: hidden;
 }
 
 .icon-column {
-  width: 0%;
+  width: 10%;
 }
 
-.table .row:hover .delete-icon {
+.table .row:hover .icon {
   visibility: visible;
 }
 

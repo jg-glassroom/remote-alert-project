@@ -109,7 +109,6 @@ export class DialogComponent {
     if (index >= 0) {
       this.campaigns.splice(index, 1);
       this.selection.deselect(campaign);
-      this.autoCompleteCampaign();
 
       this.announcer.announce(`Removed ${campaign}`);
     }
@@ -127,61 +126,10 @@ export class DialogComponent {
       campaignId: this.campaigns,
     })
   }
-
-  autoCompleteCampaign() {
-    let selectedCampaign = {
-      campaignId: null,
-      campaignFlight: {
-        plannedSpendAmountMicros: null,
-        plannedDates: {
-          startDate: null,
-          endDate: null,
-        }
-      },
-    };
-    if (this.campaigns.length > 0) {
-      selectedCampaign = this.campaigns[0];
-    }
-    this.formGroup.patchValue({
-      campaignId: selectedCampaign.campaignId,
-    })
-    if (selectedCampaign.campaignFlight && selectedCampaign.campaignFlight.plannedDates) {
-      if (selectedCampaign.campaignFlight.plannedDates.startDate) {
-        const startDate = selectedCampaign.campaignFlight.plannedDates.startDate as { year: number; month: number; day: number; };
-        this.formGroup.patchValue({
-          startDate: new Date(startDate.year, startDate.month - 1, startDate.day),
-        })
-      } else {
-        this.formGroup.patchValue({
-          startDate: null,
-        })
-      }
-      if (selectedCampaign.campaignFlight.plannedDates.endDate) {
-        const endDate = selectedCampaign.campaignFlight.plannedDates.endDate as { year: number; month: number; day: number; };
-        this.formGroup.patchValue({
-          endDate: new Date(endDate.year, endDate.month - 1, endDate.day),
-        })
-      } else {
-        this.formGroup.patchValue({
-          endDate: null,
-        })
-      }
-    }
-    if (selectedCampaign.campaignFlight && selectedCampaign.campaignFlight.plannedSpendAmountMicros) {
-      this.formGroup.patchValue({
-        budget: Number(selectedCampaign.campaignFlight.plannedSpendAmountMicros) / 1000000,
-      })
-    } else {
-      this.formGroup.patchValue({
-        budget: null,
-      })
-    }
-  }
   
   addCampaignToChips(campaign: any): void {
     if (!this.campaigns.some((c: any) => c.campaignId === campaign.campaignId)) {
       this.campaigns.push(campaign);
-      this.autoCompleteCampaign();
     }
     if (this.campaignInput) {
       this.campaignInput.nativeElement.value = '';
@@ -193,7 +141,6 @@ export class DialogComponent {
     const index = this.campaigns.findIndex((c: any) => c.campaignId === campaign.campaignId);
     if (index >= 0) {
       this.campaigns.splice(index, 1);
-      this.autoCompleteCampaign();
     }
   }
 
@@ -226,7 +173,6 @@ export class DialogComponent {
     this.createForm();
     this.setupFilteringPartner();
   }
-
 
   setupFilteringPartner() {
     this.partners$ = this.formGroup.get('partner')!.valueChanges.pipe(
