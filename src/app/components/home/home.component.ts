@@ -150,7 +150,7 @@ export class HomeComponent implements OnInit {
     this.reportId = data.key.reportId;
   }
 
-  async getReportLink(tries: number = 3) {
+  async getReportLink(tries: number = 5) {
     try {
       const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
       const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
