@@ -9,6 +9,8 @@ import { firstValueFrom } from 'rxjs';
 import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
+
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,8 +34,15 @@ export class HomeComponent implements OnInit {
   queryId = null;
   reportId = null;
   reportLink = null;
+  reportJson: any = null;
 
-  constructor (private db: AngularFirestore, private matDialog: MatDialog, private authService: AuthService, private http: HttpClient) {}
+  constructor (
+    private db: AngularFirestore, 
+    private matDialog: MatDialog, 
+    private authService: AuthService, 
+    private http: HttpClient, 
+    private fns: AngularFireFunctions
+  ) {}
 
   ngOnInit(): void {
     this.getSearch()
@@ -112,15 +121,20 @@ export class HomeComponent implements OnInit {
         "type": "STANDARD",
         "groupBys": ['FILTER_DATE','FILTER_ADVERTISER','FILTER_ADVERTISER_CURRENCY','FILTER_CM360_PLACEMENT_ID'],
         "metrics": [
-          'METRIC_CLICKS',
           'METRIC_IMPRESSIONS',
-          'METRIC_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS',
+          'METRIC_BILLABLE_IMPRESSIONS',
           'METRIC_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS',
           'METRIC_ACTIVE_VIEW_MEASURABLE_IMPRESSIONS',
+          'METRIC_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS',
           'METRIC_ACTIVE_VIEW_AVERAGE_VIEWABLE_TIME',
+          'METRIC_REVENUE_ADVERTISER',
+          'METRIC_CLICKS',
           'METRIC_RICH_MEDIA_VIDEO_PLAYS',
+          'METRIC_RICH_MEDIA_VIDEO_PAUSES',
+          'METRIC_RICH_MEDIA_VIDEO_MIDPOINTS',
           'METRIC_RICH_MEDIA_VIDEO_COMPLETIONS',
-          'METRIC_REVENUE_ADVERTISER'
+          'METRIC_RICH_MEDIA_VIDEO_SKIPS',
+          'METRIC_TOTAL_CONVERSIONS'
         ],
       },
       "schedule": {
@@ -175,13 +189,38 @@ export class HomeComponent implements OnInit {
   }  
 
   async getReport() {
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
-    const response$ = this.http.get(`${this.reportLink}`, { headers });
-    const data: any = await firstValueFrom(response$);
-    console.log("Data report link:", data);
-    this.queryId = null;
-    this.reportId = null;
-    this.reportLink = null;
+    const proxyUrl = 'http://localhost:3000/download-csv';
+    const fileUrl = encodeURIComponent(`${this.reportLink}`);
+    this.http.get(`${proxyUrl}?fileUrl=${fileUrl}`, { responseType: 'text' })
+    .subscribe(response => {
+      console.log(this.csvToJSON(response));
+      this.reportJson = this.csvToJSON(response);
+    }, error => {
+      console.error("Error uploading CSV file:", error);
+    });
+  }
+
+  csvToJSON(text: string, quoteChar = '"', delimiter = ',') {
+    var rows=text.split("\n");
+    var headers=rows[0].split(",");
+
+    const regex = new RegExp(`\\s*(${quoteChar})?(.*?)\\1\\s*(?:${delimiter}|$)`, 'gs');
+  
+    const match = (line: any) => [...line.matchAll(regex)]
+      .map(m => m[2]) 
+      .slice(0, -1); 
+  
+    var lines = text.split('\n');
+    const heads = headers ?? match(lines.shift());
+    lines = lines.slice(1);
+    
+    return lines.map(line => {
+      return match(line).reduce((acc, cur, i) => {
+        const val = cur.length <= 0 ? null : Number(cur) || cur;
+        const key = heads[i] ?? `{i}`;
+        return { ...acc, [key]: val };
+      }, {});
+    });
   }
 
   async processReport(campaign: any, event: MouseEvent) {
@@ -189,5 +228,24 @@ export class HomeComponent implements OnInit {
     await this.runQuery();
     await this.getReportLink();
     await this.getReport();
+    
+    const userSearchId = campaign.id;
+    const processDataAndInsertIntoFirestore = this.fns.httpsCallable('processDataAndInsertIntoFirestore');
+
+    processDataAndInsertIntoFirestore({ userSearchId: userSearchId, reportJson: this.reportJson }).subscribe(
+      (result) => {
+        console.log(result);
+        this.reportId = null;
+        this.reportLink = null;
+        this.queryId = null;
+        this.reportJson = null;
+      },
+      (error) => {
+        console.error('Error calling function: ', error);
+        this.reportId = null;
+        this.reportLink = null;
+        this.queryId = null;
+      }
+    );
   }
 }

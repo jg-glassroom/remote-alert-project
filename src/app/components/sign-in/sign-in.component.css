@@ -1,4 +1,4 @@
-.google-logo {
+.logo {
     width: 23px;
     height: auto;
     margin-top: 1px;
@@ -6,22 +6,71 @@
     vertical-align: bottom;
 }
 
-.signin-label {
-    margin-bottom: 50px;
-    vertical-align: bottom;
+.signin-button {
+    margin-top: 10px;
+    width: 300px;
+    height: 50px;
+    padding: 10px;
+    text-align: left; 
+    justify-content: flex-start; 
 }
 
-.signin-button {
-    margin-top: 7%;
+.continue-button {
+    margin-top: 10px;
+    width: 300px;
+    height: 50px;
+    padding: 10px;
+    text-align: center; 
+}
+
+.form-element {
+    width: 300px;
+    height: 50px;
+    margin-bottom: 30px;
 }
 
 .container {
     padding: 2% 0;
     text-align: center;
     position: absolute;
-    top: 40%;
-    left: 40%;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%); 
     width: 20%;
-    border-radius: 10px;
-    box-shadow: 5px 5px 31px 5px rgba(0,0,0,0.59);
+}
+
+hr {
+    opacity: 50%;
+    width: 100px;
+    margin: auto; 
+}
+
+.title {
+    font-weight: bolder;
+    font-size: 35px;
+    margin-bottom: 30px;
+}
+
+.or-container {
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    margin: 20px 0;
+}
+
+a {
+    color:cornflowerblue;
+    cursor: pointer;
+}
+
+.glassroom-logo {
+    height: auto;
+    width: 10%;
+    margin: auto;
+    position: absolute;
+    left: 45%;
+}
+
+.instructions {
+    margin-bottom: 10px;
 }

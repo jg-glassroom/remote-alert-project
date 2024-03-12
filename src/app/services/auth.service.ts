@@ -34,6 +34,29 @@ export class AuthService {
     );
   }
 
+  get isAuthenticated(): boolean {
+    return this.afAuth.currentUser !== null;
+  }
+
+  async signUp(email: string, password: string, username: string): Promise<void> {
+    try {
+      const result = await this.afAuth.createUserWithEmailAndPassword(email, password);
+      return await this.updateUserData({ displayName: username, email: email, photoURL: null, uid: result.user!.uid });
+    } catch (error) {
+      console.error("An error occurred: ", error);
+      throw error;
+    }
+  }
+
+  async emailPasswordSignIn(email: string, password: string) {
+    try {
+      return await this.afAuth.signInWithEmailAndPassword(email, password)
+    } catch (error) {
+      console.error("An error occurred: ", error);
+      throw error;
+    }
+  }
+
   async googleSignin() {
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/display-video');
@@ -55,18 +78,21 @@ export class AuthService {
     return this.router.navigate(['/']);
   }
 
-  private updateUserData(user: any, accessToken: any) {
+  private updateUserData(user: any, accessToken?: any) {
     const userRef: AngularFirestoreDocument<User> = this.afs.doc(`user/${user.uid}`);
-    const data = {
+    let data = {
       uid: user.uid,
       displayName: user.displayName,
       email: user.email,
       photoURL: user.photoURL,
-      accessToken: accessToken,
+      accessToken: null,
     };
-    localStorage.setItem('accessToken', accessToken);
 
-    this.getDV360Advertisers()
+    if (accessToken) {
+      data.accessToken = accessToken
+      localStorage.setItem('accessToken', accessToken);
+      this.getDV360Advertisers()
+    }
     return userRef.set(data, { merge: true });
   }
 
