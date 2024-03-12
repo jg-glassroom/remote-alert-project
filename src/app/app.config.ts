@@ -14,9 +14,12 @@ import { FIREBASE_OPTIONS } from '@angular/fire/compat';
 import { REGION } from '@angular/fire/compat/functions';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
+import { provideToastr } from 'ngx-toastr';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideToastr(),
     provideNativeDateAdapter(),
     provideRouter(routes), 
     { provide: FIREBASE_OPTIONS, useValue: environment.firebaseConfig },

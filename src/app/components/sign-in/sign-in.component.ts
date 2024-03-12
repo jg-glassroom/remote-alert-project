@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormGroup, FormBuilder, Validators, FormControl, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
@@ -11,6 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -26,6 +28,7 @@ export class SignInComponent {
   formGroup!: FormGroup;
   errorMessage: string = '';
   showForgotPassword: boolean = false;
+  toaster = inject(ToastrService);
 
   constructor(public auth: AuthService, private formBuilder: FormBuilder, private router: Router) {
     this.createForm();
@@ -91,6 +94,7 @@ export class SignInComponent {
       if (this.registration) {
         this.auth.signUp(value.email, value.password, value.username)
         .then(() => {
+          this.toaster.success("Account successfully created", "Success");
           this.toggleRegistration();
         })
         .catch((error) => {
@@ -101,6 +105,7 @@ export class SignInComponent {
           const auth = getAuth()
           sendPasswordResetEmail(auth, value.email)
           .then(() => {
+            this.toaster.info(`Please check the email address ${value.email} for instructions to reset your password.`, "Info");
             this.showForgotPassword = false;
             this.registration = false;
             this.createForm();
