@@ -31,7 +31,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 export class HeaderComponent {
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
 
-  constructor(public auth: AuthService, private router: Router) {}
+  constructor(public auth: AuthService, public router: Router) {}
 
   public navigate(route: any) {
     this.router.navigate([route]).then(() => {

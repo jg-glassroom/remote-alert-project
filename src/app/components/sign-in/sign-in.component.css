@@ -74,3 +74,20 @@ a {
 .instructions {
     margin-bottom: 10px;
 }
+
+.checkbox {
+    margin-bottom: 20px;
+}
+
+.mat-checkbox-inner-container {
+    margin: 2px 8px auto 0 !important;
+  }
+
+  .mat-checkbox-inner-container {
+    margin-top: 0;
+}
+
+.flag {
+    height: auto;
+    width: 20px;
+}

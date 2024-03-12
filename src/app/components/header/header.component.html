@@ -1,8 +1,11 @@
 <mat-toolbar>
     <button *ngIf="auth.user$ | async as user" mat-icon-button class="menu-button" (click)="sidemenu.toggle()"><mat-icon>menu</mat-icon></button>
-    <img src="../../assets/glassroom-logo.png"/>
-    <span>Alert project</span>
+    <img class="link-home" (click)="router.navigate(['/home'])" src="../../assets/glassroom-logo.png"/>
+    <span class="link-home" (click)="router.navigate(['/home'])">Alert project</span>
     <span class="spacer"></span>
+    <button *ngIf="auth.user$ | async as user" mat-icon-button class="profile-icon" aria-label="Profile button" (click)="router.navigate(['/profile'])">
+        <mat-icon>account_circle</mat-icon>
+    </button>
     <button *ngIf="auth.user$ | async as user" mat-icon-button class="log-out-icon" aria-label="Log out button" (click)="auth.signOut()">
         <mat-icon>exit_to_app</mat-icon>
     </button>

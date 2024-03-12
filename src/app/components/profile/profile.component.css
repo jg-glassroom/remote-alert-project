@@ -1,0 +1,27 @@
+.profile-card {
+    width: 600px; /* Ajustez en fonction de votre mise en page */
+    margin: auto; /* Centrer la carte sur la page */
+}
+
+mat-form-field {
+    width: 100%; /* Utilisez toute la largeur disponible */
+}
+
+.social-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+mat-checkbox {
+    margin-top: 10px;
+}
+
+mat-card-header {
+    margin-bottom: 20px;
+}
+
+.flag {
+    height: auto;
+    width: 20px;
+}

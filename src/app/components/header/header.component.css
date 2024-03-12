@@ -47,3 +47,7 @@ mat-toolbar {
 mat-nav-list {
   padding-top: 70px;
 }
+
+.link-home {
+  cursor: pointer;
+}
