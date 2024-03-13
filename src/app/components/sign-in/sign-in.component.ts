@@ -5,7 +5,7 @@ import { FormGroup, FormBuilder, Validators, FormControl, ReactiveFormsModule, A
 
 import { AuthService } from '../../services/auth.service';
 
-import { sendPasswordResetEmail, getAuth } from 'firebase/auth';
+import { sendPasswordResetEmail, getAuth, fetchSignInMethodsForEmail } from 'firebase/auth';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -103,21 +103,31 @@ export class SignInComponent {
           this.toggleRegistration();
         })
         .catch((error) => {
-          this.errorMessage = error.message || 'An unexpected error occurred.';
+            this.errorMessage = error.message || 'An unexpected error occurred.';
         });
       } else {
         if (this.showForgotPassword) {
           const auth = getAuth()
-          sendPasswordResetEmail(auth, value.email)
-          .then(() => {
-            this.toaster.info(`Please check the email address ${value.email} for instructions to reset your password.`, "Info");
-            this.showForgotPassword = false;
-            this.registration = false;
-            this.createForm();
+          fetchSignInMethodsForEmail(auth, value.email).then((signInMethods) => {
+            if (signInMethods.includes('password')) {
+              sendPasswordResetEmail(auth, value.email)
+              .then(() => {
+                this.toaster.info(`Please check the email address ${value.email} for instructions to reset your password.`, "Info");
+                this.showForgotPassword = false;
+                this.registration = false;
+                this.createForm();
+              })
+              .catch((error) => {
+                this.errorMessage = error.message || 'An unexpected error occurred.';
+              });
+            } else if (signInMethods.length > 0) {
+              this.toaster.info(`It seems you usually sign in with ${signInMethods[0]}. Please use that method to sign in.`, "Authentication method found");
+            }
           })
-          .catch((error) => {
-            this.errorMessage = error.message || 'An unexpected error occurred.';
-          });
+            .catch((error) => {
+              console.error("Error fetching sign in methods: ", error);
+              this.toaster.error("An error occurred while checking the sign in methods.", "Error");
+            });
         } else {
           this.auth.emailPasswordSignIn(value.email, value.password)
           .then(() => {
