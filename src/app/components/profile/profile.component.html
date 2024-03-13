@@ -8,11 +8,20 @@
             <mat-form-field appearance="outline">
                 <mat-label>Username</mat-label>
                 <input matInput formControlName="username">
+                <mat-error *ngIf="profileForm.get('username')?.errors?.['required']">
+                    Username is required.
+                </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
-                <input matInput formControlName="email" type="email" [disabled]="true">
+                <input matInput formControlName="email" type="email">
+                <mat-error *ngIf="profileForm.get('email')?.errors?.['required']">
+                    Email is required.
+                </mat-error>
+                <mat-error *ngIf="profileForm.get('email')?.errors?.['email']">
+                    Please enter a valid email address.
+                </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -21,6 +30,9 @@
                     <mat-option value="en"><img class="flag" src="../../assets/uk-flag.png"/>&nbsp;English</mat-option>
                     <mat-option value="fr"><img class="flag" src="../../assets/france-flag.png"/>&nbsp;French</mat-option>
                 </mat-select>
+                <mat-error *ngIf="profileForm.get('language')?.errors?.['required']">
+                    Language is required.
+                </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="form-element">
@@ -29,6 +41,9 @@
                     <mat-option value="standard">Standard</mat-option>
                     <mat-option value="admin">Admin</mat-option>
                 </mat-select>
+                <mat-error *ngIf="profileForm.get('role')?.errors?.['required']">
+                    Role is required.
+                </mat-error>
             </mat-form-field>
 
             <mat-checkbox formControlName="emailUpdates">I agree to receive marketing communications, updates, and offers via email from Glassroom. I understand that I can unsubscribe at any time by following the instructions in the emails received.</mat-checkbox>
@@ -38,7 +53,7 @@
             </div>
 
             <div class="credentials-button">
-                <button mat-stroked-button color="primary">Change email</button>&nbsp;&nbsp;
+                <button mat-stroked-button color="primary" (click)="openChangeEmailDialog()">Change email</button>&nbsp;&nbsp;
                 <button mat-stroked-button color="primary">Change password</button>
             </div>
         </form>

@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -7,10 +8,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
-import { getAuth, updateEmail } from "firebase/auth";
+import { ChangeEmailComponent } from '../change-email/change-email.component';
 
 import { AuthService } from '../../services/auth.service';
 import { first, switchMap } from 'rxjs/operators';
@@ -22,7 +24,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, MatInputModule, MatButtonModule, MatFormFieldModule, MatCheckboxModule, MatCardModule, MatSelectModule],
+  imports: [CommonModule, ReactiveFormsModule, MatInputModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatCheckboxModule, MatCardModule, MatSelectModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
@@ -33,7 +35,8 @@ export class ProfileComponent {
   constructor(
     private formBuilder: FormBuilder,
     private db: AngularFirestore,
-    public auth: AuthService
+    public auth: AuthService,
+    public dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -105,6 +108,12 @@ export class ProfileComponent {
         }
       });
     }
+  }
+
+  openChangeEmailDialog() {
+    this.dialog.open(ChangeEmailComponent, {
+      width: '350px',
+    });
   }
 
   connectToGoogle() {}
