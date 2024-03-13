@@ -68,9 +68,6 @@ export class ChangeEmailComponent {
             if (auth.currentUser) {
               updateEmail(auth.currentUser, value.email)
               .then(() => {
-                this.afs.collection('user').doc(auth.currentUser!.uid).update({
-                  email: value.email
-                });
                 this.dialogRef.close();
                 this.toaster.success("Email updated successfully", "Success");
               })

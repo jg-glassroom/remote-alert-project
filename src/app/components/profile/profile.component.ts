@@ -18,6 +18,8 @@ import { AuthService } from '../../services/auth.service';
 import { first, switchMap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 
+import { getAuth } from 'firebase/auth';
+
 import { ToastrService } from 'ngx-toastr';
 
 
@@ -35,7 +37,7 @@ export class ProfileComponent {
   constructor(
     private formBuilder: FormBuilder,
     private db: AngularFirestore,
-    public auth: AuthService,
+    public authService: AuthService,
     public dialog: MatDialog
   ) {}
 
@@ -45,11 +47,11 @@ export class ProfileComponent {
   }
 
   getUserProfile() {
-    this.auth.user$.pipe(
+    this.authService.user$.pipe(
       first(),
       switchMap(user => {
         if (!user) {
-          this.auth.signOut()
+          this.authService.signOut()
           return throwError(() => new Error('User not logged in'));
         }
         return this.db.collection('user').doc(user.uid).valueChanges();
@@ -57,9 +59,10 @@ export class ProfileComponent {
     ).subscribe({
       next: (profile: any) => {
         if (profile) {
+          const auth = getAuth()
           this.profileForm.patchValue({
             username: profile.displayName,
-            email: profile.email,
+            email: auth.currentUser!.email,
             language: profile.language,
             role: profile.role,
             emailUpdates: profile.emailUpdates,
@@ -84,11 +87,11 @@ export class ProfileComponent {
     if (this.profileForm.valid) {
       const formValue = this.profileForm.value;
 
-      this.auth.user$.pipe(
+      this.authService.user$.pipe(
         first(),
         switchMap(user => {
           if (!user) {
-            this.auth.signOut()
+            this.authService.signOut()
             return throwError(() => new Error('User not logged in'));
           }
 

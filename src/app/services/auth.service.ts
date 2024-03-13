@@ -41,7 +41,7 @@ export class AuthService {
   async signUp(email: string, password: string, username: string, language: string, role: string, emailUpdates: boolean): Promise<void> {
     try {
       const result = await this.afAuth.createUserWithEmailAndPassword(email, password);
-      return await this.updateUserData({ displayName: username, email: email, photoURL: null, uid: result.user!.uid, language: language, role: role, emailUpdates: emailUpdates });
+      return await this.updateUserData({ displayName: username, photoURL: null, uid: result.user!.uid, language: language, role: role, emailUpdates: emailUpdates });
     } catch (error) {
       console.error("An error occurred: ", error);
       throw error;
@@ -83,7 +83,6 @@ export class AuthService {
     let data = {
       uid: user.uid,
       displayName: user.displayName,
-      email: user.email,
       photoURL: user.photoURL,
       accessToken: null,
       language: "",
