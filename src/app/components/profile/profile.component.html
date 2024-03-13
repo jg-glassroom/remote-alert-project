@@ -12,12 +12,7 @@
 
             <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
-                <input matInput formControlName="email" type="email">
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Password</mat-label>
-                <input matInput formControlName="password" type="password">
+                <input matInput formControlName="email" type="email" [disabled]="true">
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -28,16 +23,24 @@
                 </mat-select>
             </mat-form-field>
 
-            <mat-checkbox formControlName="emailUpdates">Email Updates</mat-checkbox>
+            <mat-form-field appearance="outline" class="form-element">
+                <mat-label>Role</mat-label>
+                <mat-select formControlName="role">
+                    <mat-option value="standard">Standard</mat-option>
+                    <mat-option value="admin">Admin</mat-option>
+                </mat-select>
+            </mat-form-field>
 
-            <div class="social-links">
-                <button mat-flat-button color="accent" (click)="connectToGoogle()">Connect to Google</button>
-                <button mat-flat-button color="primary" (click)="connectToFacebook()">Connect to Facebook</button>
+            <mat-checkbox formControlName="emailUpdates">I agree to receive marketing communications, updates, and offers via email from Glassroom. I understand that I can unsubscribe at any time by following the instructions in the emails received.</mat-checkbox>
+            
+            <div class="submit-button">
+                <button mat-raised-button color="primary" type="submit" (click)="updateProfile()">Update Profile</button>
+            </div>
+
+            <div class="credentials-button">
+                <button mat-stroked-button color="primary">Change email</button>&nbsp;&nbsp;
+                <button mat-stroked-button color="primary">Change password</button>
             </div>
         </form>
     </mat-card-content>
-
-    <mat-card-actions>
-        <button mat-button type="submit" (click)="updateProfile()">Update Profile</button>
-    </mat-card-actions>
 </mat-card>

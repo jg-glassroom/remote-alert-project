@@ -3,4 +3,7 @@ export interface User {
     email: string;
     displayName: string;
     photoURL: string;
+    emailUpdates: boolean;
+    language: string;
+    role: string;
 }

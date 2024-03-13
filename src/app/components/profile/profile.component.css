@@ -7,12 +7,6 @@ mat-form-field {
     width: 100%; /* Utilisez toute la largeur disponible */
 }
 
-.social-links {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
 mat-checkbox {
     margin-top: 10px;
 }
@@ -24,4 +18,9 @@ mat-card-header {
 .flag {
     height: auto;
     width: 20px;
+}
+
+.submit-button {
+    margin-top: 15px;
+    margin-bottom: 15px;
 }

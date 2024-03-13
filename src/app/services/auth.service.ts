@@ -86,8 +86,8 @@ export class AuthService {
       email: user.email,
       photoURL: user.photoURL,
       accessToken: null,
-      language: null,
-      role: null,
+      language: "",
+      role: "",
       emailUpdates: false
     };
 
