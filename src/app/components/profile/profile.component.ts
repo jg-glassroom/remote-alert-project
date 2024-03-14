@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
@@ -27,7 +28,18 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatInputModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatCheckboxModule, MatCardModule, MatSelectModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatCheckboxModule,
+    MatCardModule,
+    MatSelectModule,
+    MatTabsModule
+  ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })

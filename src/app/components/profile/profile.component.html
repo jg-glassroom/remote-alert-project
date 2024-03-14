@@ -4,58 +4,80 @@
     </mat-card-header>
 
     <mat-card-content>
-        <form [formGroup]="profileForm">
-            <mat-form-field appearance="outline">
-                <mat-label>Username</mat-label>
-                <input matInput formControlName="username">
-                <mat-error *ngIf="profileForm.get('username')?.errors?.['required']">
-                    Username is required.
-                </mat-error>
-            </mat-form-field>
+        <mat-tab-group>
+            <mat-tab label="General" class="general">
+                <form [formGroup]="profileForm">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Username</mat-label>
+                        <input matInput formControlName="username">
+                        <mat-error *ngIf="profileForm.get('username')?.errors?.['required']">
+                            Username is required.
+                        </mat-error>
+                    </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Email</mat-label>
-                <input matInput formControlName="email" type="email">
-                <mat-error *ngIf="profileForm.get('email')?.errors?.['required']">
-                    Email is required.
-                </mat-error>
-                <mat-error *ngIf="profileForm.get('email')?.errors?.['email']">
-                    Please enter a valid email address.
-                </mat-error>
-            </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Email</mat-label>
+                        <input matInput formControlName="email" type="email">
+                        <mat-error *ngIf="profileForm.get('email')?.errors?.['required']">
+                            Email is required.
+                        </mat-error>
+                        <mat-error *ngIf="profileForm.get('email')?.errors?.['email']">
+                            Please enter a valid email address.
+                        </mat-error>
+                    </mat-form-field>
 
-            <mat-form-field appearance="outline">
-                <mat-label>Language</mat-label>
-                <mat-select formControlName="language">
-                    <mat-option value="en"><img class="flag" src="../../assets/uk-flag.png"/>&nbsp;English</mat-option>
-                    <mat-option value="fr"><img class="flag" src="../../assets/france-flag.png"/>&nbsp;French</mat-option>
-                </mat-select>
-                <mat-error *ngIf="profileForm.get('language')?.errors?.['required']">
-                    Language is required.
-                </mat-error>
-            </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Language</mat-label>
+                        <mat-select formControlName="language">
+                            <mat-option value="en"><img class="flag" src="../../assets/uk-flag.png"/>&nbsp;English</mat-option>
+                            <mat-option value="fr"><img class="flag" src="../../assets/france-flag.png"/>&nbsp;French</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="profileForm.get('language')?.errors?.['required']">
+                            Language is required.
+                        </mat-error>
+                    </mat-form-field>
 
-            <mat-form-field appearance="outline" class="form-element">
-                <mat-label>Role</mat-label>
-                <mat-select formControlName="role">
-                    <mat-option value="standard">Standard</mat-option>
-                    <mat-option value="admin">Admin</mat-option>
-                </mat-select>
-                <mat-error *ngIf="profileForm.get('role')?.errors?.['required']">
-                    Role is required.
-                </mat-error>
-            </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-element">
+                        <mat-label>Role</mat-label>
+                        <mat-select formControlName="role">
+                            <mat-option value="standard">Standard</mat-option>
+                            <mat-option value="admin">Admin</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="profileForm.get('role')?.errors?.['required']">
+                            Role is required.
+                        </mat-error>
+                    </mat-form-field>
 
-            <mat-checkbox formControlName="emailUpdates">I agree to receive marketing communications, updates, and offers via email from Glassroom. I understand that I can unsubscribe at any time by following the instructions in the emails received.</mat-checkbox>
-            
-            <div class="submit-button">
-                <button mat-raised-button color="primary" type="submit" (click)="updateProfile()">Update Profile</button>
-            </div>
+                    <mat-checkbox formControlName="emailUpdates">I agree to receive marketing communications, updates, and offers via email from Glassroom. I understand that I can unsubscribe at any time by following the instructions in the emails received.</mat-checkbox>
+                    
+                    <div class="submit-button">
+                        <button mat-raised-button color="primary" type="submit" (click)="updateProfile()">Update Profile</button>
+                    </div>
 
-            <div class="credentials-button">
-                <button mat-stroked-button color="primary" (click)="openChangeEmailDialog()">Change email</button>&nbsp;&nbsp;
-                <button mat-stroked-button color="primary" (click)="openChangePasswordDialog()">Change password</button>
-            </div>
-        </form>
+                    <div class="credentials-button">
+                        <button mat-stroked-button color="primary" (click)="openChangeEmailDialog()">Change email</button>&nbsp;&nbsp;
+                        <button mat-stroked-button color="primary" (click)="openChangePasswordDialog()">Change password</button>
+                    </div>
+                </form>
+            </mat-tab>
+            <mat-tab label="Platforms credentials">
+                <div class="first row">
+                    <mat-card class="platform-card left">
+                        <mat-card-content>
+                            <img src="../../../assets/google-logo.png" alt="Google logo" class="logo">
+                            <span class="status">Status:</span><br>
+                            <button mat-raised-button color="primary" class="reconnect">Reconnect</button>
+                        </mat-card-content>
+                    </mat-card>
+                    <mat-card class="platform-card right">
+                        <mat-card-content>
+                            <img src="../../../assets/facebook-logo.png" alt="Facebook logo" class="logo">
+                            <span class="status">Status:</span><br>
+                            <button mat-raised-button color="primary" class="reconnect">Reconnect</button>
+                        </mat-card-content>
+                    </mat-card>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
     </mat-card-content>
 </mat-card>

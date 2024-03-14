@@ -1,10 +1,10 @@
 .profile-card {
-    width: 600px; /* Ajustez en fonction de votre mise en page */
-    margin: auto; /* Centrer la carte sur la page */
+    width: 600px;
+    margin: auto;
 }
 
 mat-form-field {
-    width: 100%; /* Utilisez toute la largeur disponible */
+    width: 100%;
 }
 
 mat-checkbox {
@@ -23,4 +23,50 @@ mat-card-header {
 .submit-button {
     margin-top: 15px;
     margin-bottom: 15px;
+}
+
+form {
+    margin-top: 20px;
+}
+
+.logo {
+    height: auto;
+    width: 200px;
+    margin-top: 10px;
+}
+
+.first {
+    margin-top: 10px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.platform-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.left {
+    margin-left: 10px
+}
+
+.right {
+    margin-right: 10px
+}
+
+.status {
+    margin-top: 10px
+}
+
+.reconnect {
+    margin-top: 7px
 }
