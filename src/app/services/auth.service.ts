@@ -69,7 +69,6 @@ export class AuthService {
     const token = credential.accessToken; 
     
     this.updateUserData(result.user, token);
-    this.router.navigate(['/home']);
   }
 
   async signOut() {

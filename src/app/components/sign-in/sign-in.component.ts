@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormGroup, FormBuilder, Validators, FormControl, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormGroup, FormBuilder, ValidatorFn, Validators, FormControl, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
 
@@ -27,6 +27,7 @@ import { ToastrService } from 'ngx-toastr';
 export class SignInComponent {
   registration: boolean = false;
   hide: boolean = true;
+  hideConfirm: boolean = true;
   formGroup!: FormGroup;
   errorMessage: string = '';
   showForgotPassword: boolean = false;
@@ -79,12 +80,36 @@ export class SignInComponent {
       role: this.registration ? new FormControl(this.registration ? "standard" : null, Validators.required) : new FormControl(null),
       emailUpdates: new FormControl(null),
       email: new FormControl(null, [Validators.required, Validators.email]),
+      confirmPassword: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
       password: this.registration ? new FormControl(null, [
         Validators.required,
         Validators.minLength(6),
         this.passwordStrengthValidator()
       ]) : this.showForgotPassword ? new FormControl(null) : new FormControl(null, Validators.required),
+    }, 
+    {
+      validators: this.registration ? this.matchValidator('password', 'confirmPassword') : null
     });
+  }
+
+  matchValidator(controlName: string, matchingControlName: string): ValidatorFn {
+    return (abstractControl: AbstractControl) => {
+        const control = abstractControl.get(controlName);
+        const matchingControl = abstractControl.get(matchingControlName);
+
+        if (matchingControl!.errors && !matchingControl!.errors?.['confirmedValidator']) {
+            return null;
+        }
+
+        if (control!.value !== matchingControl!.value) {
+          const error = { confirmedValidator: 'Passwords do not match.' };
+          matchingControl!.setErrors(error);
+          return error;
+        } else {
+          matchingControl!.setErrors(null);
+          return null;
+        }
+    }
   }
 
   toggleRegistration() {
