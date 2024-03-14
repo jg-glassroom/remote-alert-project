@@ -89,18 +89,4 @@
 
     <span class="link-label" *ngIf="showForgotPassword === false">{{ registration ? "Already have an account?" : "Don't have an account?" }} <a (click)="toggleRegistration()">{{ registration ? "Log in" : "Sign up" }}</a></span>
     <span><a (click)="goBack()" *ngIf="showForgotPassword === true">Go back</a></span>
-
-    <div class="or-container" *ngIf="registration === false && showForgotPassword === false">
-        <hr><span class="or-text">OR</span><hr>
-    </div>
-
-    <button mat-stroked-button class="signin-button" (click)="auth.googleSignin()" *ngIf="registration === false && showForgotPassword === false">
-        <img src="/assets/google-logo.png" class="logo" alt="Google logo"/>
-        <span class="signin-label">Continue with Google</span>
-    </button>
-
-    <button mat-stroked-button class="signin-button" *ngIf="registration === false && showForgotPassword === false">
-        <img src="/assets/facebook-logo.png" class="logo" alt="Facebook logo"/>
-        <span class="signin-label">Continue with Facebook (soon)</span>
-    </button>
 </form>

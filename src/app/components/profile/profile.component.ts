@@ -13,6 +13,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 import { ChangeEmailComponent } from '../change-email/change-email.component';
+import { ChangePasswordComponent } from '../change-password/change-password.component';
 
 import { AuthService } from '../../services/auth.service';
 import { first, switchMap } from 'rxjs/operators';
@@ -115,6 +116,12 @@ export class ProfileComponent {
 
   openChangeEmailDialog() {
     this.dialog.open(ChangeEmailComponent, {
+      width: '350px',
+    });
+  }
+
+  openChangePasswordDialog() {
+    this.dialog.open(ChangePasswordComponent, {
       width: '350px',
     });
   }
