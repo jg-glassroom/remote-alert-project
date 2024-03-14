@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { GoogleAuthProvider, signInWithPopup, getAuth, OAuthCredential } from 'firebase/auth';
+
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
+
 import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+
 import { User } from './user.model';
 
 
@@ -57,27 +59,13 @@ export class AuthService {
     }
   }
 
-  async googleSignin() {
-    const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/display-video');
-    provider.addScope('https://www.googleapis.com/auth/dfareporting');
-    provider.addScope('https://www.googleapis.com/auth/doubleclickbidmanager');
-    provider.addScope('https://www.googleapis.com/auth/doubleclicksearch');
-    
-    const result = await signInWithPopup(getAuth(), provider);
-    const credential = GoogleAuthProvider.credentialFromResult(result) as OAuthCredential;
-    const token = credential.accessToken; 
-    
-    this.updateUserData(result.user, token);
-  }
-
   async signOut() {
     this.clearCache();
     await this.afAuth.signOut();
     return this.router.navigate(['/']);
   }
 
-  private updateUserData(user: any, accessToken?: any) {
+  public updateUserData(user: any, accessToken?: any) {
     const userRef: AngularFirestoreDocument<User> = this.afs.doc(`user/${user.uid}`);
     let data = {
       uid: user.uid,

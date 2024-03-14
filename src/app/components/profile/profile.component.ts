@@ -17,6 +17,8 @@ import { ChangeEmailComponent } from '../change-email/change-email.component';
 import { ChangePasswordComponent } from '../change-password/change-password.component';
 
 import { AuthService } from '../../services/auth.service';
+import { ExternalPlatformsService } from '../../services/external-platforms.service';
+
 import { first, switchMap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 
@@ -51,6 +53,7 @@ export class ProfileComponent {
     private formBuilder: FormBuilder,
     private db: AngularFirestore,
     public authService: AuthService,
+    public externalPlatformService: ExternalPlatformsService,
     public dialog: MatDialog
   ) {}
 
