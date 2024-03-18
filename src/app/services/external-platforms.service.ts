@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
-import { AngularFirestoreDocument, AngularFirestore } from '@angular/fire/compat/firestore';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { getAuth } from 'firebase/auth';
 
-import { AuthService } from './auth.service';
 import { ToastrService } from 'ngx-toastr';
 
 declare var gapi: any;
@@ -26,11 +26,23 @@ export class ExternalPlatformsService {
     'https://www.googleapis.com/auth/doubleclicksearch'
   ].join(' ');
   
-  constructor( authService: AuthService, private afs: AngularFirestore, private router: Router) {
+  constructor(private db: AngularFirestore) {
     gapi.load('auth2', () => {
-      gapi.auth2.init({client_id: this.clientId});
+      gapi.auth2.init({client_id: this.clientId, plugin_name: 'hello'});
     });
   }
+
+  refreshToken() {
+    // TODO: Implement function to refresh access token
+  }
+
+  async handleError(error: HttpErrorResponse) {
+    if (error.status === 401 || error.status === 403) {
+      this.refreshToken();
+    } else {
+      console.error(`An unexpected token error occurred [${error.status}]: ${error.message}`);
+    }
+  }  
 
   async googleSignIn() {
     const GoogleAuth = gapi.auth2.getAuthInstance();
@@ -38,10 +50,21 @@ export class ExternalPlatformsService {
       const googleUser = await GoogleAuth.signIn({
         scope: this.scope
       });
-      console.log("User signed in.", googleUser);
-      this.toaster.success("Your account has been successfully linked", "Success");
-      const accessToken = googleUser.getAuthResponse().access_token;
-      console.log("Access Token:", accessToken);
+
+      const response = googleUser.getAuthResponse();
+      const googleAccessToken = response.access_token;
+      const currentUser = getAuth().currentUser;
+      console.log("GOOGLE RESPONSE", response);
+
+      // TODO : Get reshresh token
+      if (currentUser) {
+        this.db.doc(`user/${currentUser.uid}`).update({
+          googleAccessToken: googleAccessToken,
+        });
+        this.toaster.success("Your account has been successfully linked", "Success");
+      } else {
+        this.toaster.error("User not found", "Error");
+      }
     } catch (error) {
       console.error("Error signing in", error);
       this.toaster.error("An error occured", "Error");

@@ -74,11 +74,11 @@ export class ProfileComponent {
       })
     ).subscribe({
       next: (profile: any) => {
-        if (profile) {
-          const auth = getAuth()
+        const auth = getAuth()
+        if (profile && auth.currentUser) {
           this.profileForm.patchValue({
             username: profile.displayName,
-            email: auth.currentUser!.email,
+            email: auth.currentUser.email,
             language: profile.language,
             role: profile.role,
             emailUpdates: profile.emailUpdates,

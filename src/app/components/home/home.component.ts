@@ -151,14 +151,14 @@ export class HomeComponent implements OnInit {
         "frequency": "ONE_TIME",
       }
     } 
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
     const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries`, body, { headers });
     const data: any = await firstValueFrom(response$);
     this.queryId = data.queryId;
   }
 
   async runQuery() {
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
     const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}:run`, {}, { headers });
     const data: any = await firstValueFrom(response$);
     this.reportId = data.key.reportId;
@@ -166,7 +166,7 @@ export class HomeComponent implements OnInit {
 
   async getReportLink(tries: number = 5) {
     try {
-      const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
+      const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
       const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
       const data: any = await firstValueFrom(response$);
       

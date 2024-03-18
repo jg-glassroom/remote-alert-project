@@ -8,7 +8,8 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SelectionModel } from '@angular/cdk/collections';
 
 import { AuthService } from '../../services/auth.service';
-import { Observable, of, firstValueFrom, map, startWith } from 'rxjs';
+import { ExternalPlatformsService } from '../../services/external-platforms.service';
+import { Observable, of, firstValueFrom, map, startWith, BehaviorSubject } from 'rxjs';
 import { first, switchMap } from 'rxjs/operators';
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -23,6 +24,10 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
+
+interface DV360Response {
+  partners: any[];
+}
 
 @Component({
   selector: 'app-dialog',
@@ -50,12 +55,19 @@ export class DialogComponent {
   isEditMode: boolean = false;
   initialCampaignName: string = ''; 
   documentId: string | null = null;
-  partners$!: Observable<any[]>;
+
+  public partners: any[] = [];
+  private partnersSubject = new BehaviorSubject<any[]>([]);
+  public partners$ = this.partnersSubject.asObservable();
+  originalPartners$!: Observable<any[]>;
+
   advertisers$!: Observable<any[]>;
   originalAdvertisers$!: Observable<any[]>;
+
   originalCampaigns$!: Observable<any[]>;
   campaigns$!: Observable<any[]>;
   campaigns: any = [];
+
   separatorKeysCodes: number[] = [ENTER, COMMA];
   selection = new SelectionModel<any>(true, []);
 
@@ -68,6 +80,7 @@ export class DialogComponent {
     private db: AngularFirestore, 
     private dialogRef: MatDialogRef<DialogComponent>,
     public auth: AuthService,
+    public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private http: HttpClient
   ) {
@@ -171,10 +184,14 @@ export class DialogComponent {
 
   ngOnInit() {
     this.createForm();
-    this.setupFilteringPartner();
+    if (this.isEditMode) {
+      if (this.data?.platform === 'DV360') {
+        this.setupFilteringDV360Partner()
+      }
+    }
   }
 
-  setupFilteringPartner() {
+  setupFilteringDV360Partner() {
     this.partners$ = this.formGroup.get('partner')!.valueChanges.pipe(
       startWith(''),
       map(value => typeof value === 'string' ? value.toLowerCase() : ''),
@@ -183,7 +200,7 @@ export class DialogComponent {
   }
 
 
-  setupFilteringAdvertiser() {
+  setupFilteringDV360Advertiser() {
     this.advertisers$ = this.formGroup.get('advertiser')!.valueChanges.pipe(
       startWith(''),
       map(value => typeof value === 'string' ? value.toLowerCase() : ''),
@@ -192,7 +209,7 @@ export class DialogComponent {
   }
 
 
-  setupFilteringCampaign() {
+  setupFilteringDV360Campaign() {
     this.campaigns$ = this.formGroup.get('campaignId')!.valueChanges.pipe(
       startWith(''),
       map(value => typeof value === 'string' ? value.toLowerCase() : ''),
@@ -239,6 +256,7 @@ export class DialogComponent {
   createForm() {
     this.formGroup = this.formBuilder.group({
       partner: [this.data?.partner || null, [Validators.required]],
+      platform: [this.data?.platform || null, [Validators.required]],
       advertiser: [this.data?.advertiser || null, [Validators.required]],
       campaignName: [this.data?.campaignName || null, Validators.required],
       campaignId: [this.data?.campaignId || [], [Validators.required]],
@@ -257,8 +275,8 @@ export class DialogComponent {
       endDateControl.updateValueAndValidity();
     }
     if (this.isEditMode) {
-      this.getAdvertiser(undefined, true)
-      this.getCampaign(undefined, true)
+      this.getDV360Advertiser(undefined, true)
+      this.getDV360Campaign(undefined, true)
       this.campaigns = this.data?.campaignId
       this.campaigns.forEach((campaign: any) => {
         this.selection.isSelected(campaign)
@@ -267,7 +285,48 @@ export class DialogComponent {
     }
   }
 
-  async getAdvertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
+  getClient (event: any) {
+    const selectedValue = event.value;
+    if (selectedValue === 'dv360') {
+      this.getDV360Partner();
+    }
+  }
+
+  async getDV360Partner(): Promise<any> {
+    const cachedData = localStorage.getItem('partners');
+    if (cachedData) {
+      this.partners = JSON.parse(cachedData);
+      this.partnersSubject.next(this.partners);
+      return this.partners;
+    }
+  
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+    try {
+      const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v3/partners', { headers });
+      const data = await firstValueFrom(response$);
+    
+      this.partners = data.partners;
+      localStorage.setItem('partners', JSON.stringify(data.partners));
+      this.partnersSubject.next(data.partners);
+    } catch (error: any) {
+      await this.externalPlatforms.handleError(error);
+      this.getDV360Partner();
+    }
+  }
+
+  getAdvertiser(event: MatAutocompleteSelectedEvent) {
+    if (this.formGroup.get('platform')?.value === 'dv360') {
+      this.getDV360Advertiser(event)
+    }
+  }
+
+  getCampaign(event: MatAutocompleteSelectedEvent) {
+    if (this.formGroup.get('platform')?.value === 'dv360') {
+      this.getDV360Campaign(event)
+    }
+  }
+
+  async getDV360Advertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     let selectedPartner: any = null
     if (event) {
       selectedPartner = event.option.value;
@@ -286,25 +345,31 @@ export class DialogComponent {
       this.campaigns = []
     }
   
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
-    const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
-    const data: any = await firstValueFrom(response$);
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
 
-    const storedData = localStorage.getItem('partners');
-    const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
-    localStorage.setItem('selectedPartner', selectedPartner.partnerId);
-    partnersData.forEach((partner: any) => {
-      if (partner.partnerId === selectedPartner.partnerId) {
-        partner.advertisers = data.advertisers;
-        this.advertisers$ = of(partner.advertisers);
-        this.originalAdvertisers$ = of(partner.advertisers);
-        this.setupFilteringAdvertiser();
-      }
-    })
-    localStorage.setItem('partners', JSON.stringify(partnersData));
+    try {
+      const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
+      const data: any = await firstValueFrom(response$);
+
+      const storedData = localStorage.getItem('partners');
+      const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
+      localStorage.setItem('selectedPartner', selectedPartner.partnerId);
+      partnersData.forEach((partner: any) => {
+        if (partner.partnerId === selectedPartner.partnerId) {
+          partner.advertisers = data.advertisers;
+          this.advertisers$ = of(partner.advertisers);
+          this.originalAdvertisers$ = of(partner.advertisers);
+          this.setupFilteringDV360Advertiser();
+        }
+      })
+      localStorage.setItem('partners', JSON.stringify(partnersData));
+    } catch (error: any) {
+      await this.externalPlatforms.handleError(error);
+      this.getDV360Advertiser(event, edit);
+    }
   }
 
-  async getCampaign(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
+  async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     let selectedAdvertiser: any = null
     if (event) {
       selectedAdvertiser = event.option.value;
@@ -322,26 +387,31 @@ export class DialogComponent {
       this.campaigns = []
     }
   
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` };
-    const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
-    const data: any = await firstValueFrom(response$);
-    localStorage.setItem('selectedAdvertiser', selectedAdvertiser.partnerId);
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+    try {
+      const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
+      const data: any = await firstValueFrom(response$);
+      localStorage.setItem('selectedAdvertiser', selectedAdvertiser.partnerId);
 
-    const storedData = localStorage.getItem('partners');
-    const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
-    partnersData.forEach((partner: any) => {
-      if (partner.partnerId === localStorage.getItem('selectedPartner') && partner.advertisers && partner.advertisers.length > 0) {
-        partner.advertisers.forEach((advertiser: any) => {
-          if (advertiser.advertiserId === selectedAdvertiser.advertiserId) {
-            advertiser.campaigns = data.campaigns;
-            this.campaigns$ = of(advertiser.campaigns);
-            this.originalCampaigns$ = of(advertiser.campaigns);
-            this.setupFilteringCampaign();
-          }
-        })
-      }
-    })
-    localStorage.setItem('partners', JSON.stringify(partnersData));
+      const storedData = localStorage.getItem('partners');
+      const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
+      partnersData.forEach((partner: any) => {
+        if (partner.partnerId === localStorage.getItem('selectedPartner') && partner.advertisers && partner.advertisers.length > 0) {
+          partner.advertisers.forEach((advertiser: any) => {
+            if (advertiser.advertiserId === selectedAdvertiser.advertiserId) {
+              advertiser.campaigns = data.campaigns;
+              this.campaigns$ = of(advertiser.campaigns);
+              this.originalCampaigns$ = of(advertiser.campaigns);
+              this.setupFilteringDV360Campaign();
+            }
+          })
+        }
+      })
+      localStorage.setItem('partners', JSON.stringify(partnersData));
+    } catch (error: any) {
+      await this.externalPlatforms.handleError(error);
+      this.getDV360Campaign(event, edit);
+    }
   }
 
   formatDate(date: Date): string {
