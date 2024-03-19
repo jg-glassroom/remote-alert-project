@@ -309,8 +309,9 @@ export class DialogComponent {
     try {
       const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v3/partners', { headers });
       const data = await firstValueFrom(response$);
-  
-      this.partners = data.partners;
+      const sortedPartners = data.partners.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
+      this.partners = sortedPartners;
+      this.partnersSubject.next(sortedPartners);
       localStorage.setItem('partners', JSON.stringify(data.partners));
       this.partnersSubject.next(data.partners);
     } catch (error: any) {
@@ -366,7 +367,8 @@ export class DialogComponent {
       localStorage.setItem('selectedPartner', selectedPartner.partnerId);
       partnersData.forEach((partner: any) => {
         if (partner.partnerId === selectedPartner.partnerId) {
-          partner.advertisers = data.advertisers;
+          const sortedAdvertisers = data.advertisers.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
+          partner.advertisers = sortedAdvertisers;
           this.advertisers$ = of(partner.advertisers);
           this.originalAdvertisers$ = of(partner.advertisers);
           this.setupFilteringDV360Advertiser();
@@ -413,7 +415,8 @@ export class DialogComponent {
         if (partner.partnerId === localStorage.getItem('selectedPartner') && partner.advertisers && partner.advertisers.length > 0) {
           partner.advertisers.forEach((advertiser: any) => {
             if (advertiser.advertiserId === selectedAdvertiser.advertiserId) {
-              advertiser.campaigns = data.campaigns;
+              const sortedCampaigns = data.campaigns.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
+              advertiser.campaigns = sortedCampaigns;
               this.campaigns$ = of(advertiser.campaigns);
               this.originalCampaigns$ = of(advertiser.campaigns);
               this.setupFilteringDV360Campaign();
