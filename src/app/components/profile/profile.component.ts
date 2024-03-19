@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -12,6 +13,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 import { ChangeEmailComponent } from '../change-email/change-email.component';
 import { ChangePasswordComponent } from '../change-password/change-password.component';
@@ -20,7 +22,7 @@ import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
 
 import { first, switchMap } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { throwError, firstValueFrom } from 'rxjs';
 
 import { getAuth } from 'firebase/auth';
 
@@ -54,12 +56,41 @@ export class ProfileComponent {
     private db: AngularFirestore,
     public authService: AuthService,
     public externalPlatformService: ExternalPlatformsService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private route: ActivatedRoute,
+    private fns: AngularFireFunctions
   ) {}
 
   ngOnInit(): void {
     this.createForm();
-    this.getUserProfile()
+    this.getUserProfile();
+    this.handleQueryParams();
+  }
+
+  private handleQueryParams(): void {
+    this.route.queryParams.subscribe(params => {
+      const authCode = params['code'];
+      if (authCode) {
+        this.exchangeTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+      }
+    });
+  }
+
+  private async exchangeTokens(authCode: string): Promise<void> {
+    const callable = this.fns.httpsCallable('exchangeTokens');
+    try {
+      const result = await firstValueFrom(callable({ code: authCode }));
+      const currentUser = getAuth().currentUser;
+      if (!currentUser) throw new Error('User not logged in');
+      this.db.collection('user').doc(currentUser.uid).update({
+        googleAccessToken: result.access_token,
+        googleRefreshToken: result.refresh_token,
+      });
+      localStorage.setItem('googleAccessToken', result.access_token);
+      history.replaceState(null, '', window.location.pathname);
+    } catch (error) {
+      console.error('Error calling cloud function', error);
+    }
   }
 
   getUserProfile() {
@@ -141,7 +172,19 @@ export class ProfileComponent {
     });
   }
 
-  connectToGoogle() {}
-  connectToFacebook() {}
+  onGoogleSignInClick() {
+    var clientId = '552619214593-phjqlsgv1kqkq2nadui8rsuknjudo9lv.apps.googleusercontent.com';
+    var redirectUri = 'http://localhost:4200/profile';
+    var scope = 'profile email https://www.googleapis.com/auth/display-video https://www.googleapis.com/auth/doubleclickbidmanager https://www.googleapis.com/auth/dfareporting https://www.googleapis.com/auth/doubleclicksearch';
 
+    var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+      'client_id=' + clientId +
+      '&response_type=code' +
+      '&scope=' + scope +
+      '&redirect_uri=' + redirectUri +
+      '&access_type=offline' +
+      '&prompt=consent';
+
+    window.location.href = authUrl;
+  }
 }

@@ -9,6 +9,9 @@ import { SelectionModel } from '@angular/cdk/collections';
 
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
+
+import { ToastrService } from 'ngx-toastr';
+
 import { Observable, of, firstValueFrom, map, startWith, BehaviorSubject } from 'rxjs';
 import { first, switchMap } from 'rxjs/operators';
 
@@ -53,8 +56,9 @@ export class DialogComponent {
   formGroup!: FormGroup;
   submitted: boolean = false;
   isEditMode: boolean = false;
-  initialCampaignName: string = ''; 
+  initialCampaignName: string = '';
   documentId: string | null = null;
+  toaster = inject(ToastrService);
 
   public partners: any[] = [];
   private partnersSubject = new BehaviorSubject<any[]>([]);
@@ -292,7 +296,7 @@ export class DialogComponent {
     }
   }
 
-  async getDV360Partner(): Promise<any> {
+  async getDV360Partner(retryCount = 2): Promise<any> {
     const cachedData = localStorage.getItem('partners');
     if (cachedData) {
       this.partners = JSON.parse(cachedData);
@@ -301,18 +305,24 @@ export class DialogComponent {
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+  
     try {
       const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v3/partners', { headers });
       const data = await firstValueFrom(response$);
-    
+  
       this.partners = data.partners;
       localStorage.setItem('partners', JSON.stringify(data.partners));
       this.partnersSubject.next(data.partners);
     } catch (error: any) {
-      await this.externalPlatforms.handleError(error);
-      this.getDV360Partner();
+      if (retryCount > 0) {
+        await this.externalPlatforms.handleGoogleError(error);
+        this.getDV360Partner(retryCount - 1);
+      } else {
+        this.toaster.error('An error occurred while fetching partners', 'Error');
+      }
     }
   }
+  
 
   getAdvertiser(event: MatAutocompleteSelectedEvent) {
     if (this.formGroup.get('platform')?.value === 'dv360') {
@@ -326,7 +336,7 @@ export class DialogComponent {
     }
   }
 
-  async getDV360Advertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
+  async getDV360Advertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2) {
     let selectedPartner: any = null
     if (event) {
       selectedPartner = event.option.value;
@@ -364,12 +374,16 @@ export class DialogComponent {
       })
       localStorage.setItem('partners', JSON.stringify(partnersData));
     } catch (error: any) {
-      await this.externalPlatforms.handleError(error);
-      this.getDV360Advertiser(event, edit);
+      if (retryCount > 0) {
+        await this.externalPlatforms.handleGoogleError(error);
+        this.getDV360Advertiser(event, edit, retryCount - 1);
+      } else {
+        this.toaster.error('An error occurred while fetching advertisers', 'Error');
+      }
     }
   }
 
-  async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
+  async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2) {
     let selectedAdvertiser: any = null
     if (event) {
       selectedAdvertiser = event.option.value;
@@ -409,7 +423,12 @@ export class DialogComponent {
       })
       localStorage.setItem('partners', JSON.stringify(partnersData));
     } catch (error: any) {
-      await this.externalPlatforms.handleError(error);
+      if (retryCount > 0) {
+        await this.externalPlatforms.handleGoogleError(error);
+        this.getDV360Campaign(event, edit, retryCount - 1);
+      } else {
+        this.toaster.error('An error occurred while fetching partners', 'Error');
+      }
       this.getDV360Campaign(event, edit);
     }
   }

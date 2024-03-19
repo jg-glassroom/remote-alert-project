@@ -2,11 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { getAuth } from 'firebase/auth';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 import { ToastrService } from 'ngx-toastr';
 
-declare var gapi: any;
+import { getAuth } from 'firebase/auth';
+
+import { firstValueFrom, first } from 'rxjs';
 
 
 @Injectable({
@@ -26,48 +28,45 @@ export class ExternalPlatformsService {
     'https://www.googleapis.com/auth/doubleclicksearch'
   ].join(' ');
   
-  constructor(private db: AngularFirestore) {
-    gapi.load('auth2', () => {
-      gapi.auth2.init({client_id: this.clientId, plugin_name: 'hello'});
-    });
-  }
+  constructor(private db: AngularFirestore, private fns: AngularFireFunctions) {}
 
-  refreshToken() {
-    // TODO: Implement function to refresh access token
-  }
-
-  async handleError(error: HttpErrorResponse) {
-    if (error.status === 401 || error.status === 403) {
-      this.refreshToken();
-    } else {
-      console.error(`An unexpected token error occurred [${error.status}]: ${error.message}`);
+  async refreshToken() {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+  
+    if (!currentUser) {
+      console.error('User not logged in');
+      return;
     }
+  
+    const callable = this.fns.httpsCallable('refreshAccessToken');
+    const userDocRef = this.db.collection('user').doc(currentUser.uid);
+  
+    userDocRef.valueChanges().pipe(first()).subscribe(async (user: any) => {
+      try {
+        const result = await firstValueFrom(callable({ refreshToken: user.googleRefreshToken }));
+        if (result && result.access_token) {
+          localStorage.setItem('googleAccessToken', result.access_token);
+  
+          await userDocRef.update({
+            googleAccessToken: result.access_token,
+          });
+  
+          console.log('Access token refreshed and updated successfully');
+        } else {
+          throw new Error('Failed to refresh access token');
+        }
+      } catch (error) {
+        console.error('Error refreshing access token', error);
+      }
+    });
   }  
 
-  async googleSignIn() {
-    const GoogleAuth = gapi.auth2.getAuthInstance();
-    try {
-      const googleUser = await GoogleAuth.signIn({
-        scope: this.scope
-      });
-
-      const response = googleUser.getAuthResponse();
-      const googleAccessToken = response.access_token;
-      const currentUser = getAuth().currentUser;
-      console.log("GOOGLE RESPONSE", response);
-
-      // TODO : Get reshresh token
-      if (currentUser) {
-        this.db.doc(`user/${currentUser.uid}`).update({
-          googleAccessToken: googleAccessToken,
-        });
-        this.toaster.success("Your account has been successfully linked", "Success");
-      } else {
-        this.toaster.error("User not found", "Error");
-      }
-    } catch (error) {
-      console.error("Error signing in", error);
-      this.toaster.error("An error occured", "Error");
+  async handleGoogleError(error: HttpErrorResponse) {
+    if (error.status === 401 || error.status === 403) {
+      await this.refreshToken();
+    } else {
+      console.error(`An unexpected token error occurred [${error.status}]: ${error.message}`);
     }
   }
 }

@@ -7,7 +7,7 @@
       <mat-label>Platform</mat-label>
       <mat-select formControlName="platform" (selectionChange)="getClient($event)">
         <mat-option value="dv360">Display & Video 360</mat-option>
-        <mat-option value="cm360" disabled>Campaign Manager 360</mat-option>
+        <mat-option value="sa360" disabled>Search Ads 360</mat-option>
       </mat-select>
       <mat-error *ngIf="(submitted || form['platform'].touched) && form['platform'].invalid">
         The field is required

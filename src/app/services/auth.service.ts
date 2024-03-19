@@ -57,7 +57,9 @@ export class AuthService {
 
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
       userDoc.pipe(first()).subscribe((user: any) => {
-        localStorage.setItem('googleAccessToken', user.googleAccessToken);
+        if (user.googleAccessToken) {
+          localStorage.setItem('googleAccessToken', user.googleAccessToken);
+        }
       });
     } catch (error) {
       console.error("An error occurred: ", error);
@@ -67,6 +69,7 @@ export class AuthService {
 
   async signOut() {
     await this.afAuth.signOut();
+    localStorage.clear();
     return this.router.navigate(['/']);
   }
 
