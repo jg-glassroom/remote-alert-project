@@ -1,4 +1,4 @@
-<form [formGroup]="formGroup" (ngSubmit)="onSubmit()" class="form">
+<form [formGroup]="formGroup" class="form">
 
   <h1>{{ isEditMode ? 'Edit ' + initialCampaignName : 'Create alert rule' }}</h1>
 
@@ -127,8 +127,12 @@
   </div>
 
 	<div class="form-element">
-		<button mat-raised-button type="submit" class="button" color="primary">{{ isEditMode ? 'Edit' : 'Create' }}</button>
+		<button mat-raised-button type="submit" class="button" color="primary" (click)="onSubmit()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
     &nbsp;
+    <ng-container *ngIf="!isEditMode">
+        <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)">Save & execute</button>
+        &nbsp;
+    </ng-container>
 		<button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
   </div>
 

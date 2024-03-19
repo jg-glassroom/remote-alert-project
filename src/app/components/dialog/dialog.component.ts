@@ -9,6 +9,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
+import { ReportService } from '../../services/report.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -86,7 +87,8 @@ export class DialogComponent {
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient
+    private http: HttpClient,
+    private reportService: ReportService
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -279,12 +281,13 @@ export class DialogComponent {
       endDateControl.updateValueAndValidity();
     }
     if (this.isEditMode) {
-      this.getDV360Advertiser(undefined, true)
-      this.getDV360Campaign(undefined, true)
-      this.campaigns = this.data?.campaignId
+      this.getDV360Partner();
+      this.getDV360Advertiser(undefined, true);
+      this.getDV360Campaign(undefined, true);
+      this.campaigns = this.data?.campaignId;
       this.campaigns.forEach((campaign: any) => {
-        this.selection.isSelected(campaign)
-        this.toggleSelection(campaign)
+        this.selection.isSelected(campaign);
+        this.toggleSelection(campaign);
       });
     }
   }
@@ -316,8 +319,9 @@ export class DialogComponent {
       this.partnersSubject.next(data.partners);
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
-        this.getDV360Partner(retryCount - 1);
+        this.externalPlatforms.handleGoogleError(error).then(() => {
+          this.getDV360Partner(retryCount - 1);
+        });
       } else {
         this.toaster.error('An error occurred while fetching partners', 'Error');
       }
@@ -377,8 +381,9 @@ export class DialogComponent {
       localStorage.setItem('partners', JSON.stringify(partnersData));
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
-        this.getDV360Advertiser(event, edit, retryCount - 1);
+        await this.externalPlatforms.handleGoogleError(error).then(() => {
+          this.getDV360Advertiser(event, edit, retryCount - 1);
+        });
       } else {
         this.toaster.error('An error occurred while fetching advertisers', 'Error');
       }
@@ -407,7 +412,6 @@ export class DialogComponent {
     try {
       const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
       const data: any = await firstValueFrom(response$);
-      localStorage.setItem('selectedAdvertiser', selectedAdvertiser.partnerId);
 
       const storedData = localStorage.getItem('partners');
       const partnersData = storedData ? JSON.parse(storedData) : { advertisers: {} };
@@ -427,10 +431,11 @@ export class DialogComponent {
       localStorage.setItem('partners', JSON.stringify(partnersData));
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
-        this.getDV360Campaign(event, edit, retryCount - 1);
+        this.externalPlatforms.handleGoogleError(error).then(() => {
+          this.getDV360Campaign(event, edit, retryCount - 1);
+        });
       } else {
-        this.toaster.error('An error occurred while fetching partners', 'Error');
+        this.toaster.error('An error occurred while fetching campaigns', 'Error');
       }
       this.getDV360Campaign(event, edit);
     }
@@ -461,7 +466,7 @@ export class DialogComponent {
     };
   }
   
-  onSubmit() {
+  onSubmit(execute: boolean = false) {
     this.submitted = true;
     if (this.formGroup.valid) {
       this.auth.user$.pipe(
@@ -478,9 +483,27 @@ export class DialogComponent {
           };
 
           if (this.isEditMode && this.documentId) {
-            return this.db.collection('userSearch').doc(this.documentId).update(formData);
+            return this.db.collection('userSearch').doc(this.documentId).update(formData).then(() => {
+              this.toaster.success('Alert rule updated successfully', 'Success');
+              if (execute) {
+                this.reportService.processReport({ id: this.documentId, ...formData });
+              }
+              return of(null);
+            });
           } else {
-            return this.db.collection('userSearch').add(formData);
+            return this.db.collection('userSearch').add(formData).then(docRef => {
+              return docRef.get().then(doc => {
+                if (execute) {
+                  this.toaster.success('Alert rule created and executed successfully', 'Success');
+                  let data: any = doc.data();
+                  data.id = docRef.id;
+                  this.reportService.processReport(data);
+                } else {
+                  this.toaster.success('Alert rule created successfully', 'Success');
+                }
+                return of(null);
+              });
+            });
           }
         })
       ).subscribe({
