@@ -507,13 +507,45 @@ export class DialogComponent {
           }
         })
       ).subscribe({
-        next: () => this.dialogRef.close(),
-        error: (error) => console.error("Error processing document: ", error),
+        next: () => {        
+          localStorage.removeItem('partners');
+          localStorage.removeItem('selectedPartner');
+          this.dialogRef.close();
+        },
+        error: (error) => {
+          localStorage.removeItem('partners');
+          localStorage.removeItem('selectedPartner');
+          console.error("Error processing document: ", error);
+        },
       });
     }
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  refreshData() {
+    localStorage.removeItem('partners');
+    localStorage.removeItem('selectedPartner');
+    const platform = this.formGroup.get('platform');
+    this.formGroup.patchValue({
+      partner: null,
+      advertiser: null,
+      startDate: null,
+      endDate: null,
+      budget: null,
+      campaignName: null,
+      campaignId: [],
+    });
+    this.advertisers$ = of([]);
+    this.originalAdvertisers$ = of([]);
+    this.originalCampaigns$ = of([]);
+    this.campaigns$ = of([]);
+    this.campaigns = [];
+    this.selection.clear();
+    if (platform) {
+      this.getClient(platform);
+    }
   }
 }
