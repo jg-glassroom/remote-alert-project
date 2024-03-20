@@ -49,7 +49,6 @@ export class HomeComponent implements OnInit {
       width: '70%',
       height: '90vh'
     }).afterClosed().subscribe(() => {
-      console.log("XXXXXXXXXXXX");
       this.getSearch();
     });
   }

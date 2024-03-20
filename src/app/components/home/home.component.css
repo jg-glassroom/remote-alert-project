@@ -9,8 +9,7 @@
 }
 
 .table .row:hover {
-  background-color: rgba(158, 159, 159, 0.05); 
-  cursor: pointer; 
+  background-color: rgba(158, 159, 159, 0.05);
 }
 
 .icon {
