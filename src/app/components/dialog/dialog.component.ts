@@ -143,7 +143,7 @@ export class DialogComponent {
     }
     this.formGroup.patchValue({
       campaignId: this.campaigns,
-    })
+    });
   }
   
   addCampaignToChips(campaign: any): void {
@@ -281,14 +281,9 @@ export class DialogComponent {
       endDateControl.updateValueAndValidity();
     }
     if (this.isEditMode) {
-      this.getDV360Partner();
-      this.getDV360Advertiser(undefined, true);
-      this.getDV360Campaign(undefined, true);
-      this.campaigns = this.data?.campaignId;
-      this.campaigns.forEach((campaign: any) => {
-        this.selection.isSelected(campaign);
-        this.toggleSelection(campaign);
-      });
+      this.getClient(this.data?.platform);
+      this.getAdvertiser(undefined, true);
+      this.getCampaign(undefined, true);
     }
   }
 
@@ -329,15 +324,15 @@ export class DialogComponent {
   }
   
 
-  getAdvertiser(event: MatAutocompleteSelectedEvent) {
+  getAdvertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     if (this.formGroup.get('platform')?.value === 'dv360') {
-      this.getDV360Advertiser(event)
+      this.getDV360Advertiser(event, edit)
     }
   }
 
-  getCampaign(event: MatAutocompleteSelectedEvent) {
+  getCampaign(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     if (this.formGroup.get('platform')?.value === 'dv360') {
-      this.getDV360Campaign(event)
+      this.getDV360Campaign(event, edit)
     }
   }
 
@@ -406,6 +401,8 @@ export class DialogComponent {
         budget: null,
       })
       this.campaigns = []
+    } else {
+      this.campaigns = this.data?.campaignId;
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
@@ -429,6 +426,12 @@ export class DialogComponent {
         }
       })
       localStorage.setItem('partners', JSON.stringify(partnersData));
+      if (edit) {
+        this.campaigns.forEach((campaign: any) => {
+          this.selection.select(campaign);
+          this.addCampaignToChips(campaign);
+        });
+      }
     } catch (error: any) {
       if (retryCount > 0) {
         this.externalPlatforms.handleGoogleError(error).then(() => {
@@ -468,7 +471,9 @@ export class DialogComponent {
   
   onSubmit(execute: boolean = false) {
     this.submitted = true;
+    console.log('formData4', this.formGroup);
     if (this.formGroup.valid) {
+      console.log('formData3');
       this.auth.user$.pipe(
         first(),
         switchMap(user => {
@@ -482,7 +487,9 @@ export class DialogComponent {
             userId: user.uid
           };
 
+          console.log('formData1', formData);
           if (this.isEditMode && this.documentId) {
+            console.log('formData', formData);
             return this.db.collection('userSearch').doc(this.documentId).update(formData).then(() => {
               this.toaster.success('Alert rule updated successfully', 'Success');
               if (execute) {

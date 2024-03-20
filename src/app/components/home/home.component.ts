@@ -48,7 +48,10 @@ export class HomeComponent implements OnInit {
     this.matDialog.open(DialogComponent, {
       width: '70%',
       height: '90vh'
-    })
+    }).afterClosed().subscribe(() => {
+      console.log("XXXXXXXXXXXX");
+      this.getSearch();
+    });
   }
 
   public getSearch() {
