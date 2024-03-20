@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatIconModule } from '@angular/material/icon';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
@@ -42,7 +43,8 @@ import { ToastrService } from 'ngx-toastr';
     MatCheckboxModule,
     MatCardModule,
     MatSelectModule,
-    MatTabsModule
+    MatTabsModule,
+    MatIconModule
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
@@ -118,6 +120,14 @@ export class ProfileComponent {
       },
       error: (error: any) => console.error("Error processing document: ", error),
     });
+  }
+
+  isConnected(platform: string) {
+    if (platform === 'google') {
+      return !!localStorage.getItem('googleAccessToken');
+    } else {
+      return false;
+    }
   }
 
   createForm() {

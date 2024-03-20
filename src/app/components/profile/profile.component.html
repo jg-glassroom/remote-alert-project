@@ -65,15 +65,25 @@
                     <mat-card class="platform-card left">
                         <mat-card-content>
                             <img src="../../../assets/google-logo.png" alt="Google logo" class="logo">
-                            <span class="status">Status:</span><br>
-                            <button mat-raised-button color="primary" class="reconnect" (click)="onGoogleSignInClick()">Reconnect</button>
+                            <div class="bottom">
+                                <span class="status">Status:</span>
+                                <mat-icon style="color: green;" *ngIf="isConnected('google')">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!isConnected('google')">close</mat-icon>
+                                <br>
+                                <button mat-raised-button color="primary" class="reconnect" (click)="onGoogleSignInClick()">Reconnect</button>
+                            </div>
                         </mat-card-content>
                     </mat-card>
                     <mat-card class="platform-card right">
                         <mat-card-content>
                             <img src="../../../assets/facebook-logo.png" alt="Facebook logo" class="logo">
-                            <span class="status">Status:</span><br>
-                            <button mat-raised-button color="primary" disabled class="reconnect">Reconnect</button>
+                            <div class="bottom">
+                                <span class="status">Status:</span>
+                                <mat-icon style="color: green;" *ngIf="isConnected('facebook')">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!isConnected('facebook')">close</mat-icon>
+                                <br>
+                                <button mat-raised-button color="primary" disabled class="reconnect">Reconnect</button>
+                            </div>
                         </mat-card-content>
                     </mat-card>
                 </div>

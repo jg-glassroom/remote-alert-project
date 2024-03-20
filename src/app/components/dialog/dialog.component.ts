@@ -471,9 +471,7 @@ export class DialogComponent {
   
   onSubmit(execute: boolean = false) {
     this.submitted = true;
-    console.log('formData4', this.formGroup);
     if (this.formGroup.valid) {
-      console.log('formData3');
       this.auth.user$.pipe(
         first(),
         switchMap(user => {
@@ -487,9 +485,7 @@ export class DialogComponent {
             userId: user.uid
           };
 
-          console.log('formData1', formData);
           if (this.isEditMode && this.documentId) {
-            console.log('formData', formData);
             return this.db.collection('userSearch').doc(this.documentId).update(formData).then(() => {
               this.toaster.success('Alert rule updated successfully', 'Success');
               if (execute) {
