@@ -63,25 +63,27 @@
             <mat-tab label="Platforms credentials">
                 <div class="first row">
                     <mat-card class="platform-card left">
-                        <mat-card-content>
+                        <mat-card-content class="mat-card-content">
                             <img src="../../../assets/google-logo.png" alt="Google logo" class="logo">
                             <div class="bottom">
-                                <span class="status">Status:</span>
-                                <mat-icon style="color: green;" *ngIf="isConnected('google')">check</mat-icon>
-                                <mat-icon style="color: red;" *ngIf="!isConnected('google')">close</mat-icon>
-                                <br>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="onGoogleSignInClick()">Reconnect</button>
-                            </div>
+                                <div class="status-group">
+                                    <span class="status">Status:</span>
+                                    <mat-icon style="color: green;" *ngIf="isConnected('google')">check</mat-icon>
+                                    <mat-icon style="color: red;" *ngIf="!isConnected('google')">close</mat-icon>
+                                </div>
+                                <button mat-raised-button color="primary" class="reconnect" (click)="onGoogleSignInClick()" [disabled]="isConnected('google')">Reconnect</button>
+                            </div>                            
                         </mat-card-content>
                     </mat-card>
                     <mat-card class="platform-card right">
-                        <mat-card-content>
+                        <mat-card-content class="mat-card-content">
                             <img src="../../../assets/facebook-logo.png" alt="Facebook logo" class="logo">
                             <div class="bottom">
-                                <span class="status">Status:</span>
-                                <mat-icon style="color: green;" *ngIf="isConnected('facebook')">check</mat-icon>
-                                <mat-icon style="color: red;" *ngIf="!isConnected('facebook')">close</mat-icon>
-                                <br>
+                                <div class="status-group">
+                                    <span class="status">Status:</span>
+                                    <mat-icon style="color: green;" *ngIf="isConnected('facebook')">check</mat-icon>
+                                    <mat-icon style="color: red;" *ngIf="!isConnected('facebook')">close</mat-icon>
+                                </div>
                                 <button mat-raised-button color="primary" disabled class="reconnect">Reconnect</button>
                             </div>
                         </mat-card-content>

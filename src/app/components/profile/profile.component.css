@@ -70,3 +70,35 @@ form {
 .reconnect {
     margin-top: 7px
 }
+
+.mat-card-content {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.status-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.reconnect {
+    margin-top: 7px;
+}
+
+mat-icon {
+    padding-top: 10px;
+}
