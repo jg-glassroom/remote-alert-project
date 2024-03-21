@@ -36,7 +36,7 @@ export class ExternalPlatformsService {
   
     if (!currentUser) {
       console.error('User not logged in');
-      return;
+      return Promise.reject('User not logged in');
     }
   
     const callable = this.fns.httpsCallable('refreshAccessToken');
@@ -58,15 +58,17 @@ export class ExternalPlatformsService {
         }
       } catch (error) {
         console.error('Error refreshing access token', error);
+        return Promise.reject(error);
       }
     });
   }  
 
-  async handleGoogleError(error: HttpErrorResponse) {
+  async handleGoogleError(error: HttpErrorResponse): Promise<void> {
     if (error.status === 401 || error.status === 403) {
-      await this.refreshToken();
+      return this.refreshToken();
     } else {
-      console.error(`An unexpected token error occurred [${error.status}]: ${error.message}`);
+      console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);
+      this.toaster.error('An unexpected error occurred', 'Error');
     }
   }
 }

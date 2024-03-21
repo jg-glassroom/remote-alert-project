@@ -314,11 +314,10 @@ export class DialogComponent {
       this.partnersSubject.next(data.partners);
     } catch (error: any) {
       if (retryCount > 0) {
-        this.externalPlatforms.handleGoogleError(error).then(() => {
-          this.getDV360Partner(retryCount - 1);
-        });
+          await this.externalPlatforms.handleGoogleError(error);
+          return this.getDV360Partner(retryCount - 1);
       } else {
-        this.toaster.error('An error occurred while fetching partners', 'Error');
+          this.toaster.error('An error occurred while fetching partners', 'Error');
       }
     }
   }
@@ -336,7 +335,7 @@ export class DialogComponent {
     }
   }
 
-  async getDV360Advertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2) {
+  async getDV360Advertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
     let selectedPartner: any = null
     if (event) {
       selectedPartner = event.option.value;
@@ -376,16 +375,15 @@ export class DialogComponent {
       localStorage.setItem('partners', JSON.stringify(partnersData));
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error).then(() => {
-          this.getDV360Advertiser(event, edit, retryCount - 1);
-        });
+          await this.externalPlatforms.handleGoogleError(error);
+          return this.getDV360Advertiser(event, edit, retryCount - 1);
       } else {
-        this.toaster.error('An error occurred while fetching advertisers', 'Error');
+          this.toaster.error('An error occurred while fetching advertisers', 'Error');
       }
     }
   }
 
-  async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2) {
+  async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
     let selectedAdvertiser: any = null
     if (event) {
       selectedAdvertiser = event.option.value;
@@ -434,13 +432,11 @@ export class DialogComponent {
       }
     } catch (error: any) {
       if (retryCount > 0) {
-        this.externalPlatforms.handleGoogleError(error).then(() => {
-          this.getDV360Campaign(event, edit, retryCount - 1);
-        });
+          await this.externalPlatforms.handleGoogleError(error);
+          return this.getDV360Campaign(event, edit, retryCount - 1);
       } else {
-        this.toaster.error('An error occurred while fetching campaigns', 'Error');
+          this.toaster.error('An error occurred while fetching campaigns', 'Error');
       }
-      this.getDV360Campaign(event, edit);
     }
   }
 
