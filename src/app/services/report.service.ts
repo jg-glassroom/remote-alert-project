@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
@@ -85,7 +86,7 @@ export class ReportService {
       const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
       const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
       const data: any = await firstValueFrom(response$);
-      
+
       if (data && data.metadata && data.metadata.googleCloudStoragePath) {
         this.reportLink = data.metadata.googleCloudStoragePath;
         console.log("Report link found:", this.reportLink);
@@ -104,17 +105,25 @@ export class ReportService {
     }
   }  
 
-  async getReport() {
+  async getReport(): Promise<void> {
     const proxyUrl = 'http://localhost:3000/download-csv';
     const fileUrl = encodeURIComponent(`${this.reportLink}`);
-    this.http.get(`${proxyUrl}?fileUrl=${fileUrl}`, { responseType: 'text' })
-    .subscribe(response => {
-      console.log(this.csvToJSON(response));
-      this.reportJson = this.csvToJSON(response);
-    }, error => {
-      console.error("Error uploading CSV file:", error);
+    
+    return new Promise((resolve, reject) => {
+      this.http.get(`${proxyUrl}?fileUrl=${fileUrl}`, { responseType: 'text' })
+      .pipe(
+        tap((response: any) => {
+          this.reportJson = this.csvToJSON(response);
+          resolve();
+        }),
+        catchError((error: any) => {
+          console.error("Error uploading CSV file: ", error);
+          reject(error);
+          return of(null);
+        })
+      ).subscribe();
     });
-  }
+  }  
 
   csvToJSON(text: string, quoteChar = '"', delimiter = ',') {
     var rows=text.split("\n");
@@ -140,28 +149,40 @@ export class ReportService {
   }
 
   async processReport(campaign: any, event?: MouseEvent) {
-    await this.createQuery(campaign, event);
-    await this.runQuery();
-    await this.getReportLink();
-    await this.getReport();
-    
-    const userSearchId = campaign.id;
-    const processDataAndInsertIntoFirestore = this.fns.httpsCallable('processDataAndInsertIntoFirestore');
-
-    processDataAndInsertIntoFirestore({ userSearchId: userSearchId, reportJson: this.reportJson }).subscribe(
-      (result) => {
-        console.log(result);
-        this.reportId = null;
-        this.reportLink = null;
-        this.queryId = null;
-        this.reportJson = null;
-      },
-      (error) => {
-        console.error('Error calling function: ', error);
-        this.reportId = null;
-        this.reportLink = null;
-        this.queryId = null;
+    try {
+      await this.createQuery(campaign, event);
+      await this.runQuery();
+      await this.getReportLink();
+      await this.getReport();
+  
+      const userSearchId = campaign.id;
+      const processDataAndInsertIntoFirestore = this.fns.httpsCallable('processDataAndInsertIntoFirestore');
+  
+      if (this.reportJson) {
+        processDataAndInsertIntoFirestore({ userSearchId: userSearchId, reportJson: this.reportJson }).subscribe(
+          (result) => {
+            console.log("Data processed and inserted into Firestore:", result);
+            this.resetReportVariables();
+          },
+          (error) => {
+            console.error('Error calling Firestore function: ', error);
+            this.resetReportVariables();
+          }
+        );
+      } else {
+        console.error('reportJson is null, skipping Firestore insertion.');
+        this.resetReportVariables();
       }
-    );
+    } catch (error) {
+      console.error('Error processing report: ', error);
+      this.resetReportVariables();
+    }
   }
+  
+  resetReportVariables() {
+    this.reportId = null;
+    this.reportLink = null;
+    this.queryId = null;
+    this.reportJson = null;
+  }  
 }
