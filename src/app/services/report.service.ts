@@ -5,6 +5,7 @@ import { firstValueFrom, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { getAuth } from 'firebase/auth';
 
 
 @Injectable({
@@ -156,12 +157,12 @@ export class ReportService {
       await this.getReport();
   
       const userSearchId = campaign.id;
+      const userId = getAuth().currentUser?.uid;
       const processDataAndInsertIntoFirestore = this.fns.httpsCallable('processDataAndInsertIntoFirestore');
   
       if (this.reportJson) {
-        processDataAndInsertIntoFirestore({ userSearchId: userSearchId, reportJson: this.reportJson }).subscribe(
-          (result) => {
-            console.log("Data processed and inserted into Firestore:", result);
+        processDataAndInsertIntoFirestore({ userSearchId: userSearchId, reportJson: this.reportJson, userId: userId }).subscribe(
+          () => {
             this.resetReportVariables();
           },
           (error) => {

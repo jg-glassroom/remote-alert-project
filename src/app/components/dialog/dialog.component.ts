@@ -259,7 +259,7 @@ export class DialogComponent {
     return partner && partner.displayName ? partner.displayName : '';
   }
 
-  createForm() {
+  async createForm() {
     this.formGroup = this.formBuilder.group({
       partner: [this.data?.partner || null, [Validators.required]],
       platform: [this.data?.platform || null, [Validators.required]],
@@ -281,16 +281,16 @@ export class DialogComponent {
       endDateControl.updateValueAndValidity();
     }
     if (this.isEditMode) {
-      this.getClient(this.data?.platform);
+      await this.getClient({value: this.data?.platform});
       this.getAdvertiser(undefined, true);
       this.getCampaign(undefined, true);
     }
   }
 
-  getClient (event: any) {
+  async getClient (event: any) {
     const selectedValue = event.value;
     if (selectedValue === 'dv360') {
-      this.getDV360Partner();
+      await this.getDV360Partner();
     }
   }
 
