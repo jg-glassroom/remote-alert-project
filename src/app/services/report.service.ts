@@ -5,8 +5,10 @@ import { firstValueFrom, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { getAuth } from 'firebase/auth';
 
+import moment from 'moment-timezone';
 
 @Injectable({
   providedIn: 'root'
@@ -15,14 +17,15 @@ export class ReportService {
   queryId = null;
   reportId = null;
   reportLink = null;
-  reportJson: any = null;
+  reportJson: any = [];
 
   constructor(
     private http: HttpClient, 
-    private fns: AngularFireFunctions
+    private fns: AngularFireFunctions,
+    private db: AngularFirestore
   ) { }
 
-  async createQuery(campaign: any, event?: MouseEvent) {
+  async createQuery(campaign: any, campaignId: any, event?: MouseEvent) {
     if (event) {
       event.stopPropagation();
     }
@@ -31,7 +34,17 @@ export class ReportService {
       "metadata": {
         "title": campaign.campaignName + " | " + campaign.startDate + " - " + campaign.endDate,
         "dataRange": {
-            "range": "LAST_7_DAYS"
+            "range": "CUSTOM_DATES",
+            "customStartDate": {
+              "year": campaign.startDate.split('/')[2],
+              "month": campaign.startDate.split('/')[0],
+              "day": campaign.startDate.split('/')[1]
+            },
+            "customEndDate": {
+              "year": campaign.endDate.split('/')[2],
+              "month": campaign.endDate.split('/')[0],
+              "day": campaign.endDate.split('/')[1]
+            }
         },
         "format": "CSV",
       },
@@ -54,6 +67,10 @@ export class ReportService {
           'METRIC_RICH_MEDIA_VIDEO_SKIPS',
           'METRIC_TOTAL_CONVERSIONS'
         ],
+        "filters": [
+          {"type": "FILTER_ADVERTISER", "value": campaign.advertiser.advertiserId},
+          {"type": "FILTER_MEDIA_PLAN", "value": campaignId},
+        ]
       },
       "schedule": {
         "startDate": {
@@ -68,7 +85,7 @@ export class ReportService {
         },
         "frequency": "ONE_TIME",
       }
-    } 
+    };
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
     const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries`, body, { headers });
     const data: any = await firstValueFrom(response$);
@@ -82,12 +99,12 @@ export class ReportService {
     this.reportId = data.key.reportId;
   }
 
-  async getReportLink(tries: number = 5) {
+  async getReportLink(tries: number = 10) {
     try {
       const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
       const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
       const data: any = await firstValueFrom(response$);
-
+      console.log("Report data:", data);
       if (data && data.metadata && data.metadata.googleCloudStoragePath) {
         this.reportLink = data.metadata.googleCloudStoragePath;
         console.log("Report link found:", this.reportLink);
@@ -101,7 +118,7 @@ export class ReportService {
         await new Promise(resolve => setTimeout(resolve, 1000)); 
         await this.getReportLink(tries - 1);
       } else {
-        console.log("Failed to get the report link after 3 attempts.");
+        console.log("Failed to get the report link after 10 attempts.");
       }
     }
   }  
@@ -114,7 +131,8 @@ export class ReportService {
       this.http.get(`${proxyUrl}?fileUrl=${fileUrl}`, { responseType: 'text' })
       .pipe(
         tap((response: any) => {
-          this.reportJson = this.csvToJSON(response);
+          response = this.csvToJSON(response)
+          this.reportJson = this.reportJson.concat(response);
           resolve();
         }),
         catchError((error: any) => {
@@ -149,15 +167,28 @@ export class ReportService {
     });
   }
 
+  async saveReport(report: any, campaign: any, userId: any) {
+    let reportToSave = {
+      report: report,
+      date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
+      campaignName: campaign.campaignName,
+      userId: userId
+    };
+    this.db.collection('DV360Report').add(reportToSave);
+  }
+
   async processReport(campaign: any, event?: MouseEvent) {
     try {
-      await this.createQuery(campaign, event);
-      await this.runQuery();
-      await this.getReportLink();
-      await this.getReport();
-  
+      for (const item of campaign.campaignId) {
+        await this.createQuery(campaign, item.campaignId, event);
+        await this.runQuery();
+        await this.getReportLink();
+        await this.getReport();
+      }
+      
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
+      await this.saveReport(this.reportJson, campaign, userId);
       const processDataAndInsertIntoFirestore = this.fns.httpsCallable('processDataAndInsertIntoFirestore');
   
       if (this.reportJson) {
@@ -184,6 +215,6 @@ export class ReportService {
     this.reportId = null;
     this.reportLink = null;
     this.queryId = null;
-    this.reportJson = null;
+    this.reportJson = [];
   }  
 }

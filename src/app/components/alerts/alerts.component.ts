@@ -1,10 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatTableModule } from '@angular/material/table';
 
 import { AuthService } from '../../services/auth.service';
 
@@ -14,15 +11,14 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-alerts',
   standalone: true,
-  imports: [MatPaginatorModule, MatTableModule],
+  imports: [CommonModule],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css'
 })
 export class AlertsComponent {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   public displayedColumnsAlerts: string[] = ['CampaignName', 'CampaignID', 'ClientName', 'CreatedBy', 'error_rule_message'];
-  public dataSource = new MatTableDataSource<any>([]);
+  public dataSource: any = [];
 
   constructor (private authService: AuthService, private db: AngularFirestore) {}
 
@@ -30,8 +26,8 @@ export class AlertsComponent {
     this.getAlerts()
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
+  public round(value: number): number {
+    return Math.round(value);
   }
   
   public getAlerts() {
@@ -47,7 +43,11 @@ export class AlertsComponent {
               return {};
             }
           });
-          this.dataSource.data = data; 
+          this.dataSource = data; 
+        });
+        this.db.collection('DV360Report', (ref: any) => ref.where('userId', '==', user.uid)).snapshotChanges().subscribe((report: any) => {
+          console.log("AAAAAAAAAAAAAAAAAAA", report)
+          // this.dataSource = report.report;
         });
       }
     });

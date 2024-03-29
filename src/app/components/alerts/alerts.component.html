@@ -1,39 +1,27 @@
 <div class="table-container">
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 table">
-    
-    <!-- Campaign Name Column -->
-    <ng-container matColumnDef="CampaignName">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Name</th>
-      <td mat-cell *matCellDef="let element">{{element.CampaignName}}</td>
-    </ng-container>
-    
-    <!-- Campaign Id Column -->
-    <ng-container matColumnDef="CampaignID">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Id</th>
-      <td mat-cell *matCellDef="let element">{{element.CampaignID}}</td>
-    </ng-container>
-    
-    <!-- Client Name Column -->
-    <ng-container matColumnDef="ClientName">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Client Name</th>
-      <td mat-cell *matCellDef="let element">{{element.ClientName}}</td>
-    </ng-container>
-    
-    <!-- Created By Column -->
-    <ng-container matColumnDef="CreatedBy">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Created By</th>
-      <td mat-cell *matCellDef="let element">{{element.CreatedBy}}</td>
-    </ng-container>
-    
-    <!-- Error Rule Message Column -->
-    <ng-container matColumnDef="error_rule_message">
-      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Error Rule Message</th>
-      <td mat-cell *matCellDef="let element">{{element.error_rule_message}}</td>
-    </ng-container>
-
-    <tr mat-header-row class="head-row" *matHeaderRowDef="displayedColumnsAlerts"></tr>
-    <tr mat-row class="row" *matRowDef="let row; columns: displayedColumnsAlerts;"></tr>
-
+  <table>
+    <tr *ngFor="let data of dataSource">
+      <td>
+        {{data.CampaignName}}<br>
+        {{data.StartDate}} - {{data.EndDate}}<br>
+        {{round(data.perc_days_passed)}}%
+      </td>
+      <td>Line chart</td>
+      <td>{{data.Platform}}</td>
+      <td>
+        ${{round(data.campaign_cost)}}<br>
+        ${{round(data.Budget)}}
+      </td>
+      <td>
+        {{data.overall_error_rule_message ? data.overall_error_rule_message : data.budget_error_rule_message}}
+      </td>
+      <td>
+        {{data.yesterday_error_rule_message}}<br>
+        {{data.seven_days_error_rule_message}}
+      </td>
+      <td>
+        ${{round(data.daily_estimated_cost)}}/day
+      </td>
+    </tr>
   </table>
 </div>
-<mat-paginator [pageSizeOptions]="[7]" showFirstLastButtons></mat-paginator>
