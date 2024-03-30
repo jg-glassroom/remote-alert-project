@@ -46,8 +46,24 @@ export class AlertsComponent {
           this.dataSource = data; 
         });
         this.db.collection('DV360Report', (ref: any) => ref.where('userId', '==', user.uid)).snapshotChanges().subscribe((report: any) => {
-          console.log("AAAAAAAAAAAAAAAAAAA", report)
-          // this.dataSource = report.report;
+          const data = report.map((a: any) => {
+            const data = a.payload.doc.data();
+            const id = a.payload.doc.id;
+            if (data) {
+              return { id, ...data };
+            } else {
+              return {};
+            }
+          });
+          console.log("AAAAAAAAAAAAAAAAAAA", this.dataSource)
+          console.log("BBBBBBBBBBBBBBBBBBBBB", data)
+          this.dataSource.forEach((line: any) => {
+            const report = data.find((report: any) => report.campaignName === line.CampaignName);
+            if (report) {
+              line.report = report.report;
+            }
+            console.log("CCCCCCCCCCCCCCCCCCCCCCCCC", line)
+          });
         });
       }
     });

@@ -168,8 +168,32 @@ export class ReportService {
   }
 
   async saveReport(report: any, campaign: any, userId: any) {
+    let resultatAgregat: any = {};
+
+    report.forEach((line: any) => {
+      if (!resultatAgregat[line.Date]) {
+        resultatAgregat[line.Date] = {...line, Nombre: 1};
+      } else {
+        Object.keys(line).forEach(cle => {
+          if (typeof line[cle] === 'number') {
+            resultatAgregat[line.Date][cle] += line[cle];
+          }
+        });
+        resultatAgregat[line.Date].Nombre += 1;
+      }
+    });
+
+    let dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+
+    let filteredObj = Object.entries(resultatAgregat)
+      .filter(([key, _]) => dateRegex.test(key))
+      .reduce((acc: any, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {});
+    console.log("resultatAgregat", filteredObj)
     let reportToSave = {
-      report: report,
+      report: filteredObj,
       date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
       campaignName: campaign.campaignName,
       userId: userId
