@@ -55,14 +55,11 @@ export class AlertsComponent {
               return {};
             }
           });
-          console.log("AAAAAAAAAAAAAAAAAAA", this.dataSource)
-          console.log("BBBBBBBBBBBBBBBBBBBBB", data)
           this.dataSource.forEach((line: any) => {
             const report = data.find((report: any) => report.campaignName === line.CampaignName);
             if (report) {
               line.report = report.report;
             }
-            console.log("CCCCCCCCCCCCCCCCCCCCCCCCC", line)
           });
         });
       }

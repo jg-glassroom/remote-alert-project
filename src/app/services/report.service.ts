@@ -191,7 +191,6 @@ export class ReportService {
         acc[key] = value;
         return acc;
       }, {});
-    console.log("resultatAgregat", filteredObj)
     let reportToSave = {
       report: filteredObj,
       date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
