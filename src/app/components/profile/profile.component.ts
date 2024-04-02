@@ -125,6 +125,8 @@ export class ProfileComponent {
   isConnected(platform: string) {
     if (platform === 'google') {
       return !!localStorage.getItem('googleAccessToken');
+    } else if (platform === 'facebook') {
+      return !!localStorage.getItem('facebookAccessToken');
     } else {
       return false;
     }
@@ -196,5 +198,8 @@ export class ProfileComponent {
       '&prompt=consent';
 
     window.location.href = authUrl;
+  }
+
+  onFacebookSignInClick() {
   }
 }

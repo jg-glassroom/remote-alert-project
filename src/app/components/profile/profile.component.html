@@ -84,7 +84,7 @@
                                     <mat-icon style="color: green;" *ngIf="isConnected('facebook')">check</mat-icon>
                                     <mat-icon style="color: red;" *ngIf="!isConnected('facebook')">close</mat-icon>
                                 </div>
-                                <button mat-raised-button color="primary" disabled class="reconnect">Reconnect</button>
+                                <button mat-raised-button color="primary" class="reconnect" (click)="onFacebookSignInClick()" [disabled]="isConnected('facebook')">Reconnect</button>
                             </div>
                         </mat-card-content>
                     </mat-card>

@@ -217,10 +217,10 @@ export class ReportService {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
       await this.saveReport(this.reportJson, campaign, userId);
-      const processDataAndInsertIntoFirestore = this.fns.httpsCallable('processDataAndInsertIntoFirestore');
+      const DV360PacingAlerts = this.fns.httpsCallable('DV360PacingAlerts');
   
       if (this.reportJson) {
-        processDataAndInsertIntoFirestore({ userSearchId: userSearchId, reportJson: this.reportJson, userId: userId }).subscribe(
+        DV360PacingAlerts({ userSearchId: userSearchId, reportJson: this.reportJson, userId: userId }).subscribe(
           () => {
             this.resetReportVariables();
           },
