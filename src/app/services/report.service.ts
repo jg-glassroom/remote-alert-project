@@ -124,19 +124,25 @@ export class ReportService {
   }  
 
   async getReport(): Promise<void> {
-    const proxyUrl = 'https://glassroom-firebase.nn.r.appspot.com/download-csv';
+    // Utilisez l'URL de votre Cloud Function déployée
+    const proxyUrl = 'https://northamerica-northeast1-glassroom-firebase.cloudfunctions.net/downloadCSV';
     const fileUrl = encodeURIComponent(`${this.reportLink}`);
-    
+
     return new Promise((resolve, reject) => {
       this.http.get(`${proxyUrl}?fileUrl=${fileUrl}`, { responseType: 'text' })
       .pipe(
         tap((response: any) => {
-          response = this.csvToJSON(response)
-          this.reportJson = this.reportJson.concat(response);
-          resolve();
+          try {
+            response = this.csvToJSON(response);
+            this.reportJson = this.reportJson.concat(response);
+            resolve();
+          } catch (error) {
+            console.error("Error processing CSV file: ", error);
+            reject(error);
+          }
         }),
         catchError((error: any) => {
-          console.error("Error uploading CSV file: ", error);
+          console.error("Error downloading CSV file: ", error);
           reject(error);
           return of(null);
         })
