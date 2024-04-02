@@ -124,7 +124,6 @@ export class ReportService {
   }  
 
   async getReport(): Promise<void> {
-    // Utilisez l'URL de votre Cloud Function déployée
     const proxyUrl = 'https://northamerica-northeast1-glassroom-firebase.cloudfunctions.net/downloadCSV';
     const fileUrl = encodeURIComponent(`${this.reportLink}`);
 

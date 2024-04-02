@@ -1,27 +1,63 @@
 <div class="table-container">
-  <table>
-    <tr *ngFor="let data of dataSource">
-      <td>
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 table">
+
+    <!-- Campaign Name Column -->
+    <ng-container matColumnDef="campaignName">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Name</th>
+      <td mat-cell *matCellDef="let data">
         {{data.CampaignName}}<br>
         {{data.StartDate}} - {{data.EndDate}}<br>
         {{round(data.perc_days_passed)}}%
       </td>
-      <td>Line chart</td>
-      <td>{{data.Platform}}</td>
-      <td>
+    </ng-container>
+
+    <!-- Line chart Column -->
+    <ng-container matColumnDef="lineChart">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Line chart</th>
+      <td mat-cell *matCellDef="let data"><app-line-chart *ngIf="data.report" [chartData]="data"></app-line-chart></td>
+    </ng-container>
+
+    <!-- Platform Column -->
+    <ng-container matColumnDef="platform">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Platform</th>
+      <td mat-cell *matCellDef="let data">{{data.Platform}}</td>
+    </ng-container>
+
+    <!-- Budget Column -->
+    <ng-container matColumnDef="budget">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Budget</th>
+      <td mat-cell *matCellDef="let data">
         ${{round(data.campaign_cost)}}<br>
         ${{round(data.Budget)}}
       </td>
-      <td>
+    </ng-container>
+
+    <!-- Overall error Column -->
+    <ng-container matColumnDef="overall">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Overall</th>
+      <td mat-cell *matCellDef="let data">
         {{data.overall_error_rule_message ? data.overall_error_rule_message : data.budget_error_rule_message}}
       </td>
-      <td>
+    </ng-container>
+
+    <!-- Yesterday/Seven days error Column -->
+    <ng-container matColumnDef="yesterday">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Yesterday/Seven days</th>
+      <td mat-cell *matCellDef="let data">
         {{data.yesterday_error_rule_message}}<br>
         {{data.seven_days_error_rule_message}}
       </td>
-      <td>
+    </ng-container>
+
+    <!-- Daily estimated cost Column -->
+    <ng-container matColumnDef="daily_estimated_cost">
+      <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Daily estimated cost</th>
+      <td mat-cell *matCellDef="let data">
         ${{round(data.daily_estimated_cost)}}/day
       </td>
-    </tr>
+    </ng-container>
+
+    <tr mat-header-row class="head-row" *matHeaderRowDef="displayedColumnsAlerts"></tr>
+    <tr mat-row class="row" *matRowDef="let row; columns: displayedColumnsAlerts;"></tr>
   </table>
 </div>

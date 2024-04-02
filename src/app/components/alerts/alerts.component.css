@@ -3,7 +3,6 @@
 }
 
 .table .row:hover {
-  background-color: rgba(158, 159, 159, 0.05); 
   cursor: pointer; 
 }
 
@@ -13,5 +12,9 @@ table {
 
 td {
   padding: 10px;
-  border: 1px solid black;
+}
+
+table {    
+  border-radius: 10px;
+  overflow:hidden !important;
 }
