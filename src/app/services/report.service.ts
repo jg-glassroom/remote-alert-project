@@ -124,7 +124,7 @@ export class ReportService {
   }  
 
   async getReport(): Promise<void> {
-    const proxyUrl = 'http://localhost:3000/download-csv';
+    const proxyUrl = 'https://glassroom-firebase.nn.r.appspot.com/download-csv';
     const fileUrl = encodeURIComponent(`${this.reportLink}`);
     
     return new Promise((resolve, reject) => {
