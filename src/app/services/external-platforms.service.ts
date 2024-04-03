@@ -42,30 +42,29 @@ export class ExternalPlatformsService {
     const callable = this.fns.httpsCallable('refreshAccessToken');
     const userDocRef = this.db.collection('user').doc(currentUser.uid);
   
-    userDocRef.valueChanges().pipe(first()).subscribe(async (user: any) => {
-      try {
-        const result = await firstValueFrom(callable({ refreshToken: user.googleRefreshToken }));
-        if (result && result.access_token) {
-          localStorage.setItem('googleAccessToken', result.access_token);
+    const user: any = await firstValueFrom(userDocRef.valueChanges().pipe(first()));
+    try {
+      const result = await firstValueFrom(callable({ refreshToken: user.googleRefreshToken }));
+      if (result && result.access_token) {
+        localStorage.setItem('googleAccessToken', result.access_token);
   
-          await userDocRef.update({
-            googleAccessToken: result.access_token,
-          });
+        await userDocRef.update({
+          googleAccessToken: result.access_token,
+        });
   
-          console.log('Access token refreshed and updated successfully');
-        } else {
-          throw new Error('Failed to refresh access token');
-        }
-      } catch (error) {
-        console.error('Error refreshing access token', error);
-        return Promise.reject(error);
+        console.log('Access token refreshed and updated successfully');
+      } else {
+        throw new Error('Failed to refresh access token');
       }
-    });
+    } catch (error) {
+      console.error('Error refreshing access token', error);
+      return Promise.reject(error);
+    }
   }  
 
   async handleGoogleError(error: HttpErrorResponse): Promise<void> {
     if (error.status === 401 || error.status === 403) {
-      return this.refreshToken();
+      return await this.refreshToken();
     } else {
       console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);
       this.toaster.error('An unexpected error occurred', 'Error');
