@@ -187,7 +187,9 @@ export class ProfileComponent {
 
   googleConnect() {
     var clientId = '552619214593-phjqlsgv1kqkq2nadui8rsuknjudo9lv.apps.googleusercontent.com';
-    var redirectUri = 'https://alert-project-xy52mshrpa-nn.a.run.app/profile';
+    var hostname = window.location.hostname;
+    var redirectUri = hostname === "localhost" ? 
+    'http://localhost:4200/profile' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile';
     var scope = 'profile email https://www.googleapis.com/auth/display-video https://www.googleapis.com/auth/doubleclickbidmanager https://www.googleapis.com/auth/dfareporting https://www.googleapis.com/auth/doubleclicksearch';
 
     var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
