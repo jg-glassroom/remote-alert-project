@@ -63,7 +63,7 @@ export class ExternalPlatformsService {
   }  
 
   async handleGoogleError(error: HttpErrorResponse): Promise<void> {
-    if (error.status === 401 || error.status === 403) {
+    if (error.status === 401 || error.status === 403 || error.status === 400) {
       return await this.refreshToken();
     } else {
       console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);

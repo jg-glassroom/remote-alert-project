@@ -26,6 +26,7 @@ import { first, switchMap } from 'rxjs/operators';
 import { throwError, firstValueFrom } from 'rxjs';
 
 import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, updateDoc, deleteField } from '@firebase/firestore';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -184,7 +185,7 @@ export class ProfileComponent {
     });
   }
 
-  onGoogleSignInClick() {
+  googleConnect() {
     var clientId = '552619214593-phjqlsgv1kqkq2nadui8rsuknjudo9lv.apps.googleusercontent.com';
     var redirectUri = 'http://localhost:4200/profile';
     var scope = 'profile email https://www.googleapis.com/auth/display-video https://www.googleapis.com/auth/doubleclickbidmanager https://www.googleapis.com/auth/dfareporting https://www.googleapis.com/auth/doubleclicksearch';
@@ -200,6 +201,53 @@ export class ProfileComponent {
     window.location.href = authUrl;
   }
 
-  onFacebookSignInClick() {
-  }
+  async googleDisconnect(retryCount = 2): Promise<any> {
+    const accessToken = localStorage.getItem('googleAccessToken');
+
+    if (accessToken) {
+      try {
+        const response = await fetch(`https://accounts.google.com/o/oauth2/revoke?token=${accessToken}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to revoke token');
+        }
+      } catch (error: any) {
+        if (retryCount > 0) {
+          await this.externalPlatformService.handleGoogleError(error);
+          return this.googleDisconnect(retryCount - 1);
+        } else {
+            this.toaster.error(`Error revoking Google token: ${error}`, 'Error');
+        }
+      }
+    }
+
+    localStorage.removeItem('googleAccessToken');
+
+    const db = getFirestore();
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      try {
+        await updateDoc(doc(db, "user", user.uid), {
+          googleRefreshToken: deleteField(),
+          googleAccessToken: deleteField()
+        });
+        this.toaster.success("Google has been successfully disconnected", "Success");
+      } catch (error) {
+        this.toaster.error(`Error deleting tokens in Firestore: ${error}`, "Error");
+      }
+    } else {
+      console.log("User not logged in");
+    }
+  }  
+
+  facebookConnect() {}
+
+  facebookDisconnect() {}
 }
