@@ -303,6 +303,7 @@ export class DialogComponent {
     if (cachedData) {
       this.partners = JSON.parse(cachedData);
       this.partnersSubject.next(this.partners);
+      this.isLoading = false;
       return this.partners;
     }
   
