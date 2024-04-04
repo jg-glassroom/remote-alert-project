@@ -140,9 +140,11 @@ export class DialogComponent {
     if (this.selection.isSelected(campaign)) {
       this.selection.deselect(campaign);
       this.removeCampaignFromChips(campaign);
+      campaign.selected = false;
     } else {
       this.selection.select(campaign);
       this.addCampaignToChips(campaign);
+      campaign.selected = true;
     }
     this.formGroup.patchValue({
       campaignId: this.campaigns,
@@ -433,10 +435,16 @@ export class DialogComponent {
       })
       localStorage.setItem('partners', JSON.stringify(partnersData));
       if (edit) {
-        this.campaigns.forEach((campaign: any) => {
-          this.selection.select(campaign);
-          this.addCampaignToChips(campaign);
+        const campaigns = data.campaigns.map((campaign: any) => {
+          const isSelected = this.campaigns.some((selectedCampaign: any) => selectedCampaign.campaignId === campaign.campaignId);
+          return {
+            ...campaign,
+            selected: isSelected,
+          };
         });
+  
+        this.campaigns$ = of(campaigns);
+        this.originalCampaigns$ = of(campaigns);
       }
       this.isLoading = false;
     } catch (error: any) {

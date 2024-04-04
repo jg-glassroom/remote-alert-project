@@ -80,7 +80,7 @@
 
       <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selected($event)">
         <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-          <mat-checkbox [checked]="selection.isSelected(campaign)" (click)="$event.stopPropagation(); toggleSelection(campaign)">
+          <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); toggleSelection(campaign)">
             {{ campaign.displayName }} | {{ campaign.campaignId }}
           </mat-checkbox>
         </mat-option>
