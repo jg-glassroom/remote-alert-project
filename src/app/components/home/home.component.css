@@ -13,19 +13,31 @@
 }
 
 .icon {
-  float: right;
   visibility: hidden;
 }
 
 .icon-column {
-  width: 10%;
+  width: 0;
+  position: absolute;
 }
 
 .table .row:hover .icon {
   visibility: visible;
 }
 
+.table .row:hover .icon-row {
+  background-color: rgb(236, 236, 236);
+  height: 60px;
+}
+
 table {    
   border-radius: 10px;
-  overflow:hidden !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+.icon-row {
+  position: absolute;
+  right: -1%;
+  width: 180px;
 }

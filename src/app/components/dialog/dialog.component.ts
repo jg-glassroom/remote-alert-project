@@ -321,7 +321,6 @@ export class DialogComponent {
       }
     }
   }
-  
 
   getAdvertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     if (this.formGroup.get('platform')?.value === 'dv360') {
