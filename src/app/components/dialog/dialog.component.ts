@@ -27,6 +27,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 interface DV360Response {
@@ -49,6 +50,7 @@ interface DV360Response {
     MatChipsModule,
     MatIconModule,
     MatCheckboxModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -60,6 +62,7 @@ export class DialogComponent {
   initialCampaignName: string = '';
   documentId: string | null = null;
   toaster = inject(ToastrService);
+  isLoading: boolean = false;
 
   public partners: any[] = [];
   private partnersSubject = new BehaviorSubject<any[]>([]);
@@ -295,6 +298,7 @@ export class DialogComponent {
   }
 
   async getDV360Partner(retryCount = 2): Promise<any> {
+    this.isLoading = true;
     const cachedData = localStorage.getItem('partners');
     if (cachedData) {
       this.partners = JSON.parse(cachedData);
@@ -312,6 +316,7 @@ export class DialogComponent {
       this.partnersSubject.next(sortedPartners);
       localStorage.setItem('partners', JSON.stringify(data.partners));
       this.partnersSubject.next(data.partners);
+      this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
           await this.externalPlatforms.handleGoogleError(error);
@@ -335,6 +340,7 @@ export class DialogComponent {
   }
 
   async getDV360Advertiser(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
+    this.isLoading = true;
     let selectedPartner: any = null
     if (event) {
       selectedPartner = event.option.value;
@@ -372,6 +378,7 @@ export class DialogComponent {
         }
       })
       localStorage.setItem('partners', JSON.stringify(partnersData));
+      this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
           await this.externalPlatforms.handleGoogleError(error);
@@ -383,6 +390,7 @@ export class DialogComponent {
   }
 
   async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
+    this.isLoading = true;
     let selectedAdvertiser: any = null
     if (event) {
       selectedAdvertiser = event.option.value;
@@ -429,6 +437,7 @@ export class DialogComponent {
           this.addCampaignToChips(campaign);
         });
       }
+      this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
           await this.externalPlatforms.handleGoogleError(error);
