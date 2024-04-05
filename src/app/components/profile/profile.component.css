@@ -102,3 +102,10 @@ form {
 mat-icon {
     padding-top: 10px;
 }
+
+.google-scope .status,
+.google-scope mat-icon {
+  line-height: 0;
+  display: inline-block;
+  vertical-align: middle;
+}

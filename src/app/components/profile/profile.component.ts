@@ -53,6 +53,10 @@ import { ToastrService } from 'ngx-toastr';
 export class ProfileComponent {
   profileForm!: FormGroup;
   toaster = inject(ToastrService);
+  DV360Metrics: boolean = false;
+  DV360Config: boolean = false;
+  searchAds: boolean = false;
+  CM360: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -68,6 +72,42 @@ export class ProfileComponent {
     this.createForm();
     this.getUserProfile();
     this.handleQueryParams();
+    if (this.isConnected('google')) {
+      this.getGoogleScopes();
+    }
+  }
+
+  async getGoogleScopes(retryCount = 2): Promise<void> {
+    const tokenInfoUrl = `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${localStorage.getItem('googleAccessToken')}`;
+    try {
+      const response = await fetch(tokenInfoUrl);
+      if (!response.ok) {
+        const error = new Error(`HTTP error: ${response.status}`);
+        (error as any).status = response.status;
+        throw error;
+      }
+      const data = await response.json();
+      const googleScopes = data.scope.split(' ');
+      if (googleScopes.includes('https://www.googleapis.com/auth/doubleclicksearch')) {
+        this.searchAds = true;
+      }
+      if (googleScopes.includes('https://www.googleapis.com/auth/dfareporting')) {
+        this.CM360 = true;
+      }
+      if (googleScopes.includes('https://www.googleapis.com/auth/doubleclickbidmanager')) {
+        this.DV360Metrics = true;
+      }
+      if (googleScopes.includes('https://www.googleapis.com/auth/display-video')) {
+        this.DV360Config = true;
+      }
+    } catch (error: any) {
+      if (retryCount > 0) {
+        await this.externalPlatformService.handleGoogleError(error);
+        return this.getGoogleScopes(retryCount - 1);
+      } else {
+          this.toaster.error('Error verifying token info', 'Error');
+      }
+    }
   }
 
   private handleQueryParams(): void {

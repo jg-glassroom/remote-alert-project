@@ -71,6 +71,28 @@
                                     <mat-icon style="color: green;" *ngIf="isConnected('google')">check</mat-icon>
                                     <mat-icon style="color: red;" *ngIf="!isConnected('google')">close</mat-icon>
                                 </div>
+                                <div class="google-scope" *ngIf="isConnected('google')">
+                                    <div>
+                                        <span class="status">Search Ads:</span>
+                                        <mat-icon style="color: green;" *ngIf="searchAds">check</mat-icon>
+                                        <mat-icon style="color: red;" *ngIf="!searchAds">close</mat-icon>
+                                    </div>
+                                    <div>
+                                        <span class="status">Campaign Manager 360:</span>
+                                        <mat-icon style="color: green;" *ngIf="CM360">check</mat-icon>
+                                        <mat-icon style="color: red;" *ngIf="!CM360">close</mat-icon>
+                                    </div>
+                                    <div>
+                                        <span class="status">Display & Video 360 Reports:</span>
+                                        <mat-icon style="color: green;" *ngIf="DV360Metrics">check</mat-icon>
+                                        <mat-icon style="color: red;" *ngIf="!DV360Metrics">close</mat-icon>
+                                    </div>
+                                    <div>
+                                        <span class="status">Display & Video 360 Campaigns:</span>
+                                        <mat-icon style="color: green;" *ngIf="DV360Config">check</mat-icon>
+                                        <mat-icon style="color: red;" *ngIf="!DV360Config">close</mat-icon>
+                                    </div>
+                                  </div>
                                 <button mat-raised-button color="primary" class="reconnect" (click)="googleConnect()" *ngIf="!isConnected('google')">Connect</button>
                                 <button mat-raised-button color="primary" class="reconnect" (click)="googleDisconnect()" *ngIf="isConnected('google')">Disconnect</button>
                             </div>                            
