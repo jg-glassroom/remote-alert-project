@@ -109,3 +109,7 @@ mat-icon {
   display: inline-block;
   vertical-align: middle;
 }
+
+.google-scope .status{
+    padding-bottom: 18px;
+}
