@@ -65,8 +65,7 @@ export class GoogleService {
     localStorage.removeItem('googleAccessToken');
 
     const db = getFirestore();
-    const auth = getAuth();
-    const user = auth.currentUser;
+    const user = getAuth().currentUser;
 
     if (user) {
       try {
@@ -76,7 +75,7 @@ export class GoogleService {
         });
         this.toaster.success("Google has been successfully disconnected", "Success");
       } catch (error) {
-        this.toaster.error(`Error deleting tokens in Firestore: ${error}`, "Error");
+        this.toaster.error(`Error disconnecting Google: ${error}`, "Error");
       }
     } else {
       console.log("User not logged in");
