@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -19,7 +20,11 @@ declare const FB: any;
 export class FacebookService {
   private toaster = inject(ToastrService);
 
-  constructor(private db: AngularFirestore, private fns: AngularFireFunctions) { }
+  constructor(
+    private db: AngularFirestore,
+    private fns: AngularFireFunctions,
+    private http: HttpClient
+  ) { }
 
   async facebookConnect(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -56,29 +61,32 @@ export class FacebookService {
     });
   }
 
-  facebookDisconnect(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      FB.logout(async (response: any) => {
+  facebookDisconnect() {
+    const url = `https://graph.facebook.com/me/permissions?access_token=${localStorage.getItem('facebookAccessToken')}`;
+  
+    this.http.delete(url).subscribe({
+      next: (response) => {
         const db = getFirestore();
         const user = getAuth().currentUser;
 
         if (user) {
           try {
-            await updateDoc(doc(db, "user", user.uid), {
+            updateDoc(doc(db, "user", user.uid), {
               facebookAccessToken: deleteField()
             });
           } catch (error) {
             this.toaster.error(`Error disconnecting Facebook: ${error}`, "Error");
-            reject(error);
           }
         } else {
-          reject("User not logged in");
+          this.toaster.error("User not logged in");
         }
 
         localStorage.removeItem('facebookAccessToken');
         this.toaster.success("Facebook has been successfully disconnected", "Success");
-        resolve(response);
-      });
+      },
+      error: (error) => {
+        this.toaster.error('Error disconnecting Facebook', error);
+      }
     });
   }
 }

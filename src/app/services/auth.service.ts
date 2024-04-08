@@ -60,6 +60,9 @@ export class AuthService {
         if (user.googleAccessToken) {
           localStorage.setItem('googleAccessToken', user.googleAccessToken);
         }
+        if (user.facebookAccessToken) {
+          localStorage.setItem('facebookAccessToken', user.facebookAccessToken);
+        }
       });
     } catch (error) {
       console.error("An error occurred: ", error);
