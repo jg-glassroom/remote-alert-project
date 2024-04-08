@@ -65,7 +65,7 @@ export class FacebookService {
     const url = `https://graph.facebook.com/me/permissions?access_token=${localStorage.getItem('facebookAccessToken')}`;
   
     this.http.delete(url).subscribe({
-      next: (response) => {
+      next: () => {
         const db = getFirestore();
         const user = getAuth().currentUser;
 
