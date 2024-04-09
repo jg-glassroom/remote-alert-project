@@ -6,6 +6,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
 import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
+import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
 import { ReportService } from '../../services/report.service';
 
 import { ToastrService } from 'ngx-toastr';
@@ -34,7 +35,8 @@ import { MatInputModule } from '@angular/material/input';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTabsModule,
-    Dv360FormComponent
+    Dv360FormComponent,
+    FacebookFormComponent
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -83,6 +85,7 @@ export class DialogComponent {
     let allFormData: any = {
       campaignName: this.formGroup.get('campaignName')!.value,
     };
+    let platforms: any = [];
     let doSubmit = true;
 
     this.dv360Forms.forEach(form => {
@@ -92,12 +95,16 @@ export class DialogComponent {
           ...formData,
           ...allFormData,
         };
+        if (!platforms.includes('dv360')) {
+          platforms.push('dv360');
+        }
       } else {
         doSubmit = false;
         console.error('A DV360 form is not valid');
       }
     });
-    console.log('allFormData', allFormData.length)
+    allFormData.platforms = platforms;
+
     if (doSubmit) {
       if (this.isEditMode && this.documentId) {
         return this.db.collection('userSearch').doc(this.documentId).update(allFormData).then(() => {

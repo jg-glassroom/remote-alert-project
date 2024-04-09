@@ -2,7 +2,6 @@ import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn, FormBuilder, FormGroup } from '@angular/forms';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -15,16 +14,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import { Observable, of, firstValueFrom, map, startWith, BehaviorSubject } from 'rxjs';
-import { first, switchMap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
 import { ToastrService } from 'ngx-toastr';
 
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
-import { ReportService } from '../../services/report.service';
 import { getAuth } from '@angular/fire/auth';
 
 
@@ -79,13 +77,10 @@ export class Dv360FormComponent {
 
   constructor(
     private formBuilder: FormBuilder, 
-    private db: AngularFirestore, 
-    private dialogRef: MatDialogRef<Dv360FormComponent>,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient,
-    private reportService: ReportService
+    private http: HttpClient
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {

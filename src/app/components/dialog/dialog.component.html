@@ -22,10 +22,10 @@
   <mat-tab-group [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
     @for (tab of tabs; track tab; let index = $index) {
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'dv360'">
-        <app-dv360-form></app-dv360-form>
+        <app-dv360-form #dv360Form></app-dv360-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
-        <app-dv360-form #dv360Form></app-dv360-form>
+        <app-facebook-form #facebookForm></app-facebook-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
         <div class="form-row">
