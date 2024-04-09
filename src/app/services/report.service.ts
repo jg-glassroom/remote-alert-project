@@ -32,18 +32,18 @@ export class ReportService {
 
     const body = {
       "metadata": {
-        "title": campaign.campaignName + " | " + campaign.startDate + " - " + campaign.endDate,
+        "title": campaign.campaignName + " | " + campaign.dv360StartDate + " - " + campaign.dv360EndDate,
         "dataRange": {
             "range": "CUSTOM_DATES",
             "customStartDate": {
-              "year": campaign.startDate.split('/')[2],
-              "month": campaign.startDate.split('/')[0],
-              "day": campaign.startDate.split('/')[1]
+              "year": campaign.dv360StartDate.split('/')[2],
+              "month": campaign.dv360StartDate.split('/')[0],
+              "day": campaign.dv360StartDate.split('/')[1]
             },
             "customEndDate": {
-              "year": campaign.endDate.split('/')[2],
-              "month": campaign.endDate.split('/')[0],
-              "day": campaign.endDate.split('/')[1]
+              "year": campaign.dv360EndDate.split('/')[2],
+              "month": campaign.dv360EndDate.split('/')[0],
+              "day": campaign.dv360EndDate.split('/')[1]
             }
         },
         "format": "CSV",
@@ -68,20 +68,20 @@ export class ReportService {
           'METRIC_TOTAL_CONVERSIONS'
         ],
         "filters": [
-          {"type": "FILTER_ADVERTISER", "value": campaign.advertiser.advertiserId},
+          {"type": "FILTER_ADVERTISER", "value": campaign.dv360Advertiser.advertiserId},
           {"type": "FILTER_MEDIA_PLAN", "value": campaignId},
         ]
       },
       "schedule": {
         "startDate": {
-          "year": campaign.startDate.split('/')[2],
-          "month": campaign.startDate.split('/')[0],
-          "day": campaign.startDate.split('/')[1]
+          "year": campaign.dv360StartDate.split('/')[2],
+          "month": campaign.dv360StartDate.split('/')[0],
+          "day": campaign.dv360StartDate.split('/')[1]
         },
         "endDate": {
-          "year": campaign.endDate.split('/')[2],
-          "month": campaign.endDate.split('/')[0],
-          "day": campaign.endDate.split('/')[1]
+          "year": campaign.dv360EndDate.split('/')[2],
+          "month": campaign.dv360EndDate.split('/')[0],
+          "day": campaign.dv360EndDate.split('/')[1]
         },
         "frequency": "ONE_TIME",
       }
@@ -207,7 +207,7 @@ export class ReportService {
 
   async processReport(campaign: any, event?: MouseEvent) {
     try {
-      for (const item of campaign.campaignId) {
+      for (const item of campaign.dv360CampaignId) {
         await this.createQuery(campaign, item.campaignId, event);
         await this.runQuery();
         await this.getReportLink();

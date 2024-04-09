@@ -9,9 +9,6 @@ form {
     display: flex;
     flex-direction: row;
     gap: 20px;
-    margin-top: 30px;
-    margin-left: 25px;
-    width: 95%;
 }
 
 .form-element {
@@ -30,23 +27,10 @@ form {
     align-self: flex-start;
 }
 
-.form-button, .header {
-    margin-left: 10px;
-}
-
-.header, .refresh-button {
-    margin-top: 10px;
-}
-
-.refresh-button {
-    margin-right: 10px;
-}
-
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 50%;
 }
 
 .loader-overlay {
@@ -61,13 +45,4 @@ form {
     align-items: center;
     z-index: 1000;
 }
-
-form {
-    position: relative;
-    height: 100%;
-}
-
-.footer {
-    position: absolute;
-    bottom: 0;
-}
+  

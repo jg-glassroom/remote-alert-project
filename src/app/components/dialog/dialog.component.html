@@ -1,147 +1,55 @@
 <div *ngIf="isLoading" class="loader-overlay">
   <mat-spinner></mat-spinner>
 </div>
-<form [formGroup]="formGroup" class="form">
-
+<form [formGroup]="formGroup">
   <div class="header">
-    <h1>{{ isEditMode ? 'Edit ' + initialCampaignName : 'Create alert rule' }}</h1>
-    <button mat-stroked-button class="button" (click)="refreshData()">Refresh data</button>
-  </div>
-
-  <div class="form-row">
-    <mat-form-field class="form-element">
-      <mat-label>Platform</mat-label>
-      <mat-select formControlName="platform" (selectionChange)="getClient($event)">
-        <mat-option value="dv360">Display & Video 360</mat-option>
-        <mat-option value="sa360" disabled>Search Ads 360</mat-option>
-      </mat-select>
-      <mat-error *ngIf="(submitted || form['platform'].touched) && form['platform'].invalid">
-        The field is required
-      </mat-error>
-    </mat-form-field>
-    <div class="form-element">
-    </div>
-  </div>
-
-    <div class="form-row">
-    <mat-form-field class="form-element">
-      <mat-label>Partner</mat-label>
-      <input type="text" placeholder="Select your partner" formControlName="partner" aria-label="partner" matInput [matAutocomplete]="partnersAuto">
-      <mat-error *ngIf="(submitted || form['partner'].touched) && form['partner'].invalid">
-          The field is required
-      </mat-error>
-      <mat-autocomplete #partnersAuto="matAutocomplete" (optionSelected)="getAdvertiser($event)" [displayWith]="displayFn">
-        <mat-option *ngFor="let partner of partners$ | async" [value]="partner">
-          {{ partner.displayName }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-
-    <mat-form-field class="form-element">
-      <mat-label>Advertiser</mat-label>
-      <input type="text" placeholder="Select your advertiser" formControlName="advertiser" aria-label="advertiser" matInput [matAutocomplete]="advertisersAuto">
-      <mat-error *ngIf="(submitted || form['advertiser'].touched) && form['advertiser'].invalid">
-          The field is required
-      </mat-error>
-      <mat-autocomplete #advertisersAuto="matAutocomplete" (optionSelected)="getCampaign($event)" [displayWith]="displayFn">
-        <mat-option *ngFor="let advertiser of advertisers$ | async" [value]="advertiser">
-          {{ advertiser.displayName }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-  </div>
-
-  <div class="form-row">
-    <mat-form-field class="form-element">
+    <mat-form-field class="form-element campaign-name">
       <mat-label>Campaign Name</mat-label>
-      <input matInput formControlName="campaignName" required>
-          <mat-error *ngIf="(submitted || form['campaignName'].touched) && form['campaignName'].invalid">
-              The field is required
-          </mat-error>
-    </mat-form-field>
-
-
-    <mat-form-field class="form-element">
-      <mat-label>Campaign Id</mat-label>
-
-      <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-        <mat-chip-row *ngFor="let campaign of campaigns" (removed)="remove(campaign)">
-          <span>{{ truncateName(campaign, 25) }}</span>
-          <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
-            <mat-icon>cancel</mat-icon>
-          </button>
-        </mat-chip-row>
-      </mat-chip-grid>
-
-      <input placeholder="Select your campaigns" #campaignInput formControlName="campaignId"
-        [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
-        [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-        (matChipInputTokenEnd)="add($event)"/>
-
-      <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selected($event)">
-        <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-          <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); toggleSelection(campaign)">
-            {{ campaign.displayName }} | {{ campaign.campaignId }}
-          </mat-checkbox>
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+      <input matInput formControlName="campaignName">
+    </mat-form-field>  
+    <button mat-stroked-button class="button refresh-button" (click)="refreshData()">Refresh data</button>
   </div>
 
-  <div class="form-row">
-    <mat-form-field class="form-element">
-        <mat-label>Start Date</mat-label>
-        <input matInput [matDatepicker]="startPicker" formControlName="startDate">
-        <mat-hint>MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-        <mat-datepicker #startPicker></mat-datepicker>
-        <mat-error *ngIf="form['startDate'].errors?.['required']">
-            This field is required.
-        </mat-error>
-        <mat-error *ngIf="form['startDate'].errors?.['invalidDate']">
-          Please enter a valid date.
-        </mat-error>
-    </mat-form-field>
-    
-    <mat-form-field class="form-element">
-        <mat-label>End Date</mat-label>
-        <input matInput [matDatepicker]="endPicker" formControlName="endDate">
-        <mat-hint>MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-        <mat-datepicker #endPicker></mat-datepicker>
-        <mat-error *ngIf="form['endDate'].errors?.['required']">
-          This field is required.
-        </mat-error>
-        <mat-error *ngIf="form['endDate'].errors?.['invalidDate']">
-          Please enter a valid date.
-        </mat-error>
-        <mat-error *ngIf="form['endDate'].errors?.['dateMismatch']">
-          End date must be after or equal to start date.
-        </mat-error>
-    </mat-form-field>
-  </div>
+  <button
+    mat-raised-button
+    class="button form-button"
+    color="primary"
+    (click)="addTab()"
+    *ngIf="showAddTabButton">
+    Add new platform
+  </button>
 
-  <div class="form-row budget-row">
-    <mat-form-field class="form-element">
-      <mat-label>Budget</mat-label>
-      <input matInput formControlName="budget">
-      <mat-error *ngIf="form['budget'].errors?.['required'] && (submitted || form['budget'].touched)">
-          The field is required
-      </mat-error>
-      <mat-error *ngIf="form['budget'].errors?.['pattern'] && (submitted || form['budget'].touched)">
-          Please enter a valid number
-      </mat-error>
-    </mat-form-field>
-  </div>
+  <mat-tab-group [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
+    @for (tab of tabs; track tab; let index = $index) {
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'dv360'">
+        <app-dv360-form></app-dv360-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
+        <app-dv360-form #dv360Form></app-dv360-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
+        <div class="form-row">
+          <mat-form-field class="form-element">
+              <mat-label>Select a platform</mat-label>
+              <mat-select (valueChange)="getPlatform($event, index)">
+                <mat-option value="dv360" [disabled]="selectPlatforms.includes('dv360')">Display & Video 360</mat-option>
+                <mat-option value="facebook" [disabled]="selectPlatforms.includes('facebook')">Facebook</mat-option>
+              </mat-select>
+          </mat-form-field>
+          <div class="form-element">
+          </div>
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
 
-	<div class="form-element">
-		<button mat-raised-button type="submit" class="button" color="primary" (click)="onSubmit()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
+  <div class="form-element footer">
+    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
     &nbsp;
     <ng-container *ngIf="!isEditMode">
         <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)">Save & execute</button>
         &nbsp;
     </ng-container>
-		<button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
+    <button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
   </div>
-
 </form>

@@ -12,25 +12,25 @@
     <!-- Campaign Id Column -->
     <ng-container matColumnDef="campaignId">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Id</th>
-      <td mat-cell *matCellDef="let element">{{getConcatenatedCampaignIds(element.campaignId)}}</td>
+      <td mat-cell *matCellDef="let element">{{getConcatenatedCampaignIds(element.dv360CampaignId)}}</td>
     </ng-container>
     
     <!-- Start Date Column -->
     <ng-container matColumnDef="startDate">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Start Date</th>
-      <td mat-cell *matCellDef="let element">{{element.startDate}}</td>
+      <td mat-cell *matCellDef="let element">{{element.dv360StartDate}}</td>
     </ng-container>
     
     <!-- End Date Column -->
     <ng-container matColumnDef="endDate">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">End Date</th>
-      <td mat-cell *matCellDef="let element">{{element.endDate}}</td>
+      <td mat-cell *matCellDef="let element">{{element.dv360EndDate}}</td>
     </ng-container>
     
     <!-- Budget Column -->
     <ng-container matColumnDef="budget">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Budget</th>
-      <td mat-cell *matCellDef="let element">{{element.budget}}</td>
+      <td mat-cell *matCellDef="let element">{{element.dv360Budget}}</td>
     </ng-container>
     
     <!-- Icon Column -->
