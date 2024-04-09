@@ -51,10 +51,10 @@ export class FacebookFormComponent {
   toaster = inject(ToastrService);
   isLoading: boolean = false;
 
-  public partners: any[] = [];
-  private partnersSubject = new BehaviorSubject<any[]>([]);
-  public partners$ = this.partnersSubject.asObservable();
-  originalPartners$!: Observable<any[]>;
+  public adAccounts: any[] = [];
+  private adAccountsSubject = new BehaviorSubject<any[]>([]);
+  public adAccounts$ = this.adAccountsSubject.asObservable();
+  originalAdAccounts$!: Observable<any[]>;
 
   advertisers$!: Observable<any[]>;
   originalAdvertisers$!: Observable<any[]>;
@@ -72,7 +72,8 @@ export class FacebookFormComponent {
     private formBuilder: FormBuilder, 
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private http: HttpClient
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -82,6 +83,26 @@ export class FacebookFormComponent {
 
   ngOnInit() {
     this.createForm();
+    this.getAdAccounts();
+    if (this.isEditMode) {
+      this.setupFilteringFacebookAdAccount()
+    }
+  }
+
+  setupFilteringFacebookAdAccount() {
+    this.adAccounts$ = this.formGroup.get('facebookAdAccount')!.valueChanges.pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value.toLowerCase() : ''),
+      switchMap(name => this.filterAdAccounts(name))
+    );
+  }
+
+  filterAdAccounts(filterValue: string): Observable<any[]> {
+    return of(JSON.parse(localStorage.getItem("adAccounts")!)).pipe(
+      map(adAccounts => 
+        adAccounts.filter((facebookAdAccount: any) => facebookAdAccount.displayName.toLowerCase().includes(filterValue))
+      )
+    );
   }
 
   isValidDate(): ValidatorFn {
@@ -104,13 +125,13 @@ export class FacebookFormComponent {
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
-      dv360Partner: [this.data?.dv360Partner || null, [Validators.required]],
+      facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
       dv360Advertiser: [this.data?.dv360Advertiser || null, [Validators.required]],
       dv360CampaignId: [this.data?.dv360CampaignId || [], [Validators.required]],
       facebookPlatform: ['facebook', [Validators.required]],
-      facebookStartDate: [this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null, [Validators.required, this.isValidDate()]],
-      facebookEndDate: [this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null, [Validators.required, this.isValidDate()]],
-      facebookBudget: [this.data?.dv360Budget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
+      facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.isValidDate()]],
+      facebookEndDate: [this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null, [Validators.required, this.isValidDate()]],
+      facebookBudget: [this.data?.facebookBudget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
     });
 
     const startDateControl = this.formGroup.get('facebookStartDate');
@@ -123,18 +144,49 @@ export class FacebookFormComponent {
       endDateControl.updateValueAndValidity();
     }
     if (this.isEditMode) {
-      // await this.getDV360Partner();
+      await this.getAdAccounts();
       // this.getDV360Advertiser(undefined, true);
       // this.getDV360Campaign(undefined, true);
     }
+  }
+
+  async getAdAccounts() {
+    const cachedData = localStorage.getItem('adAccounts');
+    if (cachedData) {
+      this.adAccounts = JSON.parse(cachedData);
+      this.adAccountsSubject.next(this.adAccounts);
+      this.isLoading = false;
+      return of(null);
+    }
+    
+    const fields = 'account_id,id,name';
+    const url = `https://graph.facebook.com/v12.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    this.http.get<any>(url)
+      .pipe(
+        map(response => {
+          const sortedAdsAccounts = response.data.sort((a: any, b: any) => a.name.localeCompare(b.name));
+          this.adAccounts = sortedAdsAccounts;
+          this.adAccountsSubject.next(sortedAdsAccounts);
+          localStorage.setItem('adAccounts', JSON.stringify(response.data));
+          this.adAccountsSubject.next(response.data);
+          return of(null);
+        })
+      )
+      .subscribe({
+        error: (error) => {
+          console.error('Error:', error)
+          return of(null);
+        }
+      });
+    return of(null);
   }
 
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
   };
 
-  displayFn(dv360Partner: any): string {
-    return dv360Partner && dv360Partner.displayName ? dv360Partner.displayName : '';
+  displayFn(facebookAdAccount: any): string {
+    return facebookAdAccount && facebookAdAccount.name ? facebookAdAccount.name : '';
   }
 
   add(event: MatChipInputEvent): void {
