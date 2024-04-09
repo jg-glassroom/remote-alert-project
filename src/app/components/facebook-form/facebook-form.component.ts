@@ -150,35 +150,45 @@ export class FacebookFormComponent {
     }
   }
 
+  async fetchAllAdAccounts(url: string, adAccounts: any[] = []): Promise<any[]> {
+    try {
+      const response = await this.http.get<any>(url).toPromise();
+      const fetchedAdAccounts = response.data;
+      adAccounts = adAccounts.concat(fetchedAdAccounts);
+  
+      if (response.paging && response.paging.next) {
+        return this.fetchAllAdAccounts(response.paging.next, adAccounts);
+      } else {
+        return adAccounts;
+      }
+    } catch (error) {
+      console.error('Error fetching Facebook Ad Accounts:', error);
+      this.toaster.error('Error fetching Facebook Ad Accounts', 'Error');
+      throw error;
+    }
+  }
+  
   async getAdAccounts() {
     const cachedData = localStorage.getItem('adAccounts');
     if (cachedData) {
       this.adAccounts = JSON.parse(cachedData);
       this.adAccountsSubject.next(this.adAccounts);
       this.isLoading = false;
-      return of(null);
+      return;
     }
-    
-    const fields = 'account_id,id,name';
+  
+    const fields = 'account_id,id,name, business';
     const url = `https://graph.facebook.com/v12.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-    this.http.get<any>(url)
-      .pipe(
-        map(response => {
-          const sortedAdsAccounts = response.data.sort((a: any, b: any) => a.name.localeCompare(b.name));
-          this.adAccounts = sortedAdsAccounts;
-          this.adAccountsSubject.next(sortedAdsAccounts);
-          localStorage.setItem('adAccounts', JSON.stringify(response.data));
-          this.adAccountsSubject.next(response.data);
-          return of(null);
-        })
-      )
-      .subscribe({
-        error: (error) => {
-          console.error('Error:', error)
-          return of(null);
-        }
-      });
-    return of(null);
+  
+    try {
+      const allAdAccounts = await this.fetchAllAdAccounts(url);
+      const sortedAdAccounts = allAdAccounts.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      this.adAccounts = sortedAdAccounts;
+      this.adAccountsSubject.next(sortedAdAccounts);
+      localStorage.setItem('adAccounts', JSON.stringify(allAdAccounts));
+    } catch (error) {
+      console.error('Error fetching all Facebook Ad Accounts:', error);
+    }
   }
 
   get form() { 

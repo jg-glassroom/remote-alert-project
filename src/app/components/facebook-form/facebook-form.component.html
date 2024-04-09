@@ -24,7 +24,10 @@
             </mat-error>
             <mat-autocomplete #adAccountsAuto="matAutocomplete" (optionSelected)="$event" [displayWith]="displayFn">
             <mat-option *ngFor="let adAccount of adAccounts$ | async" [value]="adAccount">
-                {{ adAccount.name }}
+                <ng-container *ngIf="adAccount.business">
+                    <span>{{ adAccount.business.name }}: </span>
+                </ng-container>
+                <span>{{ adAccount.name }}</span>
             </mat-option>
             </mat-autocomplete>
         </mat-form-field>
