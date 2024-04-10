@@ -7,7 +7,8 @@ import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
 import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
 import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
-import { ReportService } from '../../services/report.service';
+import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
+import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -63,8 +64,9 @@ export class DialogComponent {
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private reportService: ReportService,
-    private db: AngularFirestore, 
+    private DV360ReportService: DV360ReportService,
+    private db: AngularFirestore,
+    private facebookReportService: FacebookReportService
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -130,7 +132,12 @@ export class DialogComponent {
         return this.db.collection('userSearch').doc(this.documentId).update(allFormData).then(() => {
           this.toaster.success('Alert rule updated successfully', 'Success');
           if (execute) {
-            this.reportService.processReport({ id: this.documentId, ...allFormData });
+            if (platforms.includes('dv360')) {
+              this.DV360ReportService.processReport({ id: this.documentId, ...allFormData });
+            }
+            if (platforms.includes('facebook')) {
+              this.facebookReportService.processReport({ id: this.documentId, ...allFormData });
+            }
           }
           localStorage.removeItem('partners');
           localStorage.removeItem('selectedPartner');
@@ -145,7 +152,12 @@ export class DialogComponent {
               this.toaster.success('Alert rule created and executed successfully', 'Success');
               let data: any = doc.data();
               data.id = docRef.id;
-              this.reportService.processReport(data);
+              if (platforms.includes('dv360')) {
+                this.DV360ReportService.processReport(data);
+              }
+              if (platforms.includes('facebook')) {
+                this.facebookReportService.processReport(data);
+              }
             } else {
               this.toaster.success('Alert rule created successfully', 'Success');
             }

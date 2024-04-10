@@ -13,7 +13,7 @@ import moment from 'moment-timezone';
 @Injectable({
   providedIn: 'root'
 })
-export class ReportService {
+export class DV360ReportService {
   queryId = null;
   reportId = null;
   reportLink = null;

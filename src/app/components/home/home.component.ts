@@ -6,7 +6,8 @@ import { take } from 'rxjs/operators';
 
 import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-import { ReportService } from '../../services/report.service';
+import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
+import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -33,7 +34,8 @@ export class HomeComponent implements OnInit {
     private db: AngularFirestore, 
     private matDialog: MatDialog, 
     private authService: AuthService, 
-    private reportService: ReportService
+    private DV360ReportService: DV360ReportService,
+    private facebookReportService: FacebookReportService
   ) {}
 
   ngOnInit(): void {
@@ -107,7 +109,12 @@ export class HomeComponent implements OnInit {
   }
 
   processReport(campaign: any, event: MouseEvent) {
-    this.reportService.processReport(campaign, event);
+    if (campaign.platforms.includes('dv360')) {
+      this.DV360ReportService.processReport(campaign, event);
+    }
+    if (campaign.platforms.includes('facebook')) {
+      this.facebookReportService.processReport(campaign, event);
+    }
   }
 
   getButtonTopPosition(element: any): number {
