@@ -109,4 +109,12 @@ export class HomeComponent implements OnInit {
   processReport(campaign: any, event: MouseEvent) {
     this.reportService.processReport(campaign, event);
   }
+
+  getButtonTopPosition(element: any): number {
+    if (element.platforms.length === 1) {
+      return 1;
+    } else {
+      return 20;
+    }
+  }  
 }
