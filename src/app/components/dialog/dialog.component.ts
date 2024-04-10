@@ -43,6 +43,7 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class DialogComponent {
   @ViewChildren(Dv360FormComponent) dv360Forms!: QueryList<Dv360FormComponent>;
+  @ViewChildren(FacebookFormComponent) facebookForms!: QueryList<FacebookFormComponent>;
 
   formGroup = new FormGroup({
     campaignName: new FormControl(''),
@@ -74,6 +75,8 @@ export class DialogComponent {
       this.selectPlatforms.forEach((platform: any) => {
         if (platform === 'dv360') {
           this.tabs.push({ name: 'Display & Video 360', value: platform });
+        } else if (platform === 'facebook') {
+          this.tabs.push({ name: 'Facebook', value: platform });
         }
       });
     }
@@ -103,6 +106,23 @@ export class DialogComponent {
         console.error('A DV360 form is not valid');
       }
     });
+
+    this.facebookForms.forEach(form => {
+      const formData = form.getFormData();
+      if (formData) {
+        allFormData = {
+          ...formData,
+          ...allFormData,
+        };
+        if (!platforms.includes('facebook')) {
+          platforms.push('facebook');
+        }
+      } else {
+        doSubmit = false;
+        console.error('A Facebook form is not valid');
+      }
+    });
+
     allFormData.platforms = platforms;
 
     if (doSubmit) {
@@ -114,11 +134,11 @@ export class DialogComponent {
           }
           localStorage.removeItem('partners');
           localStorage.removeItem('selectedPartner');
+          localStorage.removeItem('adAccounts');
           this.dialogRef.close();
           return of(null);
         });
       } else {
-        console.log('Soumission des données du formulaire :', allFormData);
         return this.db.collection('userSearch').add(allFormData).then((docRef: any) => {
           return docRef.get().then((doc: any) => {
             if (execute) {
@@ -131,6 +151,7 @@ export class DialogComponent {
             }
             localStorage.removeItem('partners');
             localStorage.removeItem('selectedPartner');
+            localStorage.removeItem('adAccounts');
             this.dialogRef.close();
             return of(null);
           });
@@ -146,6 +167,7 @@ export class DialogComponent {
 
   refreshData() {
     this.dv360Forms.forEach(form => form.refreshData());
+    this.facebookForms.forEach(form => form.refreshData());
   }
 
   addTab() {

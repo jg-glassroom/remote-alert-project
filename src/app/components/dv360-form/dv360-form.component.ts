@@ -184,19 +184,21 @@ export class Dv360FormComponent {
   ngOnInit() {
     this.createForm();
     this.getDV360Partner();
-    if (this.isEditMode) {
-      this.setupFilteringDV360Partner()
-    }
+    this.setupFilteringDV360Partner();
   }
 
   setupFilteringDV360Partner() {
-    this.partners$ = this.formGroup.get('dv360Partner')!.valueChanges.pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value.toLowerCase() : ''),
-      switchMap(name => this.filterPartners(name))
-    );
+    try {
+      this.partners$ = this.formGroup.get('dv360Partner')!.valueChanges.pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value.toLowerCase() : ''),
+        switchMap(name => this.filterPartners(name))
+      );
+    } catch (error) {
+      this.setupFilteringDV360Partner();
+      console.error(error);
+    }
   }
-
 
   setupFilteringDV360Advertiser() {
     this.advertisers$ = this.formGroup.get('dv360Advertiser')!.valueChanges.pipe(
@@ -205,7 +207,6 @@ export class Dv360FormComponent {
       switchMap(name => this.filterAdvertisers(name))
     );
   }
-
 
   setupFilteringDV360Campaign() {
     this.campaigns$ = this.formGroup.get('dv360CampaignId')!.valueChanges.pipe(

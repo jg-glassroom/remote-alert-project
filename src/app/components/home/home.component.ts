@@ -26,7 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class HomeComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  public displayedColumns: string[] = ['campaignName', 'campaignId', 'startDate', 'endDate', 'budget', 'icon'];
+  public displayedColumns: string[] = ['campaignName', 'platform', 'campaignId', 'startDate', 'endDate', 'budget', 'icon'];
   public dataSource = new MatTableDataSource<any>([]);
 
   constructor (
@@ -72,8 +72,12 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  getConcatenatedCampaignIds(campaigns: any[]): string {
-    return campaigns.map(c => c.campaignId).join(', ');
+  getConcatenatedCampaignIds(element: any, platform: string): string {
+    if (platform === 'dv360') {
+      return element.dv360CampaignId.map((c: any) => c.campaignId).join(', ');
+    } else {
+      return element.facebookCampaign.map((c: any) => c.id).join(', ');
+    }
   }
   
   editRule(row: any) {
