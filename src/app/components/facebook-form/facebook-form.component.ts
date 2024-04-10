@@ -224,7 +224,7 @@ export class FacebookFormComponent {
     if (event) {
       adAccount = event.option.value;
     } else {
-      adAccount = this.data?.faceboolAdAccount;
+      adAccount = this.data?.facebookAdAccount;
     }
 
     if (!edit) {
