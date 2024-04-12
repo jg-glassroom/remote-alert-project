@@ -36,8 +36,8 @@
             <mat-label>Campaign</mat-label>
 
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="remove(campaign)">
-                <span>{{ truncateName(campaign, 25) }}</span>
+            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, selection, announcer)">
+                <span>{{ combineAndTruncateName(campaign, 25) }}</span>
                 <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
                 <mat-icon>cancel</mat-icon>
                 </button>
@@ -47,11 +47,11 @@
             <input placeholder="Select your campaigns" #campaignInput formControlName="facebookCampaign"
             [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-            (matChipInputTokenEnd)="add($event)"/>
+            (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
 
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selected($event)">
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'facebookCampaign', selection, announcer, campaignInput)">
             <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); toggleSelection(campaign)">
+                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput)">
                 {{ campaign.name }} | {{ campaign.id }}
                 </mat-checkbox>
             </mat-option>

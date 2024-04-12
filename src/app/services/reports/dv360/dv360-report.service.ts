@@ -220,21 +220,24 @@ export class DV360ReportService {
       const DV360PacingAlerts = this.fns.httpsCallable('DV360PacingAlerts');
   
       if (this.reportJson) {
-        DV360PacingAlerts({ userSearchId: userSearchId, reportJson: this.reportJson, userId: userId }).subscribe(
-          () => {
-            this.resetReportVariables();
-          },
-          (error) => {
-            console.error('Error calling Firestore function: ', error);
-            this.resetReportVariables();
-          }
-        );
+        const DV360PacingAlerts$ = DV360PacingAlerts({
+          userSearchId: userSearchId, 
+          reportJson: this.reportJson, 
+          userId: userId
+        });
+        try {
+          await firstValueFrom(DV360PacingAlerts$);
+          this.resetReportVariables();
+        } catch (error) {
+          console.error('Error calling Firestore function: ', error);
+          this.resetReportVariables();
+        }
       } else {
         console.error('reportJson is null, skipping Firestore insertion.');
         this.resetReportVariables();
       }
     } catch (error) {
-      console.error('Error processing report: ', error);
+      console.error('Error processing DV360 report: ', error);
       this.resetReportVariables();
     }
   }

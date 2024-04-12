@@ -1,7 +1,7 @@
 import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Validators, FormsModule, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn, FormBuilder, FormGroup } from '@angular/forms';
+import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -13,16 +13,16 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
+import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { Observable, of, firstValueFrom, map, startWith, BehaviorSubject } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 
 import { ToastrService } from 'ngx-toastr';
 
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
+import { CommonService } from '../../services/common/common.service';
 import { getAuth } from '@angular/fire/auth';
 
 @Component({
@@ -70,7 +70,8 @@ export class FacebookFormComponent {
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient
+    private http: HttpClient,
+    public platformsCommon: CommonService
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -81,46 +82,7 @@ export class FacebookFormComponent {
   ngOnInit() {
     this.createForm();
     this.getAdAccounts();
-    this.setupFilteringFacebookAdAccount();
-  }
-
-  setupFilteringFacebookAdAccount() {
-    try {
-      this.adAccounts$ = this.formGroup.get('facebookAdAccount')!.valueChanges.pipe(
-        startWith(''),
-        map(value => typeof value === 'string' ? value.toLowerCase() : ''),
-        switchMap(name => this.filterAdAccounts(name))
-      );
-    } catch (error) {
-      this.setupFilteringFacebookAdAccount();
-      console.error(error);
-    }
-  }
-
-  filterAdAccounts(filterValue: string): Observable<any[]> {
-    return of(JSON.parse(localStorage.getItem("adAccounts")!)).pipe(
-      map(adAccounts => 
-        adAccounts.filter((facebookAdAccount: any) => facebookAdAccount.name.toLowerCase().includes(filterValue))
-      )
-    );
-  }
-
-  isValidDate(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const isValid = !isNaN(Date.parse(control.value));
-      return isValid ? null : { invalidDate: 'The date is not valid.' };
-    };
-  }
-
-  startDateBeforeEndDate(startDateControl: AbstractControl): ValidatorFn {
-    return (endDateControl: AbstractControl): ValidationErrors | null => {
-      if (!startDateControl.value || !endDateControl.value) {
-        return null;
-      }
-      const start = new Date(startDateControl.value);
-      const end = new Date(endDateControl.value);
-      return start <= end ? null : { dateMismatch: 'Start date must be before end date.' };
-    };
+    this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'facebookAdAccount', 'name', localStorage.getItem("adAccounts"));
   }
 
   async createForm() {
@@ -128,8 +90,8 @@ export class FacebookFormComponent {
       facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
       facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required]],
       facebookPlatform: ['facebook', [Validators.required]],
-      facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.isValidDate()]],
-      facebookEndDate: [this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null, [Validators.required, this.isValidDate()]],
+      facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
+      facebookEndDate: [this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
       facebookBudget: [this.data?.facebookBudget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
     });
 
@@ -138,7 +100,7 @@ export class FacebookFormComponent {
     if (startDateControl && endDateControl) {
       endDateControl.setValidators([
         ...endDateControl.validator ? [endDateControl.validator] : [],
-        this.startDateBeforeEndDate(startDateControl)
+        this.platformsCommon.startDateBeforeEndDate(startDateControl)
       ]);
       endDateControl.updateValueAndValidity();
     }
@@ -186,7 +148,7 @@ export class FacebookFormComponent {
     }
   
     const fields = 'account_id,id,name, business';
-    const url = `https://graph.facebook.com/v12.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
   
     try {
       const allAdAccounts = await this.fetchAllAdAccounts(url);
@@ -239,38 +201,18 @@ export class FacebookFormComponent {
       this.campaigns = this.data?.facebookCampaign;
     }
 
-    const url = `https://graph.facebook.com/v12.0/${adAccount.id}/campaigns?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
     
     try {
       const allCampaigns = await this.fetchAllCampaigns(url);
       const sortedCampaigns = allCampaigns.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
       this.campaigns$ = of(sortedCampaigns);
       this.originalCampaigns$ = of(sortedCampaigns);
-      this.setupFilteringFacebookCampaign();
+      this.campaigns$ = this.platformsCommon.setupFiltering(this.formGroup, 'facebookCampaign', this.originalCampaigns$, 'name');
       this.isLoading = false;
     } catch (error) {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
-    }
-  }
-
-  setupFilteringFacebookCampaign() {
-    this.campaigns$ = this.formGroup.get('facebookCampaign')!.valueChanges.pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value.toLowerCase() : ''),
-      switchMap(name => this.filterCampaigns(name))
-    );
-  }
-
-  filterCampaigns(filterValue: string): Observable<any[]> {
-    if (this.originalCampaigns$) {
-      return this.originalCampaigns$.pipe(
-        map(campaigns => 
-          campaigns.filter((campaign: any) => campaign.name.toLowerCase().includes(filterValue))
-        )
-      );
-    } else {
-      return of([]); 
     }
   }
 
@@ -282,57 +224,9 @@ export class FacebookFormComponent {
     return facebookAdAccount && facebookAdAccount.name ? facebookAdAccount.name : '';
   }
 
-  add(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim();
-
-    if (value) {
-      this.campaigns.push(value);
-    }
-
-    event.chipInput!.clear();
-
-    this.formGroup.get('facebookCampaign')!.setValue(null);
-  }
-
-  truncateName(obj: any, num: number) {
-    var name = obj.name + " | " + obj.id
-    if (name.length > num) {
-      return name.slice(0, num) + "...";
-    } else {
-      return name;
-    }
-  }
-
-  selected(event: MatAutocompleteSelectedEvent): void {
-    const selectedCampaign = event.option.value;
-    const index = this.campaigns.findIndex((campaign: any) => campaign === selectedCampaign);
-
-    if (this.selection.isSelected(selectedCampaign)) {
-      this.selection.deselect(selectedCampaign);
-    } else {
-      this.selection.select(selectedCampaign);
-    }
-
-    event.option.deselect();
-    event.option._getHostElement().blur();
-  
-    if (index >= 0) {
-      this.campaigns.splice(index, 1);
-      this.announcer.announce(`Removed ${selectedCampaign.displayName}`);
-    } else {
-      this.campaigns.push(selectedCampaign);
-      this.announcer.announce(`Added ${selectedCampaign.displayName}`);
-    }
-  
-    this.campaignInput.nativeElement.value = '';
-    this.formGroup.get('facebookCampaign')!.setValue(null);
-  }
-
-  formatDate(date: Date): string {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
+  combineAndTruncateName(campaign: any, num: number): string {
+    const combinedName = `${campaign.name} | ${campaign.id}`;
+    return this.platformsCommon.truncateName(combinedName, num);
   }
 
   refreshData() {
@@ -356,8 +250,8 @@ export class FacebookFormComponent {
       if (user)  {
         const formData = {
           ...this.formGroup.value,
-          facebookStartDate: this.formatDate(this.formGroup.value.facebookStartDate),
-          facebookEndDate: this.formatDate(this.formGroup.value.facebookEndDate),
+          facebookStartDate: this.platformsCommon.formatDate(this.formGroup.value.facebookStartDate),
+          facebookEndDate: this.platformsCommon.formatDate(this.formGroup.value.facebookEndDate),
           userId: user.uid
         };
         return formData;
@@ -367,48 +261,4 @@ export class FacebookFormComponent {
     }
     return null;
   }
-  
-  addCampaignToChips(campaign: any): void {
-    if (!this.campaigns.some((c: any) => c.id === campaign.id)) {
-      this.campaigns.push(campaign);
-    }
-    if (this.campaignInput) {
-      this.campaignInput.nativeElement.value = '';
-    }
-    this.formGroup.get('facebookCampaign')!.setValue(null);
-  }
-  
-  removeCampaignFromChips(campaign: any): void {
-    const index = this.campaigns.findIndex((c: any) => c.id === campaign.id);
-    if (index >= 0) {
-      this.campaigns.splice(index, 1);
-    }
-  }
-
-  remove(campaign: string): void {
-    const index = this.campaigns.indexOf(campaign);
-
-    if (index >= 0) {
-      this.campaigns.splice(index, 1);
-      this.selection.deselect(campaign);
-
-      this.announcer.announce(`Removed ${campaign}`);
-    }
-  }
-
-  toggleSelection(campaign: any): void {
-    if (this.selection.isSelected(campaign)) {
-      this.selection.deselect(campaign);
-      this.removeCampaignFromChips(campaign);
-      campaign.selected = false;
-    } else {
-      this.selection.select(campaign);
-      this.addCampaignToChips(campaign);
-      campaign.selected = true;
-    }
-    this.formGroup.patchValue({
-      facebookCampaign: this.campaigns,
-    });
-  }
-
 }
