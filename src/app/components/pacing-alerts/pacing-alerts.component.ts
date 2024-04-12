@@ -18,10 +18,10 @@ import { switchMap, map, take } from 'rxjs/operators';
   selector: 'app-alerts',
   standalone: true,
   imports: [CommonModule, LineChartComponent, MatTableModule],
-  templateUrl: './alerts.component.html',
-  styleUrl: './alerts.component.css'
+  templateUrl: './pacing-alerts.component.html',
+  styleUrl: './pacing-alerts.component.css'
 })
-export class AlertsComponent {
+export class PacingAlertsComponent {
 
   public displayedColumnsAlerts: string[] = ["campaignName", "lineChart", "platform", "budget", "overall", "yesterday", "daily_estimated_cost"];
   public dataSource = new MatTableDataSource<any>([]);

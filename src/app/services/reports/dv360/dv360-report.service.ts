@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { firstValueFrom, of } from 'rxjs';
@@ -8,12 +8,17 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { getAuth } from 'firebase/auth';
 
+import { ExternalPlatformsService } from '../../external-platforms.service';
+
+import { ToastrService } from 'ngx-toastr';
+
 import moment from 'moment-timezone';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DV360ReportService {
+  toaster = inject(ToastrService);
   queryId = null;
   reportId = null;
   reportLink = null;
@@ -22,81 +27,105 @@ export class DV360ReportService {
   constructor(
     private http: HttpClient, 
     private fns: AngularFireFunctions,
-    private db: AngularFirestore
+    private db: AngularFirestore,
+    public externalPlatforms: ExternalPlatformsService
   ) { }
 
-  async createQuery(campaign: any, campaignId: any, event?: MouseEvent) {
-    if (event) {
-      event.stopPropagation();
-    }
-
-    const body = {
-      "metadata": {
-        "title": campaign.campaignName + " | " + campaign.dv360StartDate + " - " + campaign.dv360EndDate,
-        "dataRange": {
-            "range": "CUSTOM_DATES",
-            "customStartDate": {
-              "year": campaign.dv360StartDate.split('/')[2],
-              "month": campaign.dv360StartDate.split('/')[0],
-              "day": campaign.dv360StartDate.split('/')[1]
-            },
-            "customEndDate": {
-              "year": campaign.dv360EndDate.split('/')[2],
-              "month": campaign.dv360EndDate.split('/')[0],
-              "day": campaign.dv360EndDate.split('/')[1]
-            }
-        },
-        "format": "CSV",
-      },
-      "params": {
-        "type": "STANDARD",
-        "groupBys": ['FILTER_DATE','FILTER_ADVERTISER','FILTER_ADVERTISER_CURRENCY','FILTER_CM360_PLACEMENT_ID'],
-        "metrics": [
-          'METRIC_IMPRESSIONS',
-          'METRIC_BILLABLE_IMPRESSIONS',
-          'METRIC_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS',
-          'METRIC_ACTIVE_VIEW_MEASURABLE_IMPRESSIONS',
-          'METRIC_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS',
-          'METRIC_ACTIVE_VIEW_AVERAGE_VIEWABLE_TIME',
-          'METRIC_REVENUE_ADVERTISER',
-          'METRIC_CLICKS',
-          'METRIC_RICH_MEDIA_VIDEO_PLAYS',
-          'METRIC_RICH_MEDIA_VIDEO_PAUSES',
-          'METRIC_RICH_MEDIA_VIDEO_MIDPOINTS',
-          'METRIC_RICH_MEDIA_VIDEO_COMPLETIONS',
-          'METRIC_RICH_MEDIA_VIDEO_SKIPS',
-          'METRIC_TOTAL_CONVERSIONS'
-        ],
-        "filters": [
-          {"type": "FILTER_ADVERTISER", "value": campaign.dv360Advertiser.advertiserId},
-          {"type": "FILTER_MEDIA_PLAN", "value": campaignId},
-        ]
-      },
-      "schedule": {
-        "startDate": {
-          "year": campaign.dv360StartDate.split('/')[2],
-          "month": campaign.dv360StartDate.split('/')[0],
-          "day": campaign.dv360StartDate.split('/')[1]
-        },
-        "endDate": {
-          "year": campaign.dv360EndDate.split('/')[2],
-          "month": campaign.dv360EndDate.split('/')[0],
-          "day": campaign.dv360EndDate.split('/')[1]
-        },
-        "frequency": "ONE_TIME",
+  async createQuery(campaign: any, campaignId: any, event?: MouseEvent, retryCount = 2) {
+    try {
+      if (event) {
+        event.stopPropagation();
       }
-    };
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
-    const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries`, body, { headers });
-    const data: any = await firstValueFrom(response$);
-    this.queryId = data.queryId;
+
+      const body = {
+        "metadata": {
+          "title": campaign.campaignName + " | " + campaign.dv360StartDate + " - " + campaign.dv360EndDate,
+          "dataRange": {
+              "range": "CUSTOM_DATES",
+              "customStartDate": {
+                "year": campaign.dv360StartDate.split('/')[2],
+                "month": campaign.dv360StartDate.split('/')[0],
+                "day": campaign.dv360StartDate.split('/')[1]
+              },
+              "customEndDate": {
+                "year": campaign.dv360EndDate.split('/')[2],
+                "month": campaign.dv360EndDate.split('/')[0],
+                "day": campaign.dv360EndDate.split('/')[1]
+              }
+          },
+          "format": "CSV",
+        },
+        "params": {
+          "type": "STANDARD",
+          "groupBys": ['FILTER_DATE','FILTER_ADVERTISER','FILTER_ADVERTISER_CURRENCY','FILTER_CM360_PLACEMENT_ID'],
+          "metrics": [
+            'METRIC_IMPRESSIONS',
+            'METRIC_BILLABLE_IMPRESSIONS',
+            'METRIC_ACTIVE_VIEW_ELIGIBLE_IMPRESSIONS',
+            'METRIC_ACTIVE_VIEW_MEASURABLE_IMPRESSIONS',
+            'METRIC_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS',
+            'METRIC_ACTIVE_VIEW_AVERAGE_VIEWABLE_TIME',
+            'METRIC_REVENUE_ADVERTISER',
+            'METRIC_CLICKS',
+            'METRIC_RICH_MEDIA_VIDEO_PLAYS',
+            'METRIC_RICH_MEDIA_VIDEO_PAUSES',
+            'METRIC_RICH_MEDIA_VIDEO_MIDPOINTS',
+            'METRIC_RICH_MEDIA_VIDEO_COMPLETIONS',
+            'METRIC_RICH_MEDIA_VIDEO_SKIPS',
+            'METRIC_TOTAL_CONVERSIONS'
+          ],
+          "filters": [
+            {"type": "FILTER_ADVERTISER", "value": campaign.dv360Advertiser.advertiserId},
+            {"type": "FILTER_MEDIA_PLAN", "value": campaignId},
+          ]
+        },
+        "schedule": {
+          "startDate": {
+            "year": campaign.dv360StartDate.split('/')[2],
+            "month": campaign.dv360StartDate.split('/')[0],
+            "day": campaign.dv360StartDate.split('/')[1]
+          },
+          "endDate": {
+            "year": campaign.dv360EndDate.split('/')[2],
+            "month": campaign.dv360EndDate.split('/')[0],
+            "day": campaign.dv360EndDate.split('/')[1]
+          },
+          "frequency": "ONE_TIME",
+        }
+      };
+      const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+      const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries`, body, { headers });
+      const data: any = await firstValueFrom(response$);
+      this.queryId = data.queryId;
+      if (data && data.key) {
+        this.reportId = data.key.reportId;
+      }
+    } catch (error: any) {
+      if (retryCount > 0) {
+          await this.externalPlatforms.handleGoogleError(error);
+          this.createQuery(campaign, campaignId, event, retryCount - 1);
+      } else {
+          this.toaster.error('An error occurred while processing Display & Video 360 pacing alerts', 'Error');
+      }
+    }
   }
 
-  async runQuery() {
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
-    const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}:run`, {}, { headers });
-    const data: any = await firstValueFrom(response$);
-    this.reportId = data.key.reportId;
+  async runQuery(retryCount = 2) {
+    try {
+      const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+      const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}:run`, {}, { headers });
+      const data: any = await firstValueFrom(response$);
+      if (data && data.key) {
+        this.reportId = data.key.reportId;
+      }
+    } catch (error: any) {
+      if (retryCount > 0) {
+          await this.externalPlatforms.handleGoogleError(error);
+          this.runQuery(retryCount - 1);
+      } else {
+          this.toaster.error('An error occurred while processing Display & Video 360 pacing alerts', 'Error');
+      }
+    }
   }
 
   async getReportLink(tries: number = 10) {
@@ -104,7 +133,6 @@ export class DV360ReportService {
       const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
       const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
       const data: any = await firstValueFrom(response$);
-      console.log("Report data:", data);
       if (data && data.metadata && data.metadata.googleCloudStoragePath) {
         this.reportLink = data.metadata.googleCloudStoragePath;
         console.log("Report link found:", this.reportLink);

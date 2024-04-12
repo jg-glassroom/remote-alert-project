@@ -66,8 +66,10 @@ export class ExternalPlatformsService {
     if (error.status === 401 || error.status === 403 || error.status === 400) {
       return await this.refreshToken();
     } else {
-      console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);
-      this.toaster.error('An unexpected error occurred', 'Error');
+      if (error.status && error.message) {
+        console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);
+      }
+      this.toaster.error('333An unexpected error occurred', 'Error');
     }
   }
 }

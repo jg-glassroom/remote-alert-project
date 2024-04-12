@@ -5,9 +5,7 @@
     <ng-container matColumnDef="campaignName">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign Name</th>
       <td mat-cell *matCellDef="let data">
-        {{data.CampaignName}}<br>
-        {{data.StartDate}} - {{data.EndDate}}<br>
-        {{round(data.perc_days_passed)}}%
+        {{data.CampaignName}}
       </td>
     </ng-container>
 
@@ -20,15 +18,34 @@
     <!-- Platform Column -->
     <ng-container matColumnDef="platform">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Platform</th>
-      <td mat-cell *matCellDef="let data">{{data.Platform}}</td>
+      <td mat-cell *matCellDef="let data">
+        <span *ngIf="data.dv360Platform">
+          {{data.dv360Platform}}<br>
+          {{data.dv360StartDate}} - {{data.dv360EndDate}}<br>
+          {{round(data.dv360_perc_days_passed)}}%
+        </span>
+        <hr *ngIf="data.dv360Platform && data.facebookPlatform">
+        <span *ngIf="data.facebookPlatform">
+          {{data.facebookPlatform}}<br>
+          {{data.facebookStartDate}} - {{data.facebookEndDate}}<br>
+          {{round(data.facebook_perc_days_passed)}}%
+        </span>
+      </td>
     </ng-container>
 
     <!-- Budget Column -->
     <ng-container matColumnDef="budget">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Budget</th>
       <td mat-cell *matCellDef="let data">
-        ${{round(data.campaign_cost)}}<br>
-        ${{round(data.Budget)}}
+        <span *ngIf="data.dv360Platform">
+          ${{round(data.dv360_campaign_cost)}}<br>
+          ${{round(data.dv360Budget)}}
+        </span>
+        <hr *ngIf="data.dv360Platform && data.facebookPlatform">
+        <span *ngIf="data.facebookPlatform">
+          ${{round(data.facebook_campaign_cost)}}<br>
+          ${{round(data.facebookBudget)}}
+        </span>
       </td>
     </ng-container>
 
@@ -36,7 +53,13 @@
     <ng-container matColumnDef="overall">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Overall</th>
       <td mat-cell *matCellDef="let data">
-        {{data.overall_error_rule_message ? data.overall_error_rule_message : data.budget_error_rule_message}}
+        <span *ngIf="data.dv360Platform">
+          {{data.dv360_overall_error_rule_message ? data.dv360_overall_error_rule_message : data.dv360_budget_error_rule_message}}
+        </span>
+        <hr *ngIf="data.dv360Platform && data.facebookPlatform">
+        <span *ngIf="data.facebookPlatform">
+          {{data.facebook_overall_error_rule_message ? data.facebook_overall_error_rule_message : data.facebook_budget_error_rule_message}}
+        </span>
       </td>
     </ng-container>
 
@@ -44,8 +67,15 @@
     <ng-container matColumnDef="yesterday">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Yesterday/Seven days</th>
       <td mat-cell *matCellDef="let data">
-        {{data.yesterday_error_rule_message}}<br>
-        {{data.seven_days_error_rule_message}}
+        <span *ngIf="data.dv360Platform">
+          {{data.dv360_yesterday_error_rule_message}}<br>
+          {{data.dv360_seven_days_error_rule_message}}
+        </span>
+        <hr *ngIf="data.dv360Platform && data.facebookPlatform">
+        <span *ngIf="data.facebookPlatform">
+          {{data.facebook_yesterday_error_rule_message}}<br>
+          {{data.facebook_seven_days_error_rule_message}}
+        </span>
       </td>
     </ng-container>
 
@@ -53,7 +83,13 @@
     <ng-container matColumnDef="daily_estimated_cost">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Daily estimated cost</th>
       <td mat-cell *matCellDef="let data">
-        ${{round(data.daily_estimated_cost)}}/day
+        <span *ngIf="data.dv360Platform">
+          ${{round(data.dv360_daily_estimated_cost)}}/day
+        </span>
+        <hr *ngIf="data.dv360Platform && data.facebookPlatform">
+        <span *ngIf="data.facebookPlatform">
+          ${{round(data.facebook_daily_estimated_cost)}}/day
+        </span>
       </td>
     </ng-container>
 
