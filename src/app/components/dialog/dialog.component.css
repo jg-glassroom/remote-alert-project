@@ -39,6 +39,7 @@ form {
 }
 
 .refresh-button {
+    height: 20px;
     margin-right: 10px;
 }
 
@@ -67,7 +68,9 @@ form {
     height: 100%;
 }
 
-.footer {
-    position: absolute;
-    bottom: 0;
-}
+.error-icon {
+    color: red;
+    font-size: 18px;
+    vertical-align: bottom;
+  }
+  

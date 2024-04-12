@@ -88,7 +88,7 @@ export class FacebookFormComponent {
   async createForm() {
     this.formGroup = this.formBuilder.group({
       facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
-      facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required]],
+      facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       facebookPlatform: ['facebook', [Validators.required]],
       facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
       facebookEndDate: [this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
@@ -258,7 +258,9 @@ export class FacebookFormComponent {
       } else {
         throw new Error('User not logged in');
       }
+    } else {
+      this.platformsCommon.validateAllFormFields(this.formGroup);
+      return null;
     }
-    return null;
   }
 }

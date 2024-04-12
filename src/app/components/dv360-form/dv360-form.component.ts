@@ -1,7 +1,7 @@
 import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -113,7 +113,7 @@ export class Dv360FormComponent {
       dv360Partner: [this.data?.dv360Partner || null, [Validators.required]],
       dv360Platform: ['dv360', [Validators.required]],
       dv360Advertiser: [this.data?.dv360Advertiser || null, [Validators.required]],
-      dv360CampaignId: [this.data?.dv360CampaignId || [], [Validators.required]],
+      dv360CampaignId: [this.data?.dv360CampaignId || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       dv360StartDate: [this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
       dv360EndDate: [this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
       dv360Budget: [this.data?.dv360Budget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
@@ -295,8 +295,10 @@ export class Dv360FormComponent {
       } else {
         throw new Error('User not logged in');
       }
+    } else {
+      this.platformsCommon.validateAllFormFields(this.formGroup);
+      return null;
     }
-    return null;
   }
 
   refreshData() {

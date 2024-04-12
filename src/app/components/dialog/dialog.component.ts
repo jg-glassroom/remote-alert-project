@@ -1,6 +1,6 @@
 import { Component, Inject, inject, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 import { AuthService } from '../../services/auth.service';
@@ -9,6 +9,7 @@ import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
 import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
+import { CommonService } from '../../services/common/common.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -47,7 +48,7 @@ export class DialogComponent {
   @ViewChildren(FacebookFormComponent) facebookForms!: QueryList<FacebookFormComponent>;
 
   formGroup = new FormGroup({
-    campaignName: new FormControl(''),
+    campaignName: new FormControl('', Validators.required),
   });
 
   submitted: boolean = false;
@@ -66,7 +67,8 @@ export class DialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private DV360ReportService: DV360ReportService,
     private db: AngularFirestore,
-    private facebookReportService: FacebookReportService
+    private facebookReportService: FacebookReportService,
+    public platformsCommon: CommonService
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -85,13 +87,23 @@ export class DialogComponent {
   }
 
   ngOnInit() {}
+
+  get form() { 
+    return this.formGroup ? this.formGroup.controls : {};
+  };
   
   onSubmit(execute: boolean = false) {
     let allFormData: any = {
       campaignName: this.formGroup.get('campaignName')!.value,
     };
+    this.platformsCommon.validateAllFormFields(this.formGroup);
     let platforms: any = [];
     let doSubmit = true;
+
+    if (this.dv360Forms.length === 0 && this.facebookForms.length === 0) {
+      doSubmit = false;
+      this.toaster.error('Please select a platform');
+    }
 
     this.dv360Forms.forEach(form => {
       const formData = form.getFormData();
@@ -105,7 +117,7 @@ export class DialogComponent {
         }
       } else {
         doSubmit = false;
-        console.error('A DV360 form is not valid');
+        this.toaster.error('A DV360 form is not valid');
       }
     });
 
@@ -121,7 +133,7 @@ export class DialogComponent {
         }
       } else {
         doSubmit = false;
-        console.error('A Facebook form is not valid');
+        this.toaster.error('A Facebook form is not valid');
       }
     });
 
@@ -206,4 +218,14 @@ export class DialogComponent {
     const hasFacebook = this.tabs.some((t: any) => t.value === 'facebook');
     return !(hasDv360 && hasFacebook);
   }
+
+  checkFormValidity(index: number): boolean {
+    if (this.tabs[index].value === 'dv360' && this.dv360Forms && this.dv360Forms.toArray().length > index) {
+      return this.dv360Forms.toArray()[index].formGroup.invalid;
+    } else if (this.tabs[index].value === 'facebook' && this.facebookForms && this.facebookForms.toArray().length > index) {
+      return this.facebookForms.toArray()[index].formGroup.invalid;
+    }
+    return false;
+  }
+  
 }

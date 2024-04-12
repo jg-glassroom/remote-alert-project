@@ -15,6 +15,13 @@ export class CommonService {
 
   constructor() { }
 
+  campaignSelectionValidator(): ValidatorFn {
+    return (control: AbstractControl): {[key: string]: any} | null => {
+      const campaigns = control.value;
+      return campaigns && campaigns.length > 0 ? null : { 'noCampaignSelected': true };
+    };
+  }
+
   add(event: MatChipInputEvent, campaigns: any, formGroup: any, formField: any): void {
     const value = (event.value || '').trim();
 
@@ -27,13 +34,13 @@ export class CommonService {
     formGroup.get(formField)!.setValue(null);
   }
 
-  remove(campaign: string, campaigns: any, selection: any, announcer: any): void {
+  remove(campaign: any, campaigns: any, selection: any, announcer: any): void {
     const index = campaigns.indexOf(campaign);
 
     if (index >= 0) {
       campaigns.splice(index, 1);
       selection.deselect(campaign);
-      campaigns[index].selected = false;
+      campaign.selected = false;
 
       announcer.announce(`Removed ${campaign}`);
     }
@@ -161,5 +168,13 @@ export class CommonService {
     return observable.pipe(
       map(elements => elements.filter(element => element[searchField].toLowerCase().includes(filterValue)))
     );
+  }
+
+  validateAllFormFields(formGroup: any) {
+    Object.keys(formGroup.controls).forEach(field => {
+      const control = formGroup.get(field);
+      control.markAsTouched({ onlySelf: true });
+      control.updateValueAndValidity();
+    });
   }
 }

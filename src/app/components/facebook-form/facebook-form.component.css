@@ -45,4 +45,7 @@ form {
     align-items: center;
     z-index: 1000;
 }
-  
+
+.mat-error {
+    color: red;
+}

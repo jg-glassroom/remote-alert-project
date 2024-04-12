@@ -45,7 +45,7 @@
 
     <div class="form-row">
         <mat-form-field class="form-element">
-            <mat-label>Campaign Id</mat-label>
+            <mat-label>Campaign*</mat-label>
 
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
             <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, selection, announcer)">
@@ -68,6 +68,10 @@
                 </mat-checkbox>
             </mat-option>
             </mat-autocomplete>
+
+            <mat-hint *ngIf="form['dv360CampaignId'].errors?.['required'] && (submitted || form['dv360CampaignId'].touched)">
+                <span class="mat-error">At least one campaign must be selected</span>
+            </mat-hint>
         </mat-form-field>
 
         <mat-form-field class="form-element">
