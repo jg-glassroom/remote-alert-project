@@ -31,3 +31,11 @@ hr {
 td, th {
   padding: 0px;
 }
+
+.first-column {
+  padding-left: 25px;
+}
+
+.footer {
+  height: 10px;
+}
