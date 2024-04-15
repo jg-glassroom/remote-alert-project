@@ -151,9 +151,17 @@ export class CommonService {
   }
 
   filterElements(filterValue: string, searchField: any, cachedData: any): Observable<any[]> {
-    return of(JSON.parse(cachedData!)).pipe(
-      map((elements: any) => elements.filter((element: any) => element[searchField].toLowerCase().includes(filterValue)))
-    );
+    if (!cachedData) {
+      return of([]);
+    }
+    
+    try {
+      const data = JSON.parse(cachedData);
+      return of(data.filter((element: any) => element[searchField].toLowerCase().includes(filterValue)));
+    } catch (error) {
+      console.error('Failed to parse JSON:', error);
+      return of([]);
+    }
   }
 
   setupFiltering(formGroup: any, formField: string, originalObservable: Observable<any[]>, filterSearchField: string): Observable<any[]> {
