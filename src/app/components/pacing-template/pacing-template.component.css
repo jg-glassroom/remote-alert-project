@@ -1,0 +1,192 @@
+.nav-path{
+    text-align: left;
+    margin: 0px 30px;
+    padding: 5px;
+}
+
+.nav-separator{
+    display: inline-block;
+    color: #737373;
+    font-size: 17px;
+    vertical-align: text-top;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-item{
+    display: inline-block;
+    color: #737373;
+}
+
+.nav-icon{
+    font-size: 13px;
+    vertical-align: middle;
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+}
+
+.nav-title{
+    font-size: 12px;
+    font-weight: 200;
+    text-transform: capitalize;
+    margin: 0px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.content-wrapper{
+    margin:20px 30px;
+}
+
+.content-section{
+    text-align: left;
+}
+
+.content-header{
+    margin-bottom: 5px;
+    padding: 15px;
+    font-weight: normal;
+    border-radius: 25px;
+    background-color: #f6f6f6;
+}
+
+.content-header h2{
+    display: inline;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.h2-icon{
+    font-size: 16px;
+    vertical-align: bottom;
+    color: #654A93;
+}
+
+.tooltipam{
+    font-size: 11px !important;
+    margin-top: 50px;
+}
+
+.pacing-grid{
+    text-align: left;
+}
+
+.pacing-bullet, .pacing-campaigns, .pacing-budget, .pacing-overall{
+    display: inline-block;
+    vertical-align: top;
+}
+
+.pacing-campaign-date{
+    padding: 15px;
+    text-align: center;
+}
+
+.date-title{
+    font-size: 10px;
+    color:#757780;
+}
+
+.date-icon{
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+}
+
+.date-details{
+    font-size: 10px;
+    color:#757780;
+}
+
+.date-completion{
+    font-size: 17px;
+}
+
+.pacing-overall{
+    padding: 10px;
+    text-align: center;
+}
+
+.pacing-metric-title{
+    font-size: 11px;
+    color:#757780;
+    border-bottom: 1px dotted #eaeaea;
+    margin-bottom: 3px;
+}
+
+.pacing-metric-value{
+    font-size: 18px;
+}
+
+.pacing-campaigns{
+    width: 15%;
+}
+
+.pacing-bullet{
+    width: 35%;
+    padding: 10px;
+}
+
+.pacing-budget{
+    width: 8%;
+}
+
+.pacing-overall{
+    width: 9%;
+}
+
+.metric-icon{
+    vertical-align: middle;
+    width: 25px;
+    height: 25px;
+    font-size: 22px;
+}
+
+.pacing-positive{
+    color: #42AD5D;
+}
+
+.pacing-negative{
+    color: #DB5A60;
+}
+
+.pacing-platform{
+    background-color: #f6f6f6;
+    padding: 15px;
+}
+
+.platform-icon{
+    height: 12px;
+    vertical-align: middle;
+}
+
+.platform-title{
+    font-size: 12px;
+    color: #6B6B6B;
+    margin-left: 3px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.platform-title-total{
+    font-size: 11px;
+    display: inline-block;
+    margin-left: 8px;
+    color: #757780;
+}
+
+.pacing-box{
+    margin-top: 25px;
+    margin-bottom: 25px;
+    border-bottom: 1px dotted #eaeaea;
+}
+
+.platform-details-btn{
+    float: right;
+}
+
+.details-chip{
+    font-size: 11px;
+    --mdc-chip-label-text-size: 11px;
+    --mdc-chip-container-height: 19px;
+}
