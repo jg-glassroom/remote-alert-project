@@ -6,6 +6,8 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 import moment from 'moment';
 
+import { v4 as uuidv4 } from 'uuid';
+
 
 @Component({
   selector: 'app-line-chart',
@@ -16,6 +18,9 @@ import moment from 'moment';
 })
 export class LineChartComponent {
   @Input() chartData: any = [];
+  @Input() platform: any = '';
+  @Input() platformRevenue: any = '';
+  @Input() uniqueId!: string;
   private root!: am5.Root;
 
   constructor(private zone: NgZone) {}
@@ -27,7 +32,7 @@ export class LineChartComponent {
   }
 
   createChart() {
-    let sortedDates = Object.keys(this.chartData.report).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    let sortedDates = Object.keys(this.chartData[this.platform + 'Report']).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     const currentDate = moment.tz("America/Montreal").startOf("day").toDate();
     const yesterday = moment.tz("America/Montreal").subtract(1, "days").startOf("day").toDate();
     const twoDaysAgo = moment.tz("America/Montreal").subtract(2, "days").startOf("day").toDate();
@@ -37,15 +42,15 @@ export class LineChartComponent {
     let data: any = [];
     
     sortedDates.forEach((date: any, index) => {
-      const revenue = this.chartData.report[date]["Revenue (Adv Currency)"];
+      const revenue = parseFloat(this.chartData[this.platform + 'Report'][date][this.platformRevenue]);
 
-      const startDate = moment.tz(this.chartData.StartDate, "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
-      const endDate = moment.tz(this.chartData.EndDate, "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
+      const startDate = moment.tz(this.chartData[this.platform + 'StartDate'], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
+      const endDate = moment.tz(this.chartData[this.platform + 'EndDate'], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
       const daysLeft = ((endDate.getTime() - moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate().getTime()) / (1000 * 60 * 60 * 24)) + 2;
 
       if (
         moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
-        moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= yesterday
+        moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= yesterday && !isNaN(revenue)
       ) {
         cumulativeCost += revenue;
       }
@@ -61,7 +66,7 @@ export class LineChartComponent {
       let currentDateFormatted = moment(currentDate).format("YYYY/MM/DD");
       
       estimatedCumulativeCost += startDateFormatted === currentDateFormatted ? 0 :
-      (this.chartData.Budget - yesterdayCampaignCost) /
+      (this.chartData[this.platform + 'Budget'] - yesterdayCampaignCost) /
       (daysLeft > 0 ? daysLeft : 1);
 
       data.push({
@@ -70,8 +75,16 @@ export class LineChartComponent {
         estimatedCost: Math.round(estimatedCumulativeCost * 100) / 100
       });
     });
-  
-    let root = am5.Root.new("chartdiv");
+
+    let element = document.getElementById(this.uniqueId);
+    if (!(element instanceof Element)) {
+        setTimeout(() => this.createChart(), 1000);
+        return;
+    }
+    if (this.root) {
+        this.root.dispose();
+    }
+    let root = am5.Root.new(this.uniqueId);
 
     root.setThemes([am5themes_Animated.new(root)]);
 

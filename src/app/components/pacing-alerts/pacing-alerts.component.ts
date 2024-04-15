@@ -52,7 +52,7 @@ export class PacingAlertsComponent {
           }))
         );
 
-        const reports$ = this.db.collection<Report>('DV360Report', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
+        const dv360Reports$ = this.db.collection<Report>('DV360Report', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
           take(1),
           map(actions => actions.map(a => {
             const data = a.payload.doc.data() as object;
@@ -60,17 +60,26 @@ export class PacingAlertsComponent {
           }))
         );
 
-        return forkJoin({ alerts: alerts$, reports: reports$ });
+        const facebookReports$ = this.db.collection<Report>('facebookReport', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
+          take(1),
+          map(actions => actions.map(a => {
+            const data = a.payload.doc.data() as object;
+            return { id: a.payload.doc.id, ...(data as any) };
+          }))
+        );
+
+        return forkJoin({ alerts: alerts$, dv360Reports: dv360Reports$, facebookReports: facebookReports$ });
       }),
       map((result) => {
         if (!result) {
           return [];
         }
 
-        const { alerts, reports } = result;
+        const { alerts, dv360Reports, facebookReports } = result;
         return alerts.map(alert => ({
           ...alert,
-          report: reports.find(report => report.campaignName === alert.CampaignName)?.report
+          dv360Report: dv360Reports.find(report => report.campaignName === alert.CampaignName)?.report,
+          facebookReport: facebookReports.find(report => report.campaignName === alert.CampaignName)?.report,
         }));
       })
     ).subscribe(data => {

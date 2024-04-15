@@ -12,7 +12,15 @@
     <!-- Line chart Column -->
     <ng-container matColumnDef="lineChart">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Line chart</th>
-      <td mat-cell *matCellDef="let data"><app-line-chart *ngIf="data.report" [chartData]="data"></app-line-chart></td>
+      <td mat-cell *matCellDef="let data">
+        <span *ngIf="data.dv360Platform">
+          <app-line-chart *ngIf="data.dv360Report" [chartData]="data" platform="dv360" [uniqueId]="'chartdiv_' + data.id + '_DV'" platformRevenue="Revenue (Adv Currency)"></app-line-chart>
+        </span>
+        <hr *ngIf="data.dv360Platform && data.facebookPlatform">
+        <span *ngIf="data.facebookPlatform">
+          <app-line-chart *ngIf="data.facebookReport" [chartData]="data" platform="facebook" [uniqueId]="'chartdiv_' + data.id + '_Facebook'" platformRevenue="spend"></app-line-chart>
+        </span>
+      </td>
     </ng-container>
 
     <!-- Platform Column -->

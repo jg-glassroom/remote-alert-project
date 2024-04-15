@@ -9,6 +9,18 @@ import { getAuth } from 'firebase/auth';
 
 import moment from 'moment-timezone';
 
+interface CampaignData {
+  date_stop: string;
+  account_id: string;
+  outbound_clicks: { action_type: string; value: string }[];
+  impressions: string;
+  spend: string;
+}
+
+interface TransformedData {
+  [key: string]: CampaignData;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -55,6 +67,29 @@ export class FacebookReportService {
     }
   }
 
+  private transformReport(dataArray: any): TransformedData | null {
+    if (!dataArray) return null;
+    let transformedData: TransformedData = {};
+  
+    dataArray.forEach((item: any) => {
+      const formattedDate = item.date_start.replace(/-/g, '/');
+      const campaignData: CampaignData = {
+        date_stop: item.date_stop,
+        account_id: item.account_id,
+        outbound_clicks: item.outbound_clicks.map((click: any) => ({
+            action_type: click.action_type,
+            value: click.value
+        })),
+        impressions: item.impressions,
+        spend: item.spend
+      };
+  
+      transformedData[formattedDate] = campaignData;
+    });
+  
+    return transformedData;
+  }  
+
   async processReport(campaign: any, event?: MouseEvent) {
     try {
       const userSearchId = campaign.id;
@@ -62,7 +97,7 @@ export class FacebookReportService {
 
       await this.getReport(campaign);
       let reportToSave = {
-        report: this.reportJson,
+        report: this.transformReport(this.reportJson),
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
         userId: userId
