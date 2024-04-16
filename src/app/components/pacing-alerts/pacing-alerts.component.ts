@@ -113,21 +113,28 @@ export class PacingAlertsComponent {
         }
 
         const { alerts, dv360Reports, facebookReports } = result;
-        return alerts.map(alert => ({
-          ...alert,
-          dv360Report: dv360Reports.find(report => report.campaignName === alert.CampaignName)?.report,
-          facebookReport: facebookReports.find(report => report.campaignName === alert.CampaignName)?.report,
-        }));
+        return alerts.map(alert => {
+          let modifiedAlert = { ...alert };
+          const dv360Report = dv360Reports.find(report => report.campaignName === alert.CampaignName);
+          if (dv360Report) {
+            modifiedAlert.dv360Report = dv360Report.report;
+          }
+          const facebookReport = facebookReports.find(report => report.campaignName === alert.CampaignName);
+          if (facebookReport) {
+            modifiedAlert.facebookReport = facebookReport.report;
+          }
+          return modifiedAlert;
+        });
       })
     ).subscribe(data => {
       this.campaignNames = Array.from(new Set(data.map(alert => alert.CampaignName)));
       this.campaignIds = [...new Set(data.flatMap(alert => {
         let ids: any = [];
         if (alert.facebookCampaignID) {
-          ids.push(...alert.facebookCampaignID.split(';'));
+          ids = ids.concat(alert.facebookCampaignID.split(';'));
         }
         if (alert.dv360CampaignID) {
-          ids.push(...alert.dv360CampaignID.split(';'));
+          ids = ids.concat(alert.dv360CampaignID.split(';'));
         }
         return ids;
       }))];
@@ -136,6 +143,7 @@ export class PacingAlertsComponent {
       this.originalDataSource = new MatTableDataSource<any>(data);
     }, error => console.error("Failed to fetch data", error));
   }
+
 
   removeCampaignName(name: string) {
     const index = this.selectedCampaignNames.indexOf(name);
@@ -159,6 +167,7 @@ export class PacingAlertsComponent {
     const index = this.selectedCampaignIds.indexOf(id);
     if (index >= 0) {
       this.selectedCampaignIds.splice(index, 1);
+      this.applyFilters();
     }
   }
   
@@ -175,6 +184,7 @@ export class PacingAlertsComponent {
     const index = this.selectedUsers.indexOf(user);
     if (index >= 0) {
       this.selectedUsers.splice(index, 1);
+      this.applyFilters();
     }
   }
   
@@ -192,13 +202,37 @@ export class PacingAlertsComponent {
     if (this.selectedCampaignNames.length > 0) {
       this.dataSource.data = this.dataSource.data.filter(data => this.selectedCampaignNames.includes(data.CampaignName));
     }
+
+    let filteredByCampaignId = [];
     if (this.selectedCampaignIds.length > 0) {
-      this.dataSource.data = this.dataSource.data.filter(data => {
-          const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
-          const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
-          return this.selectedCampaignIds.some(id => fbCampaignIds.includes(id) || dv360CampaignIds.includes(id));
-      });
+        filteredByCampaignId = this.dataSource.data.filter(data => {
+            const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
+            const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
+            return this.selectedCampaignIds.some(id => fbCampaignIds.includes(id) || dv360CampaignIds.includes(id));
+        });
+
+        filteredByCampaignId = filteredByCampaignId.map(data => {
+            let modifiedData = { ...data };
+            const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
+            const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
+            
+            const fbSelected = this.selectedCampaignIds.some(id => fbCampaignIds.includes(id));
+            const dv360Selected = this.selectedCampaignIds.some(id => dv360CampaignIds.includes(id));
+
+            if (fbSelected && !dv360Selected) {
+              delete modifiedData.dv360Platform;
+            } else if (!fbSelected && dv360Selected) {
+              delete modifiedData.facebookPlatform;
+            }
+
+            return modifiedData;
+        });
     }
+
+    if (this.selectedCampaignIds.length > 0) {
+        this.dataSource.data = filteredByCampaignId;
+    }
+
     if (this.selectedUsers.length > 0) {
       this.dataSource.data = this.dataSource.data.filter(data => this.selectedUsers.includes(data.CreatedBy));
     }
