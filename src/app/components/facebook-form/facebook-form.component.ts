@@ -65,7 +65,9 @@ export class FacebookFormComponent {
 
   announcer = inject(LiveAnnouncer);
 
-  @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;constructor(
+  @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
+  
+  constructor(
     private formBuilder: FormBuilder, 
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
