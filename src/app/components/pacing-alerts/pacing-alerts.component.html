@@ -1,18 +1,53 @@
 <div class="filter-container">
-  <mat-form-field class="filter-container">
+  <!-- Campaign Name Filter -->
+  <mat-form-field>
     <mat-label>Campaign Name</mat-label>
-    <mat-chip-grid #chipList aria-label="Campaign Selection">
+    <mat-chip-grid #chipName aria-label="Campaign Selection">
       <mat-chip *ngFor="let campaignName of selectedCampaignNames" [removable]="true" (removed)="removeCampaignName(campaignName)">
         {{campaignName}}
         <mat-icon matChipRemove>cancel</mat-icon>
       </mat-chip>
     </mat-chip-grid>
-    <input type="text" placeholder="Select Campaign Names" [matChipInputFor]="chipList" [matAutocomplete]="auto" [formControl]="campaignNameFilter">
-    <mat-autocomplete #auto="matAutocomplete">
+    <input type="text" placeholder="Select campaign Names" [matChipInputFor]="chipName" [matAutocomplete]="autoName" [formControl]="campaignNameFilter">
+    <mat-autocomplete #autoName="matAutocomplete">
       <mat-option *ngFor="let campaignName of campaignNames" [value]="campaignName">
         <mat-checkbox [checked]="selectedCampaignNames.includes(campaignName)" (change)="toggleCampaignName(campaignName)">
           {{campaignName}}
         </mat-checkbox>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <!-- Campaign Id Filter -->
+  <mat-form-field>
+    <mat-label>Campaign ID</mat-label>
+    <mat-chip-grid #chipID aria-label="Campaign ID Selection">
+      <mat-chip *ngFor="let id of selectedCampaignIds" [removable]="true" (removed)="removeCampaignId(id)">
+        {{id}}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+    </mat-chip-grid>
+    <input type="text" placeholder="Select campaign IDs" [matChipInputFor]="chipID" [matAutocomplete]="autoId" [formControl]="campaignIdFilter">
+    <mat-autocomplete #autoId="matAutocomplete">
+      <mat-option *ngFor="let id of campaignIds" [value]="id">
+        <mat-checkbox [checked]="selectedCampaignIds.includes(id)" (change)="toggleCampaignId(id)">{{id}}</mat-checkbox>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <!-- User  Filter -->
+  <mat-form-field>
+    <mat-label>User</mat-label>
+    <mat-chip-grid #chipUser aria-label="User Selection">
+      <mat-chip *ngFor="let user of selectedUsers" [removable]="true" (removed)="removeUser(user)">
+        {{user}}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+    </mat-chip-grid>
+    <input type="text" placeholder="Select users" [matChipInputFor]="chipUser" [matAutocomplete]="autoUser" [formControl]="userFilter">
+    <mat-autocomplete #autoUser="matAutocomplete">
+      <mat-option *ngFor="let user of users" [value]="user">
+        <mat-checkbox [checked]="selectedUsers.includes(user)" (change)="toggleUser(user)">{{user}}</mat-checkbox>
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>

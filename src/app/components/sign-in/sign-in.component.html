@@ -65,28 +65,15 @@
     <mat-form-field appearance="outline" class="form-element" *ngIf="registration === true && showForgotPassword === false">
         <mat-label>Language</mat-label>
         <mat-select formControlName="language">
-            <mat-option value="en"><img class="flag" src="../../assets/uk-flag.png"/>&nbsp;English</mat-option>
-            <mat-option value="fr"><img class="flag" src="../../assets/france-flag.png"/>&nbsp;French</mat-option>
+            <mat-option value="en">English</mat-option>
+            <mat-option value="fr">French</mat-option>
         </mat-select>
         <mat-error *ngIf="formGroup.get('language')?.errors?.['required']">
             Language is required.
         </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="form-element" *ngIf="registration === true && showForgotPassword === false">
-        <mat-label>Role</mat-label>
-        <mat-select formControlName="role">
-            <mat-option value="standard">Standard</mat-option>
-            <mat-option value="admin">Admin</mat-option>
-        </mat-select>
-        <mat-error *ngIf="formGroup.get('role')?.errors?.['required']">
-            Role is required.
-        </mat-error>
-    </mat-form-field>
-
     <br>
-
-    <mat-checkbox formControlName="emailUpdates" class="checkbox" *ngIf="registration === true && showForgotPassword === false">I agree to receive marketing communications, updates, and offers via email from Glassroom. I understand that I can unsubscribe at any time by following the instructions in the emails received.</mat-checkbox>
 
     <mat-error *ngIf="errorMessage" style="text-align: center;">{{ errorMessage }}</mat-error>
 

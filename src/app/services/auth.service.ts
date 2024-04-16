@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
@@ -39,10 +38,10 @@ export class AuthService {
     return this.afAuth.currentUser !== null;
   }
 
-  async signUp(email: string, password: string, username: string, language: string, role: string, emailUpdates: boolean): Promise<void> {
+  async signUp(email: string, password: string, username: string, language: string, role: string): Promise<void> {
     try {
       const result = await this.afAuth.createUserWithEmailAndPassword(email, password);
-      return await this.updateUserData({ displayName: username, photoURL: null, uid: result.user!.uid, language: language, role: role, emailUpdates: emailUpdates });
+      return await this.updateUserData({ displayName: username, uid: result.user!.uid, language: language, role: role });
     } catch (error) {
       console.error("An error occurred: ", error);
       throw error;
@@ -81,7 +80,6 @@ export class AuthService {
     let data = {
       uid: user.uid,
       displayName: user.displayName,
-      photoURL: user.photoURL,
       language: "",
       role: "",
       emailUpdates: false
@@ -89,10 +87,6 @@ export class AuthService {
 
     if (user.role) {
       data.role = user.role
-    }
-
-    if (user.role) {
-      data.emailUpdates = user.emailUpdates
     }
 
     if (user.language) {

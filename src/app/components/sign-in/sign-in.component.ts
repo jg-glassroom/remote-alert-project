@@ -78,7 +78,6 @@ export class SignInComponent {
       username: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
       language: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
       role: this.registration ? new FormControl(this.registration ? "standard" : null, Validators.required) : new FormControl(null),
-      emailUpdates: new FormControl(null),
       email: new FormControl(null, [Validators.required, Validators.email]),
       confirmPassword: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
       password: this.registration ? new FormControl(null, [
@@ -122,7 +121,7 @@ export class SignInComponent {
     if (this.formGroup.valid) {
       const value = this.formGroup.value;
       if (this.registration) {
-        this.auth.signUp(value.email, value.password, value.username, value.language, value.role, value.emailUpdates)
+        this.auth.signUp(value.email, value.password, value.username, value.language, "admin")
         .then(() => {
           this.toaster.success("Account successfully created", "Success");
           this.toggleRegistration();

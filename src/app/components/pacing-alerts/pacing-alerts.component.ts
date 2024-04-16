@@ -49,11 +49,22 @@ export class PacingAlertsComponent {
   campaignNames: string[] = [];
   selectedCampaignNames: string[] = [];
 
+  campaignIdFilter = new FormControl();
+  campaignIds: string[] = [];
+  selectedCampaignIds: string[] = [];
+
+  userFilter = new FormControl();
+  users: string[] = [];
+  selectedUsers: string[] = [];
+
   constructor (private authService: AuthService, private db: AngularFirestore) {}
 
   ngOnInit(): void {
     this.getAlerts();
     this.campaignNameFilter.valueChanges.subscribe(value => {
+      this.applyFilters();
+    });
+    this.campaignIdFilter.valueChanges.subscribe(() => {
       this.applyFilters();
     });
   }
@@ -109,17 +120,21 @@ export class PacingAlertsComponent {
         }));
       })
     ).subscribe(data => {
-      this.campaignNames = data.map(alert => alert.CampaignName);
+      this.campaignNames = Array.from(new Set(data.map(alert => alert.CampaignName)));
+      this.campaignIds = [...new Set(data.flatMap(alert => {
+        let ids: any = [];
+        if (alert.facebookCampaignID) {
+          ids.push(...alert.facebookCampaignID.split(';'));
+        }
+        if (alert.dv360CampaignID) {
+          ids.push(...alert.dv360CampaignID.split(';'));
+        }
+        return ids;
+      }))];
+      this.users = Array.from(new Set(data.map(alert => alert.CreatedBy)));
       this.dataSource = new MatTableDataSource<any>(data);
       this.originalDataSource = new MatTableDataSource<any>(data);
     }, error => console.error("Failed to fetch data", error));
-  }
-
-  addCampaignName(name: string) {
-    if (!this.selectedCampaignNames.includes(name)) {
-      this.selectedCampaignNames.push(name);
-      this.applyFilters();
-    }
   }
 
   removeCampaignName(name: string) {
@@ -130,13 +145,6 @@ export class PacingAlertsComponent {
     }
   }
 
-  applyFilters() {
-    this.dataSource.data = this.originalDataSource.data
-    if (this.selectedCampaignNames.length > 0) {
-      this.dataSource.data = this.originalDataSource.data.filter(data => this.selectedCampaignNames.includes(data.CampaignName));
-    }
-  }
-
   toggleCampaignName(campaignName: string) {
     const index = this.selectedCampaignNames.indexOf(campaignName);
   
@@ -144,6 +152,55 @@ export class PacingAlertsComponent {
       this.selectedCampaignNames.splice(index, 1);
     } else {
       this.selectedCampaignNames.push(campaignName);
+    }
+  }
+
+  removeCampaignId(id: string) {
+    const index = this.selectedCampaignIds.indexOf(id);
+    if (index >= 0) {
+      this.selectedCampaignIds.splice(index, 1);
+    }
+  }
+  
+  toggleCampaignId(id: string) {
+    const index = this.selectedCampaignIds.indexOf(id);
+    if (index >= 0) {
+      this.selectedCampaignIds.splice(index, 1);
+    } else {
+      this.selectedCampaignIds.push(id);
+    }
+  }
+
+  removeUser(user: string) {
+    const index = this.selectedUsers.indexOf(user);
+    if (index >= 0) {
+      this.selectedUsers.splice(index, 1);
+    }
+  }
+  
+  toggleUser(user: string) {
+    const index = this.selectedUsers.indexOf(user);
+    if (index >= 0) {
+      this.selectedUsers.splice(index, 1);
+    } else {
+      this.selectedUsers.push(user);
+    }
+  }
+
+  applyFilters() {
+    this.dataSource.data = this.originalDataSource.data
+    if (this.selectedCampaignNames.length > 0) {
+      this.dataSource.data = this.dataSource.data.filter(data => this.selectedCampaignNames.includes(data.CampaignName));
+    }
+    if (this.selectedCampaignIds.length > 0) {
+      this.dataSource.data = this.dataSource.data.filter(data => {
+          const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
+          const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
+          return this.selectedCampaignIds.some(id => fbCampaignIds.includes(id) || dv360CampaignIds.includes(id));
+      });
+    }
+    if (this.selectedUsers.length > 0) {
+      this.dataSource.data = this.dataSource.data.filter(data => this.selectedUsers.includes(data.CreatedBy));
     }
   }
 }
