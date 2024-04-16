@@ -1,3 +1,14 @@
+<div class="filter-container">
+  <mat-form-field appearance="fill">
+    <mat-label>Alert Names</mat-label>
+    <mat-select multiple [(value)]="selectedAlertNames" (selectionChange)="applyFilters()">
+      <mat-option *ngFor="let name of alertNames" [value]="name">
+        {{name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+
 <div class="table-container">
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 table">
 

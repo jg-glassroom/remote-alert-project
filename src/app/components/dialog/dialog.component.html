@@ -27,14 +27,14 @@
       <mat-tab *ngIf="tab.value === 'dv360'">
         <ng-template mat-tab-label>
           {{ tab.name }}&nbsp;
-          <mat-icon *ngIf="checkFormValidity(index)" class="error-icon">warning</mat-icon>
+          <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
         </ng-template>
         <app-dv360-form #dv360Form></app-dv360-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
         <ng-template mat-tab-label>
           {{ tab.name }}&nbsp;
-          <mat-icon *ngIf="checkFormValidity(index)" class="error-icon">warning</mat-icon>
+          <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
         </ng-template>
         <app-facebook-form #facebookForm></app-facebook-form>
       </mat-tab>

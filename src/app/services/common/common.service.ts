@@ -108,7 +108,9 @@ export class CommonService {
       announcer.announce(`Added ${selectedCampaign.displayName}`);
     }
   
-    campaignInput.nativeElement.value = '';
+    if (campaignInput && campaignInput.nativeElement) {
+      campaignInput.nativeElement.value = '';
+    }
     formGroup.get(formField)!.setValue(null);
   }
 

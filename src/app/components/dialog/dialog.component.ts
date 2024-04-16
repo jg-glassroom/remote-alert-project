@@ -1,8 +1,8 @@
-import { Component, Inject, inject, ViewChildren, QueryList } from '@angular/core';
+import { Component, Inject, inject, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-
+ 
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
 import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
@@ -59,6 +59,7 @@ export class DialogComponent {
   selectPlatforms: any[] = [];
   tabs: any = [{name: 'New platform', value: 'new'}];
   selectedTab = new FormControl(0);
+  tabErrors: boolean[] = [];
 
   constructor(
     private dialogRef: MatDialogRef<DialogComponent>,
@@ -68,7 +69,8 @@ export class DialogComponent {
     private DV360ReportService: DV360ReportService,
     private db: AngularFirestore,
     private facebookReportService: FacebookReportService,
-    public platformsCommon: CommonService
+    public platformsCommon: CommonService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -139,6 +141,8 @@ export class DialogComponent {
 
     allFormData.platforms = platforms;
 
+    this.updateValidity();
+    this.cdRef.detectChanges();
     if (doSubmit) {
       if (this.isEditMode && this.documentId) {
         return this.db.collection('userSearch').doc(this.documentId).update(allFormData).then(() => {
@@ -219,6 +223,10 @@ export class DialogComponent {
     return !(hasDv360 && hasFacebook);
   }
 
+  updateValidity() {
+    this.tabErrors = this.tabs.map((tab: any, index: any) => this.checkFormValidity(index));
+  }
+
   checkFormValidity(index: number): boolean {
     if (this.tabs[index].value === 'dv360' && this.dv360Forms && this.dv360Forms.toArray().length > index) {
       return this.dv360Forms.toArray()[index].formGroup.invalid;
@@ -227,5 +235,4 @@ export class DialogComponent {
     }
     return false;
   }
-  
 }

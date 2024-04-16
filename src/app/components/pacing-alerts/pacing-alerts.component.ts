@@ -9,6 +9,8 @@ import { LineChartComponent } from '../line-chart/line-chart.component';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { forkJoin, of } from 'rxjs';
 import { switchMap, map, take } from 'rxjs/operators';
@@ -17,7 +19,13 @@ import { switchMap, map, take } from 'rxjs/operators';
 @Component({
   selector: 'app-alerts',
   standalone: true,
-  imports: [CommonModule, LineChartComponent, MatTableModule],
+  imports: [
+    CommonModule,
+    LineChartComponent,
+    MatTableModule,
+    MatSelectModule,
+    MatAutocompleteModule
+  ],
   templateUrl: './pacing-alerts.component.html',
   styleUrl: './pacing-alerts.component.css'
 })
@@ -25,6 +33,9 @@ export class PacingAlertsComponent {
 
   public displayedColumnsAlerts: string[] = ["campaignName", "lineChart", "platform", "budget", "overall", "yesterday", "daily_estimated_cost"];
   public dataSource = new MatTableDataSource<any>([]);
+  public originalDataSource = new MatTableDataSource<any>([]);
+  selectedAlertNames: string[] = [];
+  alertNames: string[] = [];
 
   constructor (private authService: AuthService, private db: AngularFirestore) {}
 
@@ -83,7 +94,26 @@ export class PacingAlertsComponent {
         }));
       })
     ).subscribe(data => {
+      this.alertNames = data.map(alert => alert.CampaignName);
       this.dataSource = new MatTableDataSource<any>(data);
+      this.originalDataSource = new MatTableDataSource<any>(data);
     }, error => console.error("Failed to fetch data", error));
+  }
+
+  applyFilters() {
+    let filteredData = this.originalDataSource.data;
+    
+    // Filter by alert names
+    if (this.selectedAlertNames.length > 0) {
+      filteredData = filteredData.filter(item => {
+          return this.selectedAlertNames.some(alertName => {
+              if (alertName === item.CampaignName) {
+                  return true;
+              }
+              return false;
+          });
+      });
+    }
+    this.dataSource.data = filteredData;
   }
 }
