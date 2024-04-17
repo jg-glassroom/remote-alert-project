@@ -16,6 +16,7 @@ export class GoogleService {
   DV360Config: boolean = false;
   searchAds: boolean = false;
   CM360: boolean = false;
+  googleAds: boolean = false;
 
   constructor(public externalPlatformService: ExternalPlatformsService) { }
 
@@ -23,7 +24,7 @@ export class GoogleService {
     var clientId = '552619214593-phjqlsgv1kqkq2nadui8rsuknjudo9lv.apps.googleusercontent.com';
     var hostname = window.location.hostname;
     var redirectUri = hostname === "localhost" ? 
-    'http://localhost:4200/profile' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile';
+    'https://localhost:4200/profile' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile';
     var scope = 'profile email https://www.googleapis.com/auth/display-video https://www.googleapis.com/auth/doubleclickbidmanager https://www.googleapis.com/auth/dfareporting https://www.googleapis.com/auth/doubleclicksearch https://www.googleapis.com/auth/adwords';
 
     var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
@@ -104,6 +105,9 @@ export class GoogleService {
       }
       if (googleScopes.includes('https://www.googleapis.com/auth/display-video')) {
         this.DV360Config = true;
+      }
+      if (googleScopes.includes('https://www.googleapis.com/auth/adwords')) {
+        this.googleAds = true;
       }
     } catch (error: any) {
       if (retryCount > 0) {

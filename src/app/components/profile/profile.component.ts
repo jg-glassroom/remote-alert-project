@@ -91,7 +91,8 @@ export class ProfileComponent {
   private async exchangeTokens(authCode: string): Promise<void> {
     const callable = this.fns.httpsCallable('exchangeTokens');
     try {
-      const result = await firstValueFrom(callable({ code: authCode }));
+      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
+      'https://localhost:4200/profile' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile' }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
       this.db.collection('user').doc(currentUser.uid).update({

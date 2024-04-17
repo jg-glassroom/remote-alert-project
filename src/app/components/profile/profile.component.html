@@ -85,6 +85,11 @@
                                                 <mat-icon style="color: green;" *ngIf="googleService.DV360Config">check</mat-icon>
                                                 <mat-icon style="color: red;" *ngIf="!googleService.DV360Config">close</mat-icon>
                                             </div>
+                                            <div>
+                                                <span class="status">Google Ads:</span>
+                                                <mat-icon style="color: green;" *ngIf="googleService.googleAds">check</mat-icon>
+                                                <mat-icon style="color: red;" *ngIf="!googleService.googleAds">close</mat-icon>
+                                            </div>
                                         </div>
                                     </mat-expansion-panel>
                                 </mat-accordion>
