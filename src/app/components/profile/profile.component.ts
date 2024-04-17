@@ -99,6 +99,7 @@ export class ProfileComponent {
         googleAccessToken: result.access_token,
         googleRefreshToken: result.refresh_token,
       });
+      this.googleService.getGoogleScopes();
       localStorage.setItem('googleAccessToken', result.access_token);
       history.replaceState(null, '', window.location.pathname);
     } catch (error) {
