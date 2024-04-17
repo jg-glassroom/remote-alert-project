@@ -123,8 +123,6 @@ export class ProfileComponent {
             username: profile.displayName,
             email: auth.currentUser.email,
             language: profile.language,
-            role: profile.role,
-            emailUpdates: profile.emailUpdates,
           });
         }
       },
@@ -147,8 +145,6 @@ export class ProfileComponent {
       username: new FormControl(null, Validators.required),
       email: new FormControl({value: null, disabled: true}, [Validators.required, Validators.email]),
       language: new FormControl(null, Validators.required),
-      role: new FormControl(null, Validators.required),
-      emailUpdates: new FormControl(null),
     });
   }
 
@@ -167,8 +163,6 @@ export class ProfileComponent {
           return this.db.collection('user').doc(user.uid).update({
             displayName: formValue.username,
             language: formValue.language,
-            role: formValue.role,
-            emailUpdates: formValue.emailUpdates,
           });
         })
       ).subscribe({

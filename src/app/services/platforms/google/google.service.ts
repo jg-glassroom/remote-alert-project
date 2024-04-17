@@ -24,7 +24,7 @@ export class GoogleService {
     var hostname = window.location.hostname;
     var redirectUri = hostname === "localhost" ? 
     'http://localhost:4200/profile' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile';
-    var scope = 'profile email https://www.googleapis.com/auth/display-video https://www.googleapis.com/auth/doubleclickbidmanager https://www.googleapis.com/auth/dfareporting https://www.googleapis.com/auth/doubleclicksearch';
+    var scope = 'profile email https://www.googleapis.com/auth/display-video https://www.googleapis.com/auth/doubleclickbidmanager https://www.googleapis.com/auth/dfareporting https://www.googleapis.com/auth/doubleclicksearch https://www.googleapis.com/auth/adwords';
 
     var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
       'client_id=' + clientId +
