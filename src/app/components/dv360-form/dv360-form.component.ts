@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 
@@ -38,6 +39,7 @@ interface DV360Response {
     MatAutocompleteModule,
     MatInputModule,
     MatDatepickerModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     MatIconModule,
     MatCheckboxModule,
@@ -98,9 +100,9 @@ export class Dv360FormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.createForm();
-    this.getDV360Partner();
+    await this.getDV360Partner();
     this.partners$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'dv360Partner', 'displayName', localStorage.getItem("partners"));
   }
 
@@ -158,10 +160,11 @@ export class Dv360FormComponent {
       this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
-          await this.externalPlatforms.handleGoogleError(error);
-          return this.getDV360Partner(retryCount - 1);
+        await this.externalPlatforms.handleGoogleError(error);
+        return this.getDV360Partner(retryCount - 1);
       } else {
-          this.toaster.error('An error occurred while fetching partners', 'Error');
+        this.toaster.error('An error occurred while fetching partners', 'Error');
+        this.isLoading = false;
       }
     }
   }
@@ -212,6 +215,7 @@ export class Dv360FormComponent {
           return this.getDV360Advertiser(event, edit, retryCount - 1);
       } else {
           this.toaster.error('An error occurred while fetching advertisers', 'Error');
+          this.isLoading = false;
       }
     }
   }
@@ -273,10 +277,11 @@ export class Dv360FormComponent {
       this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
-          await this.externalPlatforms.handleGoogleError(error);
-          return this.getDV360Campaign(event, edit, retryCount - 1);
+        await this.externalPlatforms.handleGoogleError(error);
+        return this.getDV360Campaign(event, edit, retryCount - 1);
       } else {
-          this.toaster.error('An error occurred while fetching campaigns', 'Error');
+        this.toaster.error('An error occurred while fetching campaigns', 'Error');
+        this.isLoading = false;
       }
     }
   }

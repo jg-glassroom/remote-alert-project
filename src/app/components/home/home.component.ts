@@ -8,6 +8,7 @@ import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
+import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -35,7 +36,8 @@ export class HomeComponent implements OnInit {
     private matDialog: MatDialog, 
     private authService: AuthService, 
     private DV360ReportService: DV360ReportService,
-    private facebookReportService: FacebookReportService
+    private facebookReportService: FacebookReportService,
+    private googleAdsReportService: GoogleAdsReportService
   ) {}
 
   ngOnInit(): void {
@@ -77,9 +79,12 @@ export class HomeComponent implements OnInit {
   getConcatenatedCampaignIds(element: any, platform: string): string {
     if (platform === 'dv360') {
       return element.dv360CampaignId.map((c: any) => c.campaignId).join(', ');
-    } else {
+    } else if (platform === 'facebook') {
       return element.facebookCampaign.map((c: any) => c.id).join(', ');
+    } else if (platform === 'googleAds') {
+      return element.googleAdsCampaign.map((c: any) => c.id).join(', ');
     }
+    return '';
   }
   
   editRule(row: any) {
@@ -113,7 +118,10 @@ export class HomeComponent implements OnInit {
       this.DV360ReportService.processReport(campaign, event);
     }
     if (campaign.platforms.includes('facebook')) {
-      this.facebookReportService.processReport(campaign, event);
+      this.facebookReportService.processReport(campaign);
+    }
+    if (campaign.platforms.includes('googleAds')) {
+      this.googleAdsReportService.processReport(campaign);
     }
   }
 

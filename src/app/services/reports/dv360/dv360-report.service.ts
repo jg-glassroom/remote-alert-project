@@ -241,18 +241,19 @@ export class DV360ReportService {
         await this.getReportLink();
         await this.getReport();
       }
-      
+
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
       await this.saveReport(this.reportJson, campaign, userId);
       const DV360PacingAlerts = this.fns.httpsCallable('DV360PacingAlerts');
-  
+
       if (this.reportJson) {
         const DV360PacingAlerts$ = DV360PacingAlerts({
           userSearchId: userSearchId, 
           reportJson: this.reportJson, 
           userId: userId
         });
+
         try {
           await firstValueFrom(DV360PacingAlerts$);
           this.resetReportVariables();

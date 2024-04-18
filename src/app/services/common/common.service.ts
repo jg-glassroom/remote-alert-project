@@ -139,7 +139,7 @@ export class CommonService {
     return `${month}/${day}/${year}`;
   }
 
-  setupFilteringWithRetry(formGroup: any, formField: any, searchField: any, cachedData: any): Observable<any[]> {
+  setupFilteringWithRetry(formGroup: any, formField: any, searchField: any, cachedData?: any): Observable<any[]> {
     return formGroup.get(formField).valueChanges.pipe(
       startWith(''),
       map(value => typeof value === 'string' ? value.toLowerCase() : ''),
@@ -152,7 +152,7 @@ export class CommonService {
     );
   }
 
-  filterElements(filterValue: string, searchField: any, cachedData: any): Observable<any[]> {
+  filterElements(filterValue: string, searchField: any, cachedData?: any): Observable<any[]> {
     if (!cachedData) {
       return of([]);
     }

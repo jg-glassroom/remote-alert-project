@@ -90,7 +90,7 @@ export class FacebookReportService {
     return transformedData;
   }  
 
-  async processReport(campaign: any, event?: MouseEvent) {
+  async processReport(campaign: any) {
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
@@ -105,12 +105,13 @@ export class FacebookReportService {
       this.db.collection('facebookReport').add(reportToSave);
 
       const FacebookPacingAlerts = this.fns.httpsCallable('FacebookPacingAlerts');
-  
+
       const FacebookPacingAlerts$ = FacebookPacingAlerts({
         userSearchId: userSearchId, 
         reportJson: this.reportJson, 
         userId: userId
       });
+
       try {
         await firstValueFrom(FacebookPacingAlerts$);
         this.resetReportVariables();

@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 
@@ -34,6 +35,7 @@ import { getAuth } from '@angular/fire/auth';
     MatInputModule,
     MatDatepickerModule,
     MatSelectModule,
+    MatProgressSpinnerModule,
     MatIconModule,
     MatCheckboxModule,
     MatChipsModule,
@@ -81,9 +83,9 @@ export class FacebookFormComponent {
     }
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.createForm();
-    this.getAdAccounts();
+    await this.getAdAccounts();
     this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'facebookAdAccount', 'name', localStorage.getItem("adAccounts"));
   }
 
@@ -131,6 +133,7 @@ export class FacebookFormComponent {
   }
   
   async getAdAccounts(edit?: boolean) {
+    this.isLoading = true;
     const cachedData = localStorage.getItem('adAccounts');
     if (cachedData) {
       this.adAccounts = JSON.parse(cachedData);
@@ -158,8 +161,10 @@ export class FacebookFormComponent {
       this.adAccounts = sortedAdAccounts;
       this.adAccountsSubject.next(sortedAdAccounts);
       localStorage.setItem('adAccounts', JSON.stringify(allAdAccounts));
+      this.isLoading = false;
     } catch (error) {
       console.error('Error fetching all Facebook Ad Accounts:', error);
+      this.isLoading = false;
     }
   }
 
@@ -234,7 +239,7 @@ export class FacebookFormComponent {
   refreshData() {
     localStorage.removeItem('adAccounts');
     this.formGroup.patchValue({
-      facebookPartner: null,
+      facebookAdAccount: null,
       facebookStartDate: null,
       facebookEndDate: null,
       facebookBudget: null,

@@ -5,11 +5,14 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
  
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
-import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
-import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
+import { CommonService } from '../../services/common/common.service';
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
-import { CommonService } from '../../services/common/common.service';
+import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
+
+import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
+import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
+import { GoogleAdsFormComponent } from '../google-ads-form/google-ads-form.component';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -38,7 +41,8 @@ import { MatInputModule } from '@angular/material/input';
     MatProgressSpinnerModule,
     MatTabsModule,
     Dv360FormComponent,
-    FacebookFormComponent
+    FacebookFormComponent,
+    GoogleAdsFormComponent
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -46,6 +50,7 @@ import { MatInputModule } from '@angular/material/input';
 export class DialogComponent {
   @ViewChildren(Dv360FormComponent) dv360Forms!: QueryList<Dv360FormComponent>;
   @ViewChildren(FacebookFormComponent) facebookForms!: QueryList<FacebookFormComponent>;
+  @ViewChildren(GoogleAdsFormComponent) googleAdsForms!: QueryList<GoogleAdsFormComponent>;
 
   formGroup = new FormGroup({
     campaignName: new FormControl('', Validators.required),
@@ -69,6 +74,7 @@ export class DialogComponent {
     private DV360ReportService: DV360ReportService,
     private db: AngularFirestore,
     private facebookReportService: FacebookReportService,
+    private googleAdsReportService: GoogleAdsReportService,
     public platformsCommon: CommonService,
     private cdRef: ChangeDetectorRef
   ) {
@@ -83,6 +89,8 @@ export class DialogComponent {
           this.tabs.push({ name: 'Display & Video 360', value: platform });
         } else if (platform === 'facebook') {
           this.tabs.push({ name: 'Facebook', value: platform });
+        } else if (platform === 'googleAds') {
+          this.tabs.push({ name: 'Google Ads', value: platform });
         }
       });
     }
@@ -102,7 +110,12 @@ export class DialogComponent {
     let platforms: any = [];
     let doSubmit = true;
 
-    if (this.dv360Forms.length === 0 && this.facebookForms.length === 0) {
+    if (this.formGroup.get('campaignName')!.value === '') {
+      doSubmit = false;
+      this.toaster.error('Enter a name for the alert rule');
+    }
+
+    if (this.dv360Forms.length === 0 && this.facebookForms.length === 0 && this.googleAdsForms.length === 0) {
       doSubmit = false;
       this.toaster.error('Please select a platform');
     }
@@ -139,6 +152,22 @@ export class DialogComponent {
       }
     });
 
+    this.googleAdsForms.forEach(form => {
+      const formData = form.getFormData();
+      if (formData) {
+        allFormData = {
+          ...formData,
+          ...allFormData,
+        };
+        if (!platforms.includes('googleAds')) {
+          platforms.push('googleAds');
+        }
+      } else {
+        doSubmit = false;
+        this.toaster.error('A Google Ads form is not valid');
+      }
+    });
+
     allFormData.platforms = platforms;
 
     this.updateValidity();
@@ -153,6 +182,9 @@ export class DialogComponent {
             }
             if (platforms.includes('facebook')) {
               this.facebookReportService.processReport({ id: this.documentId, ...allFormData });
+            }
+            if (platforms.includes('googleAds')) {
+              this.googleAdsReportService.processReport({ id: this.documentId, ...allFormData });
             }
           }
           localStorage.removeItem('partners');
@@ -173,6 +205,9 @@ export class DialogComponent {
               }
               if (platforms.includes('facebook')) {
                 this.facebookReportService.processReport(data);
+              }
+              if (platforms.includes('googleAds')) {
+                this.googleAdsReportService.processReport(data);
               }
             } else {
               this.toaster.success('Alert rule created successfully', 'Success');
@@ -196,6 +231,7 @@ export class DialogComponent {
   refreshData() {
     this.dv360Forms.forEach(form => form.refreshData());
     this.facebookForms.forEach(form => form.refreshData());
+    this.googleAdsForms.forEach(form => form.refreshData());
   }
 
   addTab() {
@@ -212,6 +248,7 @@ export class DialogComponent {
     const platforms: any = {
       'dv360': 'Display & Video 360',
       'facebook': 'Facebook',
+      'googleAds': 'Google Ads',
     };
     this.selectPlatforms.push(platform);
     this.tabs[index] = ({ name: platforms[platform], value: platform });
@@ -220,7 +257,8 @@ export class DialogComponent {
   get showAddTabButton(): boolean {
     const hasDv360 = this.tabs.some((t: any) => t.value === 'dv360');
     const hasFacebook = this.tabs.some((t: any) => t.value === 'facebook');
-    return !(hasDv360 && hasFacebook);
+    const hasGoogleAds = this.tabs.some((t: any) => t.value === 'googleAds');
+    return !(hasDv360 && hasFacebook && hasGoogleAds);
   }
 
   updateValidity() {
@@ -232,6 +270,8 @@ export class DialogComponent {
       return this.dv360Forms.toArray()[index].formGroup.invalid;
     } else if (this.tabs[index].value === 'facebook' && this.facebookForms && this.facebookForms.toArray().length > index) {
       return this.facebookForms.toArray()[index].formGroup.invalid;
+    } else if (this.tabs[index].value === 'googleAds' && this.googleAdsForms && this.googleAdsForms.toArray().length > index) {
+      return this.googleAdsForms.toArray()[index].formGroup.invalid;
     }
     return false;
   }

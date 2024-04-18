@@ -69,7 +69,7 @@ export class ExternalPlatformsService {
       if (error.status && error.message) {
         console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);
       }
-      this.toaster.error('333An unexpected error occurred', 'Error');
+      this.toaster.error('An unexpected error occurred', 'Error');
     }
   }
 }
