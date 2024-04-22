@@ -77,7 +77,7 @@
         </span>
         <hr *ngIf="data.googleAdsPlatform && (data.dv360Platform || data.facebookPlatform)">
         <span *ngIf="data.googleAdsPlatform">
-          <app-line-chart *ngIf="data.googleAdsReport" [chartData]="data" platform="googleAds" [uniqueId]="'chartdiv_' + data.id + '_GoogleAds'" platformRevenue="spend"></app-line-chart>
+          <app-line-chart *ngIf="data.googleAdsReport" [chartData]="data" platform="googleAds" [uniqueId]="'chartdiv_' + data.id + '_GoogleAds'" platformRevenue="costMicros"></app-line-chart>
         </span>
       </td>
     </ng-container>

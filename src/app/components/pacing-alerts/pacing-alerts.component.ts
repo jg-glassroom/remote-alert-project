@@ -143,6 +143,7 @@ export class PacingAlertsComponent {
           const googleAdsReport = googleAdsReports.find(report => report.campaignName === alert.CampaignName);
           if (googleAdsReport) {
             modifiedAlert.googleAdsReport = googleAdsReport.report;
+            modifiedAlert.googleAdsReport = this.transformReportData(googleAdsReport.report.results);
           }
           return modifiedAlert;
         });
@@ -169,6 +170,22 @@ export class PacingAlertsComponent {
     }, error => console.error("Failed to fetch data", error));
   }
 
+  transformReportData(reports: any[]): any {
+    const formattedData: { [key: string]: any } = {};
+
+    reports.forEach(report => {
+      const date = report.segments.date.replace(/-/g, '/');
+      const costInMillions = parseFloat(report.metrics.costMicros) / 1e6;
+
+      if (!formattedData[date]) {
+          formattedData[date] = { costMicros: costInMillions };
+      } else {
+          formattedData[date].costMicros += costInMillions;
+      }
+    });
+
+    return formattedData;
+  }
 
   removeCampaignName(name: string) {
     const index = this.selectedCampaignNames.indexOf(name);
