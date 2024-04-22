@@ -87,7 +87,6 @@ export class GoogleAdsFormComponent {
   async ngOnInit() {
     this.createForm();
     await this.getAdAccounts();
-    this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
   }
 
   async createForm() {
@@ -140,9 +139,9 @@ export class GoogleAdsFormComponent {
       const sortedAdAccounts = adAccounts.sort((a: any, b: any) => a.descriptiveName.localeCompare(b.descriptiveName));
       this.adAccounts = sortedAdAccounts.filter((account: any) => account.status === 'ENABLED');
       this.adAccountsSubject.next(this.adAccounts);
-      console.log('Google Ads accounts:', this.adAccounts);
       localStorage.setItem('googleAdsAccounts', JSON.stringify(this.adAccounts));
       this.isLoading = false;
+      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
     } catch (error: any) {
       if (retryCount > 0) {
         await this.externalPlatforms.handleGoogleError(error);
@@ -156,11 +155,10 @@ export class GoogleAdsFormComponent {
 
   async fetchCustomerDetails(customerIds: any, headers: any) {
     const query = `SELECT customer_client.client_customer, customer_client.level, 
-                   customer_client.manager, customer_client.descriptive_name, 
-                   customer_client.currency_code, customer_client.time_zone, 
-                   customer_client.id, customer_client.status
-                   FROM customer_client
-                   WHERE customer_client.level <= 1`;
+                  customer_client.manager, customer_client.descriptive_name, 
+                  customer_client.currency_code, customer_client.time_zone, 
+                  customer_client.id, customer_client.status
+                  FROM customer_client`;
 
     const body = {
         'query': query

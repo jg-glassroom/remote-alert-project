@@ -86,7 +86,6 @@ export class FacebookFormComponent {
   async ngOnInit() {
     this.createForm();
     await this.getAdAccounts();
-    this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'facebookAdAccount', 'name', localStorage.getItem("adAccounts"));
   }
 
   async createForm() {
@@ -162,6 +161,7 @@ export class FacebookFormComponent {
       this.adAccountsSubject.next(sortedAdAccounts);
       localStorage.setItem('adAccounts', JSON.stringify(allAdAccounts));
       this.isLoading = false;
+      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'facebookAdAccount', 'name', localStorage.getItem("adAccounts"));
     } catch (error) {
       console.error('Error fetching all Facebook Ad Accounts:', error);
       this.isLoading = false;

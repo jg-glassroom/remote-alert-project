@@ -24,8 +24,10 @@ export class GoogleAdsReportService {
   ) { }
 
   convertDateFormat(dateStr: string) {
-    const [day, month, year] = dateStr.split('/');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const [month, day, year] = dateStr.split('/');
+    const formattedDay = day.padStart(2, '0');
+    const formattedMonth = month.padStart(2, '0');
+    return `${year}-${formattedMonth}-${formattedDay}`;
   }
 
   async getReport(campaign: any) {
@@ -60,18 +62,15 @@ export class GoogleAdsReportService {
           ORDER BY campaign.id`
       };
 
-      const response = await this.http.post(url, body, { headers }).toPromise();
-      console.log('Report data:', response);
+      const response: any = await firstValueFrom(this.http.post(url, body, { headers }));
+      if (response.error) {
+        console.error('Error fetching Google Ads report:', response.error);
+        return;
+      }
 
-      // const reportData = response.results.map((result: any) => {
-      //   return {
-      //     campaignId: result.campaign.id,
-      //     name: result.campaign.name,
-      //     impressions: result.metrics.impressions,
-      //     clicks: result.metrics.clicks,
-      //     cost: result.metrics.cost_micros / 1e6
-      //   };
-      // });
+      if (response && response.length > 0) {
+        this.reportJson = response[0]
+      }
     } catch (error) {
       console.error('Failed to fetch report:', error);
     }
@@ -83,29 +82,34 @@ export class GoogleAdsReportService {
       const userId = getAuth().currentUser?.uid;
 
       await this.getReport(campaign);
-      // let reportToSave = {
-      //   report: this.reportJson,
-      //   date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
-      //   campaignName: campaign.campaignName,
-      //   userId: userId
-      // };
-      // this.db.collection('googleAdsReport').add(reportToSave);
+      let reportToSave = {
+        report: this.reportJson,
+        date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
+        campaignName: campaign.campaignName,
+        userId: userId
+      };
+      this.db.collection('googleAdsReport').add(reportToSave);
 
-      // const GoogleAdsPacingAlerts = this.fns.httpsCallable('GoogleAdsPacingAlerts');
+      const GoogleAdsPacingAlerts = this.fns.httpsCallable('GoogleAdsPacingAlerts');
 
-      // const GoogleAdsPacingAlerts$ = GoogleAdsPacingAlerts({
-      //   userSearchId: userSearchId, 
-      //   reportJson: this.reportJson, 
-      //   userId: userId
-      // });
+      if (this.reportJson) {
+        const GoogleAdsPacingAlerts$ = GoogleAdsPacingAlerts({
+          userSearchId: userSearchId, 
+          reportJson: this.reportJson, 
+          userId: userId
+        });
 
-      // try {
-      //   await firstValueFrom(GoogleAdsPacingAlerts$);
-      //   this.resetReportVariables();
-      // } catch (error) {
-      //   console.error('Error calling Firestore function: ', error);
-      //   this.resetReportVariables();
-      // }
+        try {
+          await firstValueFrom(GoogleAdsPacingAlerts$);
+          this.resetReportVariables();
+        } catch (error) {
+          console.error('Error calling Firestore function: ', error);
+          this.resetReportVariables();
+        }
+      } else {
+        console.error('reportJson is null, skipping Firestore insertion.');
+        this.resetReportVariables();
+      }
     } catch (error) {
       console.error('Error processing Google Ads report: ', error);
     }

@@ -103,7 +103,6 @@ export class Dv360FormComponent {
   async ngOnInit() {
     this.createForm();
     await this.getDV360Partner();
-    this.partners$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'dv360Partner', 'displayName', localStorage.getItem("partners"));
   }
 
   displayFn(dv360Partner: any): string {
@@ -158,6 +157,7 @@ export class Dv360FormComponent {
       localStorage.setItem('partners', JSON.stringify(data.partners));
       this.partnersSubject.next(data.partners);
       this.isLoading = false;
+      this.partners$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'dv360Partner', 'displayName', localStorage.getItem("partners"));
     } catch (error: any) {
       if (retryCount > 0) {
         await this.externalPlatforms.handleGoogleError(error);
