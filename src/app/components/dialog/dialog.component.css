@@ -72,5 +72,21 @@ form {
     color: red;
     font-size: 18px;
     vertical-align: bottom;
-  }
+}
+  
+.tab-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.icon-container {
+    display: flex;
+    align-items: center;
+}
+
+.close-icon {
+    cursor: pointer;
+}
   

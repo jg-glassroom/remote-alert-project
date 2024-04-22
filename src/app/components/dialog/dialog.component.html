@@ -26,26 +26,50 @@
     @for (tab of tabs; track tab; let index = $index) {
       <mat-tab *ngIf="tab.value === 'dv360'">
         <ng-template mat-tab-label>
-          {{ tab.name }}&nbsp;
-          <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
         </ng-template>
         <app-dv360-form #dv360Form></app-dv360-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
         <ng-template mat-tab-label>
-          {{ tab.name }}&nbsp;
-          <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
         </ng-template>
         <app-facebook-form #facebookForm></app-facebook-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'googleAds'">
         <ng-template mat-tab-label>
-          {{ tab.name }}&nbsp;
-          <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
         </ng-template>
         <app-google-ads-form #googleAdsForm></app-google-ads-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
         <div class="form-row">
           <mat-form-field class="form-element">
               <mat-label>Select a platform</mat-label>
