@@ -105,14 +105,22 @@ export class PacingAlertsComponent {
           }))
         );
 
-        return forkJoin({ alerts: alerts$, dv360Reports: dv360Reports$, facebookReports: facebookReports$ });
+        const googleAdsReports$ = this.db.collection<Report>('googleAdsReport', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
+          take(1),
+          map(actions => actions.map(a => {
+            const data = a.payload.doc.data() as object;
+            return { id: a.payload.doc.id, ...(data as any) };
+          }))
+        );
+
+        return forkJoin({ alerts: alerts$, dv360Reports: dv360Reports$, facebookReports: facebookReports$, googleAdsReports: googleAdsReports$});
       }),
       map((result) => {
         if (!result) {
           return [];
         }
 
-        const { alerts, dv360Reports, facebookReports } = result;
+        const { alerts, dv360Reports, facebookReports, googleAdsReports } = result;
         return alerts.map(alert => {
           let modifiedAlert = { ...alert };
           const dv360Report = dv360Reports.find(report => report.campaignName === alert.CampaignName);
@@ -122,6 +130,10 @@ export class PacingAlertsComponent {
           const facebookReport = facebookReports.find(report => report.campaignName === alert.CampaignName);
           if (facebookReport) {
             modifiedAlert.facebookReport = facebookReport.report;
+          }
+          const googleAdsReport = googleAdsReports.find(report => report.campaignName === alert.CampaignName);
+          if (googleAdsReport) {
+            modifiedAlert.googleAdsReport = googleAdsReport.report;
           }
           return modifiedAlert;
         });
@@ -135,6 +147,9 @@ export class PacingAlertsComponent {
         }
         if (alert.dv360CampaignID) {
           ids = ids.concat(alert.dv360CampaignID.split(';'));
+        }
+        if (alert.googleAdsCampaignID) {
+          ids = ids.concat(alert.googleAdsCampaignID.split(';'));
         }
         return ids;
       }))];
@@ -198,39 +213,41 @@ export class PacingAlertsComponent {
   }
 
   applyFilters() {
-    this.dataSource.data = this.originalDataSource.data
+    this.dataSource.data = this.originalDataSource.data;
+
     if (this.selectedCampaignNames.length > 0) {
       this.dataSource.data = this.dataSource.data.filter(data => this.selectedCampaignNames.includes(data.CampaignName));
     }
 
-    let filteredByCampaignId = [];
     if (this.selectedCampaignIds.length > 0) {
-        filteredByCampaignId = this.dataSource.data.filter(data => {
-            const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
-            const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
-            return this.selectedCampaignIds.some(id => fbCampaignIds.includes(id) || dv360CampaignIds.includes(id));
-        });
+      this.dataSource.data = this.dataSource.data.filter(data => {
+        const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
+        const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
+        const googleAdsCampaignIds = data.googleAdsCampaignID ? data.googleAdsCampaignID.split(';') : [];
+        return this.selectedCampaignIds.some(id => fbCampaignIds.includes(id) || dv360CampaignIds.includes(id) || googleAdsCampaignIds.includes(id));
+      }).map(data => {
+        let modifiedData = { ...data };
+        const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
+        const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
+        const googleAdsCampaignIds = data.googleAdsCampaignID ? data.googleAdsCampaignID.split(';') : [];
+        
+        const fbSelected = this.selectedCampaignIds.some(id => fbCampaignIds.includes(id));
+        const dv360Selected = this.selectedCampaignIds.some(id => dv360CampaignIds.includes(id));
+        const googleAdsSelected = this.selectedCampaignIds.some(id => googleAdsCampaignIds.includes(id));
 
-        filteredByCampaignId = filteredByCampaignId.map(data => {
-            let modifiedData = { ...data };
-            const fbCampaignIds = data.facebookCampaignID ? data.facebookCampaignID.split(';') : [];
-            const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
-            
-            const fbSelected = this.selectedCampaignIds.some(id => fbCampaignIds.includes(id));
-            const dv360Selected = this.selectedCampaignIds.some(id => dv360CampaignIds.includes(id));
+        if (fbSelected && !dv360Selected && !googleAdsSelected) {
+          delete modifiedData.dv360Platform;
+          delete modifiedData.googleAdsPlatform;
+        } else if (!fbSelected && dv360Selected && !googleAdsSelected) {
+          delete modifiedData.facebookPlatform;
+          delete modifiedData.googleAdsPlatform;
+        } else if (!fbSelected && !dv360Selected && googleAdsSelected) {
+          delete modifiedData.facebookPlatform;
+          delete modifiedData.dv360Platform;
+        }
 
-            if (fbSelected && !dv360Selected) {
-              delete modifiedData.dv360Platform;
-            } else if (!fbSelected && dv360Selected) {
-              delete modifiedData.facebookPlatform;
-            }
-
-            return modifiedData;
-        });
-    }
-
-    if (this.selectedCampaignIds.length > 0) {
-        this.dataSource.data = filteredByCampaignId;
+        return modifiedData;
+      });
     }
 
     if (this.selectedUsers.length > 0) {

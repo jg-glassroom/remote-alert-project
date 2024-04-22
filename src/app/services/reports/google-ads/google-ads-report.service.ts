@@ -1,10 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 import { firstValueFrom } from 'rxjs';
+
+import { ExternalPlatformsService } from '../../external-platforms.service';
+
+import { ToastrService } from 'ngx-toastr';
 
 import { getAuth } from 'firebase/auth';
 
@@ -15,12 +19,14 @@ import moment from 'moment-timezone';
   providedIn: 'root'
 })
 export class GoogleAdsReportService {
+  toaster = inject(ToastrService);
   reportJson: any = [];
 
   constructor(
     private fns: AngularFireFunctions,
     private db: AngularFirestore, 
-    private http: HttpClient
+    private http: HttpClient,
+    public externalPlatforms: ExternalPlatformsService
   ) { }
 
   convertDateFormat(dateStr: string) {
@@ -30,7 +36,7 @@ export class GoogleAdsReportService {
     return `${year}-${formattedMonth}-${formattedDay}`;
   }
 
-  async getReport(campaign: any) {
+  async getReport(campaign: any, retryCount = 2): Promise<void> {
     try {
       const headers = new HttpHeaders({
         'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}`,
@@ -39,7 +45,6 @@ export class GoogleAdsReportService {
         'login-customer-id': '2681551676'
       });
   
-      console.log('Fetching Google Ads report...', campaign);
       const startDate = this.convertDateFormat(campaign.googleAdsStartDate);
       const endDate = this.convertDateFormat(campaign.googleAdsEndDate); 
       const customerId = campaign.googleAdsAccount.id;
@@ -69,10 +74,15 @@ export class GoogleAdsReportService {
       }
 
       if (response && response.length > 0) {
-        this.reportJson = response[0]
+        this.reportJson = response[0].results;
       }
-    } catch (error) {
-      console.error('Failed to fetch report:', error);
+    } catch (error: any) {
+      if (retryCount > 0) {
+        await this.externalPlatforms.handleGoogleError(error);
+        return this.getReport(campaign, retryCount - 1);
+      } else {
+        this.toaster.error('Failed to fetch Google Ads report', 'Error');
+      }
     }
   }
 
