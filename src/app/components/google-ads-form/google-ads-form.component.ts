@@ -137,7 +137,7 @@ export class GoogleAdsFormComponent {
       const customerDetails = await this.fetchCustomerDetails(customerIds, headers);
       const adAccounts = customerDetails[0][0].results.map((result: any) => result.customerClient);
       const sortedAdAccounts = adAccounts.sort((a: any, b: any) => a.descriptiveName.localeCompare(b.descriptiveName));
-      this.adAccounts = sortedAdAccounts.filter((account: any) => account.status === 'ENABLED');
+      this.adAccounts = sortedAdAccounts.filter((account: any) => account.status === 'ENABLED' &&  account.manager === false);
       this.adAccountsSubject.next(this.adAccounts);
       localStorage.setItem('googleAdsAccounts', JSON.stringify(this.adAccounts));
       this.isLoading = false;
