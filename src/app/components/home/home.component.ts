@@ -59,6 +59,10 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  updateSearch(data: any) {
+    this.db.collection('userSearch').doc(data.id).update(data);
+  }
+
   public getSearch() {
     this.authService.user$.pipe(take(1)).subscribe(user => {
       if (user && user.uid) {
@@ -80,21 +84,36 @@ export class HomeComponent implements OnInit {
 
   getConcatenatedCampaignIds(element: any, platform: string): string {
     if (platform === 'dv360') {
+      if (!element.dv360CampaignId) {
+        return '';
+      }
       return element.dv360CampaignId.map((c: any) => c.campaignId).join(', ');
     } else if (platform === 'facebook') {
+      if (!element.facebookCampaign) {
+        return '';
+      }
       return element.facebookCampaign.map((c: any) => c.id).join(', ');
     } else if (platform === 'googleAds') {
+      if (!element.googleAdsCampaign) {
+        return '';
+      }
       return element.googleAdsCampaign.map((c: any) => c.id).join(', ');
     }
     return '';
   }
   
   editRule(row: any) {
-    this.matDialog.open(DialogComponent, {
+    const dataCopy = JSON.parse(JSON.stringify(row));
+
+    const dialogRef = this.matDialog.open(DialogComponent, {
       width: '70%',
       height: '90vh',
-      data: row,
-    })
+      data: dataCopy
+    });
+  
+    dialogRef.afterClosed().subscribe(() => {
+      this.getSearch();
+    });
   }
   
   showResult(row: any) {
@@ -110,7 +129,9 @@ export class HomeComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
       if (result) {
+        console.log(`AAAAAAAAAAAAAAAAA`, row.id);
         this.db.collection('userSearch').doc(row.id).delete()
         .catch((error) => {
           console.error("Error removing document: ", error);

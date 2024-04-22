@@ -83,7 +83,9 @@ export class DialogComponent {
       this.formGroup.get('campaignName')!.setValue(data.campaignName);
       this.documentId = data.id;
       this.tabs = []
-      this.selectPlatforms = data.platforms;
+      if (data && data.platforms) {
+        this.selectPlatforms = data.platforms;
+      }
       this.selectPlatforms.forEach((platform: any) => {
         if (platform === 'dv360') {
           this.tabs.push({ name: 'Display & Video 360', value: platform });
@@ -173,55 +175,59 @@ export class DialogComponent {
     this.updateValidity();
     this.cdRef.detectChanges();
     if (doSubmit) {
-      if (this.isEditMode && this.documentId) {
-        return this.db.collection('userSearch').doc(this.documentId).update(allFormData).then(() => {
-          this.toaster.success('Alert rule updated successfully', 'Success');
+      this.saveData(execute, platforms, allFormData);
+    }
+    return of(null);
+  }
+
+  async saveData(execute: boolean = false, platforms: any = [], allFormData: any) {
+    if (this.isEditMode && this.documentId) {
+      return this.db.collection('userSearch').doc(this.documentId).update(allFormData).then(() => {
+        this.toaster.success('Alert rule updated successfully', 'Success');
+        if (execute) {
+          if (platforms.includes('dv360')) {
+            this.DV360ReportService.processReport({ id: this.documentId, ...allFormData });
+          }
+          if (platforms.includes('facebook')) {
+            this.facebookReportService.processReport({ id: this.documentId, ...allFormData });
+          }
+          if (platforms.includes('googleAds')) {
+            this.googleAdsReportService.processReport({ id: this.documentId, ...allFormData });
+          }
+        }
+        localStorage.removeItem('partners');
+        localStorage.removeItem('selectedPartner');
+        localStorage.removeItem('adAccounts');
+        this.dialogRef.close(allFormData);
+        return of(null);
+      });
+    } else {
+      return this.db.collection('userSearch').add(allFormData).then((docRef: any) => {
+        return docRef.get().then((doc: any) => {
           if (execute) {
+            this.toaster.success('Alert rule created and executed successfully', 'Success');
+            let data: any = doc.data();
+            data.id = docRef.id;
             if (platforms.includes('dv360')) {
-              this.DV360ReportService.processReport({ id: this.documentId, ...allFormData });
+              this.DV360ReportService.processReport(data);
             }
             if (platforms.includes('facebook')) {
-              this.facebookReportService.processReport({ id: this.documentId, ...allFormData });
+              this.facebookReportService.processReport(data);
             }
             if (platforms.includes('googleAds')) {
-              this.googleAdsReportService.processReport({ id: this.documentId, ...allFormData });
+              this.googleAdsReportService.processReport(data);
             }
+          } else {
+            this.toaster.success('Alert rule created successfully', 'Success');
           }
           localStorage.removeItem('partners');
           localStorage.removeItem('selectedPartner');
           localStorage.removeItem('adAccounts');
-          this.dialogRef.close();
+          this.dialogRef.close(allFormData);
           return of(null);
         });
-      } else {
-        return this.db.collection('userSearch').add(allFormData).then((docRef: any) => {
-          return docRef.get().then((doc: any) => {
-            if (execute) {
-              this.toaster.success('Alert rule created and executed successfully', 'Success');
-              let data: any = doc.data();
-              data.id = docRef.id;
-              if (platforms.includes('dv360')) {
-                this.DV360ReportService.processReport(data);
-              }
-              if (platforms.includes('facebook')) {
-                this.facebookReportService.processReport(data);
-              }
-              if (platforms.includes('googleAds')) {
-                this.googleAdsReportService.processReport(data);
-              }
-            } else {
-              this.toaster.success('Alert rule created successfully', 'Success');
-            }
-            localStorage.removeItem('partners');
-            localStorage.removeItem('selectedPartner');
-            localStorage.removeItem('adAccounts');
-            this.dialogRef.close();
-            return of(null);
-          });
-        });
-      }
+      });
     }
-    return of(null);
   }
 
   onCancel(): void {

@@ -195,6 +195,10 @@ export class FacebookFormComponent {
     } else {
       adAccount = this.data?.facebookAdAccount;
     }
+    if (!adAccount) {
+      this.isLoading = false;
+      return;
+    }
 
     if (!edit) {
       this.formGroup.patchValue({

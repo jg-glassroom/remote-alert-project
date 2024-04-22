@@ -186,6 +186,10 @@ export class GoogleAdsFormComponent {
     } else {
       adAccount = this.data?.googleAdsAccount;
     }
+    if (!adAccount) {
+      this.isLoading = false;
+      return;
+    }
     adAccount = adAccount.id;
 
     if (!edit) {

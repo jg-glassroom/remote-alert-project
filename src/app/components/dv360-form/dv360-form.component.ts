@@ -178,6 +178,11 @@ export class Dv360FormComponent {
       selectedPartner = this.data?.dv360Partner
     }
 
+    if (!selectedPartner) {
+      this.isLoading = false;
+      return;
+    }
+
     if (!edit) {
       this.formGroup.patchValue({
         dv360CampaignId: [],
@@ -227,6 +232,11 @@ export class Dv360FormComponent {
       selectedAdvertiser = event.option.value;
     } else {
       selectedAdvertiser = this.data?.dv360Advertiser
+    }
+
+    if (!selectedAdvertiser) {
+      this.isLoading = false;
+      return;
     }
 
     if (!edit) {
