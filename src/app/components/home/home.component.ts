@@ -1,5 +1,6 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AuthService } from '../../services/auth.service';
 import { take } from 'rxjs/operators';
@@ -37,7 +38,8 @@ export class HomeComponent implements OnInit {
     private authService: AuthService, 
     private DV360ReportService: DV360ReportService,
     private facebookReportService: FacebookReportService,
-    private googleAdsReportService: GoogleAdsReportService
+    private googleAdsReportService: GoogleAdsReportService,
+    public router: Router
   ) {}
 
   ngOnInit(): void {
@@ -93,6 +95,10 @@ export class HomeComponent implements OnInit {
       height: '90vh',
       data: row,
     })
+  }
+  
+  showResult(row: any) {
+    this.router.navigate(['/pacing', row.campaignName]);
   }
 
   deleteRow(row: any, event: MouseEvent) {

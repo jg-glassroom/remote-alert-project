@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
@@ -18,7 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 
 import { forkJoin, of } from 'rxjs';
-import { switchMap, map, take } from 'rxjs/operators';
+import { switchMap, map, take, filter } from 'rxjs/operators';
 
 
 @Component({
@@ -57,9 +58,17 @@ export class PacingAlertsComponent {
   users: string[] = [];
   selectedUsers: string[] = [];
 
-  constructor (private authService: AuthService, private db: AngularFirestore) {}
+  constructor (
+    private authService: AuthService,
+    private db: AngularFirestore,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
+    this.route.params.pipe(filter((params: any) => params.campaignName)).subscribe((params: any) => {
+      this.selectedCampaignNames = [params.campaignName];
+      this.campaignNameFilter.setValue(params.campaignName);
+    });
     this.getAlerts();
     this.campaignNameFilter.valueChanges.subscribe(value => {
       this.applyFilters();
@@ -156,6 +165,7 @@ export class PacingAlertsComponent {
       this.users = Array.from(new Set(data.map(alert => alert.CreatedBy)));
       this.dataSource = new MatTableDataSource<any>(data);
       this.originalDataSource = new MatTableDataSource<any>(data);
+      this.applyFilters();
     }, error => console.error("Failed to fetch data", error));
   }
 

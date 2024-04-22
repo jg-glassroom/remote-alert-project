@@ -13,6 +13,7 @@ import { notLoggedInGuard } from './guards/not-logged-in/not-logged-in.guard';
 export const routes: Routes = [
     { path: 'home', component: HomeComponent, canActivate: [loggedInGuard] },
     { path: 'alerts', component: PacingAlertsComponent, canActivate: [loggedInGuard] },
+    { path: 'pacing/:campaignName', component: PacingAlertsComponent, canActivate: [loggedInGuard] },
     { path: 'profile', component: ProfileComponent, canActivate: [loggedInGuard] },
     { path: 'pacing', component: PacingTemplateComponent, canActivate: [loggedInGuard] },
     { path: '', component: SignInComponent, canActivate: [notLoggedInGuard] },

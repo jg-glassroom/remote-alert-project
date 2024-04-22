@@ -82,6 +82,9 @@
         <button mat-icon-button class="icon" [ngStyle]="{'top.%': getButtonTopPosition(element)}" aria-label="Process button" (click)="processReport(element, $event)">
             <mat-icon>play_arrow</mat-icon>
         </button>
+        <button mat-icon-button class="icon" [ngStyle]="{'top.%': getButtonTopPosition(element)}" aria-label="Show result button" (click)="showResult(element)">
+            <mat-icon>assessment</mat-icon>
+        </button>
       </td>
     </ng-container>
 
