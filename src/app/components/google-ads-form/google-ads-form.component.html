@@ -32,19 +32,6 @@
             </mat-option>
             </mat-autocomplete>
         </mat-form-field>
-
-        <mat-form-field class="form-element">
-            <mat-label>Ad account</mat-label>
-            <input type="text" placeholder="Select your ad account" formControlName="googleAdsAccount" aria-label="ad account" matInput [matAutocomplete]="adAccountsAuto">
-            <mat-error *ngIf="(submitted || form['googleAdsAccount'].touched) && form['googleAdsAccount'].invalid">
-                The field is required
-            </mat-error>
-            <mat-autocomplete #adAccountsAuto="matAutocomplete" (optionSelected)="getAdAccountCampaigns(2, $event)" [displayWith]="displayFn">
-            <mat-option *ngFor="let adAccount of adAccounts$ | async" [value]="adAccount">
-            <span>{{ adAccount.descriptiveName }}</span>
-            </mat-option>
-            </mat-autocomplete>
-        </mat-form-field>
     </div>
 
     <div class="form-row">
