@@ -120,41 +120,46 @@ export class GoogleAdsFormComponent {
     this.isLoading = true;
     const cachedData = localStorage.getItem('googleAdsAccounts');
     if (cachedData) {
-      this.adAccounts = JSON.parse(cachedData);
-      this.adAccountsSubject.next(this.adAccounts);
-      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
-      this.isLoading = false;
-      return;
+        this.adAccounts = JSON.parse(cachedData);
+        this.adAccountsSubject.next(this.adAccounts);
+        this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
+        this.isLoading = false;
+        return;
     }
 
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}`,
-      'Content-Type': 'application/json',
-      'developer-token': 'mkH52QA2KonyxSyJy8TFUw'
+        'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}`,
+        'Content-Type': 'application/json',
+        'developer-token': 'mkH52QA2KonyxSyJy8TFUw'
     });
-  
+
     try {
-      const googleAdsUrl = `https://googleads.googleapis.com/v16/customers:listAccessibleCustomers`;
-      const response: any = await firstValueFrom(this.http.get(googleAdsUrl, { headers: headers }));
-      const customerIds = response.resourceNames.map((name: any) => name.split('/')[1]);
-      const customerDetails = await this.fetchCustomerDetails(customerIds, headers);
-      const adAccounts = customerDetails[0][0].results.map((result: any) => result.customerClient);
-      const sortedAdAccounts = adAccounts.sort((a: any, b: any) => a.descriptiveName.localeCompare(b.descriptiveName));
-      this.adAccounts = sortedAdAccounts.filter((account: any) => account.status === 'ENABLED' &&  account.manager === false);
-      this.adAccountsSubject.next(this.adAccounts);
-      localStorage.setItem('googleAdsAccounts', JSON.stringify(this.adAccounts));
-      this.isLoading = false;
-      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
-    } catch (error: any) {
-      if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
-        return this.getAdAccounts(retryCount - 1);
-      } else {
-        this.toaster.error('An error occurred while fetching Google Ads accounts', 'Error');
+        const googleAdsUrl = `https://googleads.googleapis.com/v16/customers:listAccessibleCustomers`;
+        const response: any = await firstValueFrom(this.http.get(googleAdsUrl, { headers: headers }));
+        const customerIds = response.resourceNames.map((name: any) => name.split('/')[1]);
+        const customerDetails = await this.fetchCustomerDetails(customerIds, headers);
+        
+        const successfulResponses = customerDetails!.filter(detail => detail.success);
+        if (successfulResponses.length > 0) {
+          const adAccounts = successfulResponses.flatMap(detail => detail.data[0].results.map((result: any) => result.customerClient));
+          const sortedAdAccounts = adAccounts.sort((a, b) => a.descriptiveName.localeCompare(b.descriptiveName));
+          this.adAccounts = sortedAdAccounts.filter(account => account.status === 'ENABLED' && account.manager === false);
+          this.adAccountsSubject.next(this.adAccounts);
+          localStorage.setItem('googleAdsAccounts', JSON.stringify(this.adAccounts));
+          this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
+        }
         this.isLoading = false;
-      }
+    } catch (error: any) {
+        if (retryCount > 0) {
+            await this.externalPlatforms.handleGoogleError(error);
+            return this.getAdAccounts(retryCount - 1);
+        } else {
+            this.toaster.error('An error occurred while fetching Google Ads accounts', 'Error');
+            this.isLoading = false;
+        }
     }
-  }
+}
+
 
   async fetchCustomerDetails(customerIds: any, headers: any) {
     const query = `SELECT customer_client.client_customer, customer_client.level, 
@@ -163,23 +168,27 @@ export class GoogleAdsFormComponent {
                   customer_client.id, customer_client.status
                   FROM customer_client`;
 
-    const body = {
-        'query': query
-    };
+    const body = { 'query': query };
 
     const detailsPromises = customerIds.map(async (id: any) => {
         const url = `https://googleads.googleapis.com/v16/customers/${id}/googleAds:searchStream`;
-        const response = await firstValueFrom(this.http.post(url, body, { headers }));
-        return response;
+        try {
+            const response = await firstValueFrom(this.http.post(url, body, { headers }));
+            return { success: true, data: response }; 
+        } catch (error) {
+            return { success: false, error: error, id: id };
+        }
     });
 
     try {
-        return await Promise.all(detailsPromises);
+        const results = await Promise.all(detailsPromises);
+        return results; 
     } catch (error) {
-        console.error('Error fetching customer details:', error);
-        throw new Error('Failed to fetch customer details');
+        console.error('An unexpected error occurred:', error);
+        return null;
     }
-  }
+}
+
 
   async getAdAccountCampaigns(retryCount = 2, event?: MatAutocompleteSelectedEvent, edit?: boolean): Promise<any> {
     this.isLoading = true;
