@@ -1,7 +1,7 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
+import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -52,6 +52,7 @@ interface DV360Response {
 })
 export class Dv360FormComponent {
   @Output() platformChange = new EventEmitter<string>();
+  @Input() disabledPlatforms!: string[];
 
   formGroup!: FormGroup;
   submitted: boolean = false;

@@ -7,8 +7,8 @@
         <mat-form-field class="form-element">
             <mat-label>Platform</mat-label>
             <mat-select formControlName="googleAdsPlatform" (selectionChange)="changePlatform($event.value)">
-                <mat-option value="dv360">Display & Video 360</mat-option>
-                <mat-option value="facebook">Facebook</mat-option>
+                <mat-option value="dv360" [disabled]="disabledPlatforms.includes('dv360')">Display & Video 360</mat-option>
+                <mat-option value="facebook" [disabled]="disabledPlatforms.includes('facebook')">Facebook</mat-option>
                 <mat-option value="googleAds" disabled>Google Ads</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['googleAdsPlatform'].touched) && form['googleAdsPlatform'].invalid">

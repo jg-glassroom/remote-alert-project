@@ -34,7 +34,7 @@
             </span>
           </div>
         </ng-template>
-        <app-dv360-form #dv360Form (platformChange)="handlePlatformChange(index, $event)"></app-dv360-form>
+        <app-dv360-form #dv360Form (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-dv360-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
         <ng-template mat-tab-label>
@@ -46,7 +46,7 @@
             </span>
           </div>
         </ng-template>
-        <app-facebook-form #facebookForm (platformChange)="handlePlatformChange(index, $event)"></app-facebook-form>
+        <app-facebook-form #facebookForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-facebook-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'googleAds'">
         <ng-template mat-tab-label>
@@ -58,7 +58,7 @@
             </span>
           </div>
         </ng-template>
-        <app-google-ads-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)"></app-google-ads-form>
+        <app-google-ads-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-google-ads-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
         <ng-template mat-tab-label>

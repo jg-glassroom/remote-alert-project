@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -47,6 +47,7 @@ import { getAuth } from '@angular/fire/auth';
 })
 export class FacebookFormComponent {
   @Output() platformChange = new EventEmitter<string>();
+  @Input() disabledPlatforms!: string[];
 
   formGroup!: FormGroup;
   submitted: boolean = false;

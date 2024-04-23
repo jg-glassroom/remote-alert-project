@@ -284,6 +284,7 @@ export class DialogComponent {
   }
 
   removeTab(index: number) {
+    this.selectPlatforms = this.selectPlatforms.filter((platform: any) => platform !== this.tabs[index].value);
     this.tabs.splice(index, 1);
     this.selectedTab.setValue(index);
   }
