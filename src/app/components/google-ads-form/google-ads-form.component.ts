@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -79,7 +79,8 @@ export class GoogleAdsFormComponent {
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private http: HttpClient,
-    public platformsCommon: CommonService
+    public platformsCommon: CommonService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -115,6 +116,7 @@ export class GoogleAdsFormComponent {
       await this.getAdAccounts();
       this.getAdAccountCampaigns(2, undefined, true);
     }
+    this.cdRef.detectChanges();
   }
   
   async getAdAccounts(retryCount = 2): Promise<any> {
