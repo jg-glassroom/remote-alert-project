@@ -145,6 +145,7 @@ export class Dv360FormComponent {
       this.partners = JSON.parse(cachedData);
       this.partnersSubject.next(this.partners);
       this.isLoading = false;
+      this.partners$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'dv360Partner', 'displayName', localStorage.getItem("partners"));
       return this.partners;
     }
   

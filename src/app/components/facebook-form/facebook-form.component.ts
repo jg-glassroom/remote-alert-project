@@ -139,6 +139,7 @@ export class FacebookFormComponent {
     if (cachedData) {
       this.adAccounts = JSON.parse(cachedData);
       this.adAccountsSubject.next(this.adAccounts);
+      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'facebookAdAccount', 'name', localStorage.getItem("adAccounts"));
       this.isLoading = false;
       return;
     }

@@ -122,6 +122,7 @@ export class GoogleAdsFormComponent {
     if (cachedData) {
       this.adAccounts = JSON.parse(cachedData);
       this.adAccountsSubject.next(this.adAccounts);
+      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
       this.isLoading = false;
       return;
     }

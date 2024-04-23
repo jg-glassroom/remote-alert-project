@@ -131,7 +131,6 @@ export class HomeComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
       if (result) {
-        console.log(`AAAAAAAAAAAAAAAAA`, row.id);
         this.db.collection('userSearch').doc(row.id).delete()
         .catch((error) => {
           console.error("Error removing document: ", error);
