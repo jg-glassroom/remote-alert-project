@@ -134,32 +134,37 @@ export class GoogleAdsFormComponent {
     });
 
     try {
-        const googleAdsUrl = `https://googleads.googleapis.com/v16/customers:listAccessibleCustomers`;
-        const response: any = await firstValueFrom(this.http.get(googleAdsUrl, { headers: headers }));
-        const customerIds = response.resourceNames.map((name: any) => name.split('/')[1]);
-        const customerDetails = await this.fetchCustomerDetails(customerIds, headers);
-        
-        const successfulResponses = customerDetails!.filter(detail => detail.success);
-        if (successfulResponses.length > 0) {
-          const adAccounts = successfulResponses.flatMap(detail => detail.data[0].results.map((result: any) => result.customerClient));
-          const sortedAdAccounts = adAccounts.sort((a, b) => a.descriptiveName.localeCompare(b.descriptiveName));
-          this.adAccounts = sortedAdAccounts.filter(account => account.status === 'ENABLED' && account.manager === false);
-          this.adAccountsSubject.next(this.adAccounts);
-          localStorage.setItem('googleAdsAccounts', JSON.stringify(this.adAccounts));
-          this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
-        }
-        this.isLoading = false;
-    } catch (error: any) {
-        if (retryCount > 0) {
-            await this.externalPlatforms.handleGoogleError(error);
-            return this.getAdAccounts(retryCount - 1);
-        } else {
-            this.toaster.error('An error occurred while fetching Google Ads accounts', 'Error');
-            this.isLoading = false;
-        }
-    }
-}
+      const googleAdsUrl = `https://googleads.googleapis.com/v16/customers:listAccessibleCustomers`;
+      const response: any = await firstValueFrom(this.http.get(googleAdsUrl, { headers: headers }));
+      const customerIds = response.resourceNames.map((name: any) => name.split('/')[1]);
+      const customerDetails = await this.fetchCustomerDetails(customerIds, headers);
+      
+      const successfulResponses = customerDetails!.filter(detail => detail.success);
+      if (successfulResponses.length > 0) {
+        let adAccountMap = new Map();
+        successfulResponses.flatMap(detail => detail.data[0].results.map((result: any) => result.customerClient))
+            .forEach(account => {
+                adAccountMap.set(account.id, account);
+            });
 
+        const uniqueAdAccounts = Array.from(adAccountMap.values());
+        const sortedAdAccounts = uniqueAdAccounts.sort((a, b) => a.descriptiveName.localeCompare(b.descriptiveName));
+        this.adAccounts = sortedAdAccounts.filter(account => account.status === 'ENABLED' && account.manager === false);
+        this.adAccountsSubject.next(this.adAccounts);
+        localStorage.setItem('googleAdsAccounts', JSON.stringify(this.adAccounts));
+        this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'googleAdsAccount', 'descriptiveName', localStorage.getItem("googleAdsAccounts"));
+      }
+      this.isLoading = false;
+    } catch (error: any) {
+      if (retryCount > 0) {
+        await this.externalPlatforms.handleGoogleError(error);
+        return this.getAdAccounts(retryCount - 1);
+      } else {
+        this.toaster.error('An error occurred while fetching Google Ads accounts', 'Error');
+        this.isLoading = false;
+      }
+    }
+  }
 
   async fetchCustomerDetails(customerIds: any, headers: any) {
     const query = `SELECT customer_client.client_customer, customer_client.level, 
