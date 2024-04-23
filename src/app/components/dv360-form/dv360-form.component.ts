@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, ValidatorFn, AbstractControl } from '@angular/forms';
@@ -51,6 +51,8 @@ interface DV360Response {
   styleUrl: './dv360-form.component.css'
 })
 export class Dv360FormComponent {
+  @Output() platformChange = new EventEmitter<string>();
+
   formGroup!: FormGroup;
   submitted: boolean = false;
   isEditMode: boolean = false;
@@ -333,5 +335,9 @@ export class Dv360FormComponent {
     this.campaigns$ = of([]);
     this.campaigns = [];
     this.selection.clear();
+  }
+
+  changePlatform(newPlatform: string) {
+    this.platformChange.emit(newPlatform);
   }
 }

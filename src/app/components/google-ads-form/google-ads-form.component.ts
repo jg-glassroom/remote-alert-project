@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -47,6 +47,8 @@ import { getAuth } from '@angular/fire/auth';
   styleUrl: './google-ads-form.component.css'
 })
 export class GoogleAdsFormComponent {
+  @Output() platformChange = new EventEmitter<string>();
+
   formGroup!: FormGroup;
   submitted: boolean = false;
   isEditMode: boolean = false;
@@ -281,5 +283,9 @@ export class GoogleAdsFormComponent {
       this.platformsCommon.validateAllFormFields(this.formGroup);
       return null;
     }
+  }
+
+  changePlatform(newPlatform: string) {
+    this.platformChange.emit(newPlatform);
   }
 }

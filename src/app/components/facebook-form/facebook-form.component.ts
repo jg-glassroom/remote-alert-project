@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -46,6 +46,8 @@ import { getAuth } from '@angular/fire/auth';
   styleUrl: './facebook-form.component.css'
 })
 export class FacebookFormComponent {
+  @Output() platformChange = new EventEmitter<string>();
+
   formGroup!: FormGroup;
   submitted: boolean = false;
   isEditMode: boolean = false;
@@ -273,5 +275,9 @@ export class FacebookFormComponent {
       this.platformsCommon.validateAllFormFields(this.formGroup);
       return null;
     }
+  }
+
+  changePlatform(newPlatform: string) {
+    this.platformChange.emit(newPlatform);
   }
 }

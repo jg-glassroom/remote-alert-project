@@ -2,6 +2,7 @@ import { Component, Inject, inject, ViewChildren, QueryList, ChangeDetectorRef }
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { deleteField } from "firebase/firestore";
  
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
@@ -25,6 +26,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
+import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
 
 
 @Component({
@@ -180,25 +182,61 @@ export class DialogComponent {
     return of(null);
   }
 
+  prepareUpdateData(platforms: any, allFormData: any) {
+    let dataToUpdate: any = allFormData;
+
+    if (!platforms.includes('googleAds')) {
+      dataToUpdate.googleAdsAccount = deleteField();
+      dataToUpdate.googleAdsBudget = deleteField();
+      dataToUpdate.googleAdsCampaign = deleteField();
+      dataToUpdate.googleAdsEndDate = deleteField();
+      dataToUpdate.googleAdsPlatform = deleteField();
+      dataToUpdate.googleAdsStartDate = deleteField();
+    }
+
+    if (!platforms.includes('dv360')) {
+      dataToUpdate.dv360Advertiser = deleteField();
+      dataToUpdate.dv360Budget = deleteField();
+      dataToUpdate.dv360CampaignId = deleteField();
+      dataToUpdate.dv360EndDate = deleteField();
+      dataToUpdate.dv360Partner = deleteField();
+      dataToUpdate.dv360Platform = deleteField();
+      dataToUpdate.dv360StartDate = deleteField();
+    }
+
+    if (!platforms.includes('facebook')) {
+      dataToUpdate.facebookAdAccount = deleteField();
+      dataToUpdate.facebookBudget = deleteField();
+      dataToUpdate.facebookCampaign = deleteField();
+      dataToUpdate.facebookEndDate = deleteField();
+      dataToUpdate.facebookPlatform = deleteField();
+      dataToUpdate.facebookStartDate = deleteField();
+    }
+
+    return dataToUpdate;
+  }
+
   async saveData(execute: boolean = false, platforms: any = [], allFormData: any) {
     if (this.isEditMode && this.documentId) {
-      return this.db.collection('userSearch').doc(this.documentId).update(allFormData).then(() => {
+      const updateData = this.prepareUpdateData(platforms, allFormData);
+
+      return this.db.collection('userSearch').doc(this.documentId).update(updateData).then(() => {
         this.toaster.success('Alert rule updated successfully', 'Success');
         if (execute) {
           if (platforms.includes('dv360')) {
-            this.DV360ReportService.processReport({ id: this.documentId, ...allFormData });
+            this.DV360ReportService.processReport({ id: this.documentId, ...updateData });
           }
           if (platforms.includes('facebook')) {
-            this.facebookReportService.processReport({ id: this.documentId, ...allFormData });
+            this.facebookReportService.processReport({ id: this.documentId, ...updateData });
           }
           if (platforms.includes('googleAds')) {
-            this.googleAdsReportService.processReport({ id: this.documentId, ...allFormData });
+            this.googleAdsReportService.processReport({ id: this.documentId, ...updateData });
           }
         }
         localStorage.removeItem('partners');
         localStorage.removeItem('selectedPartner');
         localStorage.removeItem('adAccounts');
-        this.dialogRef.close(allFormData);
+        this.dialogRef.close(updateData);
         return of(null);
       });
     } else {
@@ -248,6 +286,15 @@ export class DialogComponent {
   removeTab(index: number) {
     this.tabs.splice(index, 1);
     this.selectedTab.setValue(index);
+  }
+
+  handlePlatformChange(index: number, newPlatform: string) {
+    this.tabs[index].value = newPlatform;
+    this.getPlatform(newPlatform, index);
+    this.selectPlatforms = Array.from(new Set(this.tabs.map((tab: any) => tab.value)));
+    if (!this.selectPlatforms.includes('googleAds')) {
+    }
+    this.cdRef.detectChanges();
   }
 
   getPlatform(platform: string, index: number) {

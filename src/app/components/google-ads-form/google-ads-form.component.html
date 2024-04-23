@@ -6,7 +6,7 @@
     <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Platform</mat-label>
-            <mat-select formControlName="googleAdsPlatform">
+            <mat-select formControlName="googleAdsPlatform" (selectionChange)="changePlatform($event.value)">
                 <mat-option value="dv360">Display & Video 360</mat-option>
                 <mat-option value="facebook">Facebook</mat-option>
                 <mat-option value="googleAds" disabled>Google Ads</mat-option>
