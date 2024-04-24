@@ -24,6 +24,7 @@ import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
 import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
+import { BingService } from '../../services/platforms/bing/bing.service';
 
 import { first, switchMap } from 'rxjs/operators';
 import { throwError, firstValueFrom } from 'rxjs';
@@ -67,7 +68,8 @@ export class ProfileComponent {
     private route: ActivatedRoute,
     private fns: AngularFireFunctions,
     public googleService: GoogleService,
-    public facebookService: FacebookService
+    public facebookService: FacebookService,
+    public bingService: BingService
   ) {}
 
   ngOnInit(): void {
@@ -80,19 +82,45 @@ export class ProfileComponent {
   }
 
   private handleQueryParams(): void {
+    let source = '';
+    this.route.params.forEach((params: any) => {
+      source = params.oauthProvider;
+    });
     this.route.queryParams.subscribe(params => {
       const authCode = params['code'];
       if (authCode) {
-        this.exchangeTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+        if (source === 'google') {
+          this.exchangeGoogleTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+        } else if (source === 'microsoft') {
+          this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+        }
       }
     });
   }
 
-  private async exchangeTokens(authCode: string): Promise<void> {
-    const callable = this.fns.httpsCallable('exchangeTokens');
+  private async exchangeMicrosoftTokens(authCode: string): Promise<void> {
+    const callable = this.fns.httpsCallable('exchangeMicrosoftTokens');
     try {
       const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
-      'https://localhost:4200/profile' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile' }));
+      'https://localhost:4200/profile/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile/microsoft' }));
+      const currentUser = getAuth().currentUser;
+      if (!currentUser) throw new Error('User not logged in');
+      this.db.collection('user').doc(currentUser.uid).update({
+        microsoftAccessToken: result.access_token,
+        microsoftRefreshToken: result.refresh_token,
+      });
+      localStorage.setItem('microsoftAccessToken', result.access_token);
+      history.replaceState(null, '', window.location.pathname);
+    } catch (error) {
+      console.error('Error calling cloud function', error);
+    }
+  }
+
+  private async exchangeGoogleTokens(authCode: string): Promise<void> {
+    const callable = this.fns.httpsCallable('exchangeGoogleTokens');
+    try {
+      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
+      'https://localhost:4200/profile/google' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile/google' }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
       this.db.collection('user').doc(currentUser.uid).update({
@@ -137,6 +165,8 @@ export class ProfileComponent {
       return !!localStorage.getItem('googleAccessToken');
     } else if (platform === 'facebook') {
       return !!localStorage.getItem('facebookAccessToken');
+    } else if (platform === 'bing') {
+      return !!localStorage.getItem('microsoftAccessToken');
     } else {
       return false;
     }

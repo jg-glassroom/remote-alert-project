@@ -113,6 +113,23 @@
                         </mat-card-content>
                     </mat-card>
                 </div>
+                <div class="row">
+                    <mat-card class="platform-card left">
+                        <mat-card-content class="mat-card-content">
+                            <img src="../../../assets/bing-logo.png" alt="Bing logo" class="logo">
+                            <div class="bottom">
+                                <div class="status-group">
+                                    <span class="status">Status:</span>
+                                    <mat-icon style="color: green;" *ngIf="isConnected('bing')">check</mat-icon>
+                                    <mat-icon style="color: red;" *ngIf="!isConnected('bing')">close</mat-icon>
+                                </div>
+                                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingConnect()" *ngIf="!isConnected('bing')">Connect</button>
+                                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingDisconnect()" *ngIf="isConnected('bing')">Disconnect</button>
+                            </div>
+                        </mat-card-content>
+                    </mat-card>
+                    <div class="platform-card right"></div>
+                </div>
             </mat-tab>
         </mat-tab-group>
     </mat-card-content>

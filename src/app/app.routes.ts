@@ -15,6 +15,7 @@ export const routes: Routes = [
     { path: 'alerts', component: PacingAlertsComponent, canActivate: [loggedInGuard] },
     { path: 'pacing/:campaignName', component: PacingAlertsComponent, canActivate: [loggedInGuard] },
     { path: 'profile', component: ProfileComponent, canActivate: [loggedInGuard] },
+    { path: 'profile/:oauthProvider', component: ProfileComponent, canActivate: [loggedInGuard] },
     { path: 'pacing', component: PacingTemplateComponent, canActivate: [loggedInGuard] },
     { path: '', component: SignInComponent, canActivate: [notLoggedInGuard] },
 ];
