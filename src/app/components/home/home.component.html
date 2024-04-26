@@ -14,22 +14,27 @@
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Platform</th>
       <td mat-cell *matCellDef="let element" [style.height.px]="element.platforms.length * 52">
         <span *ngIf="element.platforms.includes('dv360')">Display & Video 360</span>
-        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds'))">
+        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('facebook')">Facebook</span>
-        <hr *ngIf="element.platforms.includes('facebook') && element.platforms.includes('googleAds')">
+        <hr *ngIf="element.platforms.includes('facebook') && (element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('googleAds')">Google Ads</span>
+        <hr *ngIf="element.platforms.includes('googleAds') && element.platforms.includes('bing')">
+        <span *ngIf="element.platforms.includes('bing')">Bing</span>
       </td>
     </ng-container>
+    
     
     <!-- Campaign Id Column -->
     <ng-container matColumnDef="campaignId">
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Campaign ID</th>
       <td mat-cell *matCellDef="let element">
         <span *ngIf="element.platforms.includes('dv360')">{{getConcatenatedCampaignIds(element, 'dv360')}}</span>
-        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds'))">
+        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('facebook')">{{getConcatenatedCampaignIds(element, 'facebook')}}</span>
-        <hr *ngIf="element.platforms.includes('facebook') && element.platforms.includes('googleAds')">
+        <hr *ngIf="element.platforms.includes('facebook') && (element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('googleAds')">{{getConcatenatedCampaignIds(element, 'googleAds')}}</span>
+        <hr *ngIf="element.platforms.includes('googleAds') && element.platforms.includes('bing')">
+        <span *ngIf="element.platforms.includes('bing')">{{getConcatenatedCampaignIds(element, 'bing')}}</span>
       </td>
     </ng-container>
     
@@ -38,10 +43,12 @@
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Start Date</th>
       <td mat-cell *matCellDef="let element">
         <span *ngIf="element.platforms.includes('dv360')">{{element.dv360StartDate}}</span>
-        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds'))">
+        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('facebook')">{{element.facebookStartDate}}</span>
-        <hr *ngIf="element.platforms.includes('facebook') && element.platforms.includes('googleAds')">
+        <hr *ngIf="element.platforms.includes('facebook') && (element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('googleAds')">{{element.googleAdsStartDate}}</span>
+        <hr *ngIf="element.platforms.includes('googleAds') && element.platforms.includes('bing')">
+        <span *ngIf="element.platforms.includes('bing')">{{element.bingStartDate}}</span>
       </td>
     </ng-container>
     
@@ -50,10 +57,12 @@
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">End Date</th>
       <td mat-cell *matCellDef="let element">
         <span *ngIf="element.platforms.includes('dv360')">{{element.dv360EndDate}}</span>
-        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds'))">
+        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('facebook')">{{element.facebookEndDate}}</span>
-        <hr *ngIf="element.platforms.includes('facebook') && element.platforms.includes('googleAds')">
+        <hr *ngIf="element.platforms.includes('facebook') && (element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('googleAds')">{{element.googleAdsEndDate}}</span>
+        <hr *ngIf="element.platforms.includes('googleAds') && element.platforms.includes('bing')">
+        <span *ngIf="element.platforms.includes('bing')">{{element.bingEndDate}}</span>
       </td>
     </ng-container>
     
@@ -62,10 +71,12 @@
       <th mat-header-cell *matHeaderCellDef [style.background-color]="'rgba(158, 159, 159, 0.5)'">Budget</th>
       <td mat-cell *matCellDef="let element">
         <span *ngIf="element.platforms.includes('dv360')">{{element.dv360Budget}}</span>
-        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds'))">
+        <hr *ngIf="element.platforms.includes('dv360') && (element.platforms.includes('facebook') || element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('facebook')">{{element.facebookBudget}}</span>
-        <hr *ngIf="element.platforms.includes('facebook') && element.platforms.includes('googleAds')">
+        <hr *ngIf="element.platforms.includes('facebook') && (element.platforms.includes('googleAds') || element.platforms.includes('bing'))">
         <span *ngIf="element.platforms.includes('googleAds')">{{element.googleAdsBudget}}</span>
+        <hr *ngIf="element.platforms.includes('googleAds') && element.platforms.includes('bing')">
+        <span *ngIf="element.platforms.includes('bing')">{{element.bingBudget}}</span>
       </td>
     </ng-container>
     

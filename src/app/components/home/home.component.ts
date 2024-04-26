@@ -10,6 +10,7 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
+import { BingReportService } from '../../services/reports/bing/bing-report.service';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -38,6 +39,7 @@ export class HomeComponent implements OnInit {
     private authService: AuthService, 
     private DV360ReportService: DV360ReportService,
     private facebookReportService: FacebookReportService,
+    private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
     public router: Router
   ) {}
@@ -93,6 +95,11 @@ export class HomeComponent implements OnInit {
         return '';
       }
       return element.facebookCampaign.map((c: any) => c.id).join(', ');
+    } else if (platform === 'bing') {
+      if (!element.bingCampaign) {
+        return '';
+      }
+      return element.bingCampaign.map((c: any) => c.id).join(', ');
     } else if (platform === 'googleAds') {
       if (!element.googleAdsCampaign) {
         return '';
@@ -129,7 +136,6 @@ export class HomeComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`);
       if (result) {
         this.db.collection('userSearch').doc(row.id).delete()
         .catch((error) => {
@@ -145,6 +151,9 @@ export class HomeComponent implements OnInit {
     }
     if (campaign.platforms.includes('facebook')) {
       this.facebookReportService.processReport(campaign);
+    }
+    if (campaign.platforms.includes('bing')) {
+      this.bingReportService.processReport(campaign);
     }
     if (campaign.platforms.includes('googleAds')) {
       this.googleAdsReportService.processReport(campaign);

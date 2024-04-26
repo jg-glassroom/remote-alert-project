@@ -25,17 +25,6 @@
                             Please enter a valid email address.
                         </mat-error>
                     </mat-form-field>
-
-                    <mat-form-field appearance="outline">
-                        <mat-label>Language</mat-label>
-                        <mat-select formControlName="language">
-                            <mat-option value="en">English</mat-option>
-                            <mat-option value="fr">French</mat-option>
-                        </mat-select>
-                        <mat-error *ngIf="profileForm.get('language')?.errors?.['required']">
-                            Language is required.
-                        </mat-error>
-                    </mat-form-field>
                     
                     <div class="submit-button">
                         <button mat-raised-button color="primary" type="submit" (click)="updateProfile()">Update Profile</button>

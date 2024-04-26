@@ -62,17 +62,6 @@
         </button>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="form-element" *ngIf="registration === true && showForgotPassword === false">
-        <mat-label>Language</mat-label>
-        <mat-select formControlName="language">
-            <mat-option value="en">English</mat-option>
-            <mat-option value="fr">French</mat-option>
-        </mat-select>
-        <mat-error *ngIf="formGroup.get('language')?.errors?.['required']">
-            Language is required.
-        </mat-error>
-    </mat-form-field>
-
     <br>
 
     <mat-error *ngIf="errorMessage" style="text-align: center;">{{ errorMessage }}</mat-error>

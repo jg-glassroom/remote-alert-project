@@ -60,6 +60,18 @@
         </ng-template>
         <app-google-ads-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-google-ads-form>
       </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'bing'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-bing-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-bing-form>
+      </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
         <ng-template mat-tab-label>
           <div class="tab-label">
@@ -77,6 +89,7 @@
                 <mat-option value="dv360" [disabled]="selectPlatforms.includes('dv360')">Display & Video 360</mat-option>
                 <mat-option value="facebook" [disabled]="selectPlatforms.includes('facebook')">Facebook</mat-option>
                 <mat-option value="googleAds" [disabled]="selectPlatforms.includes('googleAds')">Google Ads</mat-option>
+                <mat-option value="bing" [disabled]="selectPlatforms.includes('bing')">Bing</mat-option>
               </mat-select>
           </mat-form-field>
           <div class="form-element">

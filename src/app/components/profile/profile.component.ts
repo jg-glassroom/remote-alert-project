@@ -176,7 +176,7 @@ export class ProfileComponent {
     this.profileForm = this.formBuilder.group({
       username: new FormControl(null, Validators.required),
       email: new FormControl({value: null, disabled: true}, [Validators.required, Validators.email]),
-      language: new FormControl(null, Validators.required),
+      language: new FormControl("en", Validators.required),
     });
   }
 

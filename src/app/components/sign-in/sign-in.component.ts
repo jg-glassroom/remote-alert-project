@@ -76,7 +76,7 @@ export class SignInComponent {
   createForm() {
     this.formGroup = this.formBuilder.group({
       username: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
-      language: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
+      language: this.registration ? new FormControl("en", Validators.required) : new FormControl(null),
       role: this.registration ? new FormControl(this.registration ? "standard" : null, Validators.required) : new FormControl(null),
       email: new FormControl(null, [Validators.required, Validators.email]),
       confirmPassword: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),

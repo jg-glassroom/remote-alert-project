@@ -10,6 +10,7 @@
                 <mat-option value="dv360" disabled>Display & Video 360</mat-option>
                 <mat-option value="facebook" [disabled]="disabledPlatforms.includes('facebook')">Facebook</mat-option>
                 <mat-option value="googleAds" [disabled]="disabledPlatforms.includes('googleAds')">Google Ads</mat-option>
+                <mat-option value="bing" [disabled]="disabledPlatforms.includes('bing')">Bing</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['dv360Platform'].touched) && form['dv360Platform'].invalid">
             The field is required

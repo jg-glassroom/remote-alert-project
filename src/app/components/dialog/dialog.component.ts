@@ -10,10 +10,12 @@ import { CommonService } from '../../services/common/common.service';
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
+import { BingReportService } from '../../services/reports/bing/bing-report.service';
 
 import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
 import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
 import { GoogleAdsFormComponent } from '../google-ads-form/google-ads-form.component';
+import { BingFormComponent } from '../bing-form/bing-form.component';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -26,7 +28,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
-import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
 
 
 @Component({
@@ -44,7 +45,8 @@ import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
     MatTabsModule,
     Dv360FormComponent,
     FacebookFormComponent,
-    GoogleAdsFormComponent
+    GoogleAdsFormComponent,
+    BingFormComponent
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -53,6 +55,7 @@ export class DialogComponent {
   @ViewChildren(Dv360FormComponent) dv360Forms!: QueryList<Dv360FormComponent>;
   @ViewChildren(FacebookFormComponent) facebookForms!: QueryList<FacebookFormComponent>;
   @ViewChildren(GoogleAdsFormComponent) googleAdsForms!: QueryList<GoogleAdsFormComponent>;
+  @ViewChildren(BingFormComponent) bingForms!: QueryList<BingFormComponent>;
 
   formGroup = new FormGroup({
     campaignName: new FormControl('', Validators.required),
@@ -77,6 +80,7 @@ export class DialogComponent {
     private db: AngularFirestore,
     private facebookReportService: FacebookReportService,
     private googleAdsReportService: GoogleAdsReportService,
+    private bingReportService: BingReportService,
     public platformsCommon: CommonService,
     private cdRef: ChangeDetectorRef
   ) {
@@ -95,6 +99,8 @@ export class DialogComponent {
           this.tabs.push({ name: 'Facebook', value: platform });
         } else if (platform === 'googleAds') {
           this.tabs.push({ name: 'Google Ads', value: platform });
+        } else if (platform === 'bing') {
+          this.tabs.push({ name: 'Bing', value: platform });
         }
       });
     }
@@ -119,7 +125,12 @@ export class DialogComponent {
       this.toaster.error('Enter a name for the alert rule');
     }
 
-    if (this.dv360Forms.length === 0 && this.facebookForms.length === 0 && this.googleAdsForms.length === 0) {
+    if (
+      this.dv360Forms.length === 0 &&
+      this.facebookForms.length === 0 &&
+      this.googleAdsForms.length === 0 &&
+      this.bingForms.length === 0
+    ) {
       doSubmit = false;
       this.toaster.error('Please select a platform');
     }
@@ -172,6 +183,22 @@ export class DialogComponent {
       }
     });
 
+    this.bingForms.forEach(form => {
+      const formData = form.getFormData();
+      if (formData) {
+        allFormData = {
+          ...formData,
+          ...allFormData,
+        };
+        if (!platforms.includes('bing')) {
+          platforms.push('bing');
+        }
+      } else {
+        doSubmit = false;
+        this.toaster.error('A Bing form is not valid');
+      }
+    });
+
     allFormData.platforms = platforms;
 
     this.updateValidity();
@@ -213,6 +240,9 @@ export class DialogComponent {
       dataToUpdate.facebookStartDate = deleteField();
     }
 
+    if (!platforms.includes('bing')) {
+    }
+
     return dataToUpdate;
   }
 
@@ -231,6 +261,9 @@ export class DialogComponent {
           }
           if (platforms.includes('googleAds')) {
             this.googleAdsReportService.processReport({ id: this.documentId, ...updateData });
+          }
+          if (platforms.includes('bing')) {
+            this.bingReportService.processReport({ id: this.documentId, ...updateData });
           }
         }
         localStorage.removeItem('partners');
@@ -255,6 +288,9 @@ export class DialogComponent {
             if (platforms.includes('googleAds')) {
               this.googleAdsReportService.processReport(data);
             }
+            if (platforms.includes('bing')) {
+              this.bingReportService.processReport(data);
+            }
           } else {
             this.toaster.success('Alert rule created successfully', 'Success');
           }
@@ -276,6 +312,7 @@ export class DialogComponent {
     this.dv360Forms.forEach(form => form.refreshData());
     this.facebookForms.forEach(form => form.refreshData());
     this.googleAdsForms.forEach(form => form.refreshData());
+    this.bingForms.forEach(form => form.refreshData());
   }
 
   addTab() {
@@ -293,8 +330,6 @@ export class DialogComponent {
     this.tabs[index].value = newPlatform;
     this.getPlatform(newPlatform, index);
     this.selectPlatforms = Array.from(new Set(this.tabs.map((tab: any) => tab.value)));
-    if (!this.selectPlatforms.includes('googleAds')) {
-    }
     this.cdRef.detectChanges();
   }
 
@@ -303,6 +338,7 @@ export class DialogComponent {
       'dv360': 'Display & Video 360',
       'facebook': 'Facebook',
       'googleAds': 'Google Ads',
+      'bing': 'Bing'
     };
     this.selectPlatforms.push(platform);
     this.tabs[index] = ({ name: platforms[platform], value: platform });
@@ -312,7 +348,8 @@ export class DialogComponent {
     const hasDv360 = this.tabs.some((t: any) => t.value === 'dv360');
     const hasFacebook = this.tabs.some((t: any) => t.value === 'facebook');
     const hasGoogleAds = this.tabs.some((t: any) => t.value === 'googleAds');
-    return !(hasDv360 && hasFacebook && hasGoogleAds);
+    const hasBing = this.tabs.some((t: any) => t.value === 'bing');
+    return !(hasDv360 && hasFacebook && hasGoogleAds && hasBing);
   }
 
   updateValidity() {
@@ -326,6 +363,8 @@ export class DialogComponent {
       return this.facebookForms.toArray()[index].formGroup.invalid;
     } else if (this.tabs[index].value === 'googleAds' && this.googleAdsForms && this.googleAdsForms.toArray().length > index) {
       return this.googleAdsForms.toArray()[index].formGroup.invalid;
+    } else if (this.tabs[index].value === 'bing' && this.bingForms && this.bingForms.toArray().length > index) {
+      return this.bingForms.toArray()[index].formGroup.invalid;
     }
     return false;
   }

@@ -271,7 +271,7 @@ export class GoogleAdsFormComponent {
   refreshData() {
     localStorage.removeItem('adAccounts');
     this.formGroup.patchValue({
-      facebookPartner: null,
+      googleAdsAccount: null,
       googleAdsStartDate: null,
       googleAdsEndDate: null,
       googleAdsBudget: null,

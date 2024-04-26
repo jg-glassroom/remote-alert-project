@@ -95,7 +95,7 @@ export class ExternalPlatformsService {
         localStorage.setItem('microsoftAccessToken', result.access_token);
   
         await userDocRef.update({
-          microsoftRefreshToken: result.access_token,
+          microsoftAccessToken: result.access_token,
         });
   
         console.log('Microsoft access token refreshed and updated successfully');
@@ -108,14 +108,7 @@ export class ExternalPlatformsService {
     }
   }
 
-  async handleMicrosoftError(error: HttpErrorResponse): Promise<void> {
-    if (error.status === 401 || error.status === 403 || error.status === 400) {
-      return await this.refreshMicrosoftToken();
-    } else {
-      if (error.status && error.message) {
-        console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);
-      }
-      this.toaster.error('An unexpected error occurred', 'Error');
-    }
+  async handleMicrosoftError(): Promise<void> {
+    return await this.refreshMicrosoftToken();
   }
 }
