@@ -81,7 +81,7 @@
         </span>
         <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
         <span *ngIf="data.bingPlatform">
-          <app-line-chart *ngIf="data.bingReport" [chartData]="data" platform="bing" [uniqueId]="'chartdiv_' + data.id + '_Bing'" platformRevenue=""></app-line-chart>
+          <app-line-chart *ngIf="data.bingReport" [chartData]="data" platform="bing" [uniqueId]="'chartdiv_' + data.id + '_Bing'" platformRevenue="Spend"></app-line-chart>
         </span>
       </td>
     </ng-container>

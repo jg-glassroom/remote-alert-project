@@ -157,11 +157,11 @@ export class PacingAlertsComponent {
           const googleAdsReport = googleAdsReports.find(report => report.campaignName === alert.CampaignName);
           if (googleAdsReport) {
             modifiedAlert.googleAdsReport = googleAdsReport.report;
-            modifiedAlert.googleAdsReport = this.transformReportData(googleAdsReport.report.results);
+            modifiedAlert.googleAdsReport = this.transformReportData(googleAdsReport.report.results, "googleAds");
           }
           const bingReport = bingReports.find(report => report.campaignName === alert.CampaignName);
           if (bingReport) {
-            modifiedAlert.bingReport = bingReport.report;
+            modifiedAlert.bingReport = this.transformReportData(bingReport.report, "bing");
           }
           return modifiedAlert;
         });
@@ -191,19 +191,30 @@ export class PacingAlertsComponent {
     }, error => console.error("Failed to fetch data", error));
   }
 
-  transformReportData(reports: any[]): any {
+  transformReportData(reports: any[], platform: any): any {
     const formattedData: { [key: string]: any } = {};
+    if (platform === "googleAds") {
+      reports.forEach(report => {
+        const date = report.segments.date.replace(/-/g, '/');
+        const costInMillions = parseFloat(report.metrics.costMicros) / 1e6;
 
-    reports.forEach(report => {
-      const date = report.segments.date.replace(/-/g, '/');
-      const costInMillions = parseFloat(report.metrics.costMicros) / 1e6;
+        if (!formattedData[date]) {
+            formattedData[date] = { costMicros: costInMillions };
+        } else {
+            formattedData[date].costMicros += costInMillions;
+        }
+      });
+    } else if (platform === "bing") {
+      reports.forEach(report => {
+        const date = report.TimePeriod.replace(/-/g, '/');
 
-      if (!formattedData[date]) {
-          formattedData[date] = { costMicros: costInMillions };
-      } else {
-          formattedData[date].costMicros += costInMillions;
-      }
-    });
+        if (!formattedData[date]) {
+            formattedData[date] = { Spend: report.Spend };
+        } else {
+            formattedData[date].Spend += report.Spend;
+        }
+      });
+    }
 
     return formattedData;
   }
