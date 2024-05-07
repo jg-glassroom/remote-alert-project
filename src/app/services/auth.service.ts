@@ -10,6 +10,7 @@ import { Observable, of } from 'rxjs';
 import { switchMap, first } from 'rxjs/operators';
 
 import { User } from './user.model';
+import moment from 'moment';
 
 
 @Injectable({
@@ -54,6 +55,9 @@ export class AuthService {
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
 
+      const userRef = this.afs.collection('user').doc(currentUser.uid);
+      await userRef.update({ last_login: moment().format('MM/DD/YYYY HH:mm:ss') });
+      
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
       userDoc.pipe(first()).subscribe((user: any) => {
         if (user.googleAccessToken) {
@@ -84,12 +88,15 @@ export class AuthService {
       uid: user.uid,
       displayName: user.displayName,
       language: "",
-      emailUpdates: false
+      emailUpdates: false,
+      date_created: moment().format('MM/DD/YYYY HH:mm:ss'),
+      last_login: moment().format('MM/DD/YYYY HH:mm:ss'),
     };
 
     if (user.language) {
-      data.language = user.language
+      data.language = user.language;
     }
+
     return userRef.set(data, { merge: true });
   }
 }

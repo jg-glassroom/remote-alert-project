@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { MatDialog } from '@angular/material/dialog';
 
-import { DialogComponent } from '../form/dialog/dialog.component';
+import { DialogComponent } from '../dialog/dialog.component';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';

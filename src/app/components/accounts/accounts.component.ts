@@ -154,14 +154,20 @@ export class AccountsComponent {
       return;
     }
 
+    this.isDialogOpen = true;
+
     this.afs.collection('userRoles', ref => ref.where('userId', '==', userId))
       .get().pipe(
         take(1)
       ).subscribe(result => {
-        if (result.empty && !this.isDialogOpen) {
-          this.isDialogOpen = true;
+        if (result.empty) {
           this.openBusinessDialog();
+        } else {
+          this.isDialogOpen = false;
         }
+      }, error => {
+        console.error('Error checking roles:', error);
+        this.isDialogOpen = false;
       });
   }
 

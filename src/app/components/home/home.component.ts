@@ -5,7 +5,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AuthService } from '../../services/auth.service';
 import { take } from 'rxjs/operators';
 
-import { DialogComponent } from '../form/dialog/dialog.component';
+import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';

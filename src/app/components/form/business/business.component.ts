@@ -103,8 +103,8 @@ export class BusinessComponent {
     });
   }
 
-  displayFn(subaccount: any): string {
-    return subaccount && subaccount.name ? subaccount.name : '';
+  displayFn(country: any): string {
+    return country && country.name ? country.name : '';
   }
 
   async saveBusiness() {
