@@ -23,7 +23,13 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-table',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatPaginatorModule, MatIconModule, DialogComponent, ConfirmDialogComponent, CommonModule],
+  imports: [
+    MatTableModule,
+    MatButtonModule,
+    MatPaginatorModule,
+    MatIconModule,
+    CommonModule
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
