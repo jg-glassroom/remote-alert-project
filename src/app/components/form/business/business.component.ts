@@ -103,6 +103,10 @@ export class BusinessComponent {
     });
   }
 
+  displayFn(subaccount: any): string {
+    return subaccount && subaccount.name ? subaccount.name : '';
+  }
+
   async saveBusiness() {
     if (this.isEditMode && this.documentId) {
       await this.db.collection('business').doc(this.documentId).update(this.formGroup.value);
