@@ -150,7 +150,8 @@ export class GoogleAdsFormComponent {
                 adAccountMap.set(account.id, account);
             });
 
-        const uniqueAdAccounts = Array.from(adAccountMap.values());
+        let uniqueAdAccounts = Array.from(adAccountMap.values());
+        uniqueAdAccounts = uniqueAdAccounts.filter(account => account.descriptiveName);
         const sortedAdAccounts = uniqueAdAccounts.sort((a, b) => a.descriptiveName.localeCompare(b.descriptiveName));
         this.adAccounts = sortedAdAccounts.filter(account => account.status === 'ENABLED' && account.manager === false);
         this.adAccountsSubject.next(this.adAccounts);
@@ -195,8 +196,7 @@ export class GoogleAdsFormComponent {
         console.error('An unexpected error occurred:', error);
         return null;
     }
-}
-
+  }
 
   async getAdAccountCampaigns(retryCount = 2, event?: MatAutocompleteSelectedEvent, edit?: boolean): Promise<any> {
     this.isLoading = true;
