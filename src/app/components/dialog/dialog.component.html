@@ -1,0 +1,120 @@
+<div *ngIf="isLoading" class="loader-overlay">
+  <mat-spinner></mat-spinner>
+</div>
+<form [formGroup]="formGroup">
+  <div class="header">
+    <mat-form-field class="form-element">
+      <mat-label>Campaign Name</mat-label>
+      <input matInput formControlName="campaignName">
+      <mat-error *ngIf="(submitted || formGroup.get('campaignName')!.touched) && formGroup.get('campaignName')!.invalid">
+        The field is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="form-element">
+      <mat-label>Subaccount</mat-label>
+      <input matInput placeholder="Choose a subaccount" [matAutocomplete]="auto" formControlName="subaccount" (keydown.enter)="addSubaccount()">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+        <mat-option *ngFor="let subaccount of filteredSubaccounts | async" [value]="subaccount">
+          {{ subaccount.name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <button
+    mat-raised-button
+    class="button form-button create-button"
+    color="primary"
+    (click)="addTab()"
+    type="button">
+    <mat-icon>add</mat-icon>Platform
+  </button>
+
+  <mat-tab-group [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
+    @for (tab of tabs; track tab; let index = $index) {
+      <mat-tab *ngIf="tab.value === 'dv360'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-dv360-form #dv360Form (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-dv360-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-facebook-form #facebookForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-facebook-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'googleAds'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-google-ads-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-google-ads-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'bing'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-bing-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-bing-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <div class="form-row">
+          <mat-form-field class="form-element">
+              <mat-label>Select a platform</mat-label>
+              <mat-select (valueChange)="getPlatform($event, index)">
+                <mat-option value="dv360" [disabled]="!commonService.isConnected('google')">Display & Video 360</mat-option>
+                <mat-option value="facebook" [disabled]="!commonService.isConnected('facebook')">Facebook</mat-option>
+                <mat-option value="googleAds" [disabled]="!commonService.isConnected('google')">Google Ads</mat-option>
+                <mat-option value="bing" [disabled]="!commonService.isConnected('bing')">Bing</mat-option>
+              </mat-select>
+          </mat-form-field>
+          <div class="form-element">
+          </div>
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+
+  <div class="form-element footer">
+    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
+    &nbsp;
+    <ng-container *ngIf="!isEditMode">
+        <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)">Save & execute</button>
+        &nbsp;
+    </ng-container>
+    <button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
+  </div>
+</form>
