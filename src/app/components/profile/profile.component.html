@@ -4,122 +4,34 @@
     </mat-card-header>
 
     <mat-card-content>
-        <mat-tab-group>
-            <mat-tab label="General" class="general">
-                <form [formGroup]="profileForm">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Username</mat-label>
-                        <input matInput formControlName="username">
-                        <mat-error *ngIf="profileForm.get('username')?.errors?.['required']">
-                            Username is required.
-                        </mat-error>
-                    </mat-form-field>
+        <form [formGroup]="profileForm">
+            <mat-form-field appearance="outline">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username">
+                <mat-error *ngIf="profileForm.get('username')?.errors?.['required']">
+                    Username is required.
+                </mat-error>
+            </mat-form-field>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Email</mat-label>
-                        <input matInput formControlName="email" type="email">
-                        <mat-error *ngIf="profileForm.get('email')?.errors?.['required']">
-                            Email is required.
-                        </mat-error>
-                        <mat-error *ngIf="profileForm.get('email')?.errors?.['email']">
-                            Please enter a valid email address.
-                        </mat-error>
-                    </mat-form-field>
-                    
-                    <div class="submit-button">
-                        <button mat-raised-button color="primary" type="submit" (click)="updateProfile()">Update Profile</button>
-                    </div>
+            <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email">
+                <mat-error *ngIf="profileForm.get('email')?.errors?.['required']">
+                    Email is required.
+                </mat-error>
+                <mat-error *ngIf="profileForm.get('email')?.errors?.['email']">
+                    Please enter a valid email address.
+                </mat-error>
+            </mat-form-field>
+            
+            <div class="submit-button">
+                <button mat-raised-button color="primary" type="submit" (click)="updateProfile()">Update Profile</button>
+            </div>
 
-                    <div class="credentials-button">
-                        <button mat-stroked-button color="primary" (click)="openChangeEmailDialog()">Change email</button>&nbsp;&nbsp;
-                        <button mat-stroked-button color="primary" (click)="openChangePasswordDialog()">Change password</button>
-                    </div>
-                </form>
-            </mat-tab>
-            <mat-tab label="Platforms credentials">
-                <div class="first row">
-                    <mat-card class="platform-card left">
-                        <mat-card-content class="mat-card-content">
-                            <img src="../../../assets/google-logo.png" alt="Google logo" class="logo">
-                            <div class="bottom">
-                                <mat-accordion class="mat-elevation-z0">
-                                    <mat-expansion-panel hideToggle>
-                                        <mat-expansion-panel-header>
-                                            <mat-panel-description>
-                                                <div class="status-group">
-                                                    <span class="status">Status:</span>
-                                                    <mat-icon style="color: green;" *ngIf="isConnected('google')">check</mat-icon>
-                                                    <mat-icon style="color: red;" *ngIf="!isConnected('google')">close</mat-icon>
-                                                </div>
-                                            </mat-panel-description>
-                                        </mat-expansion-panel-header>
-                                        <div class="google-scope" *ngIf="isConnected('google')">
-                                            <div>
-                                                <span class="status">Search Ads:</span>
-                                                <mat-icon style="color: green;" *ngIf="googleService.searchAds">check</mat-icon>
-                                                <mat-icon style="color: red;" *ngIf="!googleService.searchAds">close</mat-icon>
-                                            </div>
-                                            <div>
-                                                <span class="status">Campaign Manager 360:</span>
-                                                <mat-icon style="color: green;" *ngIf="googleService.CM360">check</mat-icon>
-                                                <mat-icon style="color: red;" *ngIf="!googleService.CM360">close</mat-icon>
-                                            </div>
-                                            <div>
-                                                <span class="status">Display & Video 360 Reports:</span>
-                                                <mat-icon style="color: green;" *ngIf="googleService.DV360Metrics">check</mat-icon>
-                                                <mat-icon style="color: red;" *ngIf="!googleService.DV360Metrics">close</mat-icon>
-                                            </div>
-                                            <div>
-                                                <span class="status">Display & Video 360 Campaigns:</span>
-                                                <mat-icon style="color: green;" *ngIf="googleService.DV360Config">check</mat-icon>
-                                                <mat-icon style="color: red;" *ngIf="!googleService.DV360Config">close</mat-icon>
-                                            </div>
-                                            <div>
-                                                <span class="status">Google Ads:</span>
-                                                <mat-icon style="color: green;" *ngIf="googleService.googleAds">check</mat-icon>
-                                                <mat-icon style="color: red;" *ngIf="!googleService.googleAds">close</mat-icon>
-                                            </div>
-                                        </div>
-                                    </mat-expansion-panel>
-                                </mat-accordion>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="googleService.googleConnect()" *ngIf="!isConnected('google')">Connect</button>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="googleService.googleDisconnect()" *ngIf="isConnected('google')">Disconnect</button>
-                            </div>                            
-                        </mat-card-content>
-                    </mat-card>
-                    <mat-card class="platform-card right">
-                        <mat-card-content class="mat-card-content">
-                            <img src="../../../assets/facebook-logo.png" alt="Facebook logo" class="logo">
-                            <div class="bottom">
-                                <div class="status-group">
-                                    <span class="status">Status:</span>
-                                    <mat-icon style="color: green;" *ngIf="isConnected('facebook')">check</mat-icon>
-                                    <mat-icon style="color: red;" *ngIf="!isConnected('facebook')">close</mat-icon>
-                                </div>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookConnect()" *ngIf="!isConnected('facebook')">Connect</button>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookDisconnect()" *ngIf="isConnected('facebook')">Disconnect</button>
-                            </div>
-                        </mat-card-content>
-                    </mat-card>
-                </div>
-                <div class="row">
-                    <mat-card class="platform-card left">
-                        <mat-card-content class="mat-card-content">
-                            <img src="../../../assets/bing-logo.png" alt="Bing logo" class="logo">
-                            <div class="bottom">
-                                <div class="status-group">
-                                    <span class="status">Status:</span>
-                                    <mat-icon style="color: green;" *ngIf="isConnected('bing')">check</mat-icon>
-                                    <mat-icon style="color: red;" *ngIf="!isConnected('bing')">close</mat-icon>
-                                </div>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingConnect()" *ngIf="!isConnected('bing')">Connect</button>
-                                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingDisconnect()" *ngIf="isConnected('bing')">Disconnect</button>
-                            </div>
-                        </mat-card-content>
-                    </mat-card>
-                    <div class="platform-card right"></div>
-                </div>
-            </mat-tab>
-        </mat-tab-group>
+            <div class="credentials-button">
+                <button mat-stroked-button color="primary" (click)="openChangeEmailDialog()">Change email</button>&nbsp;&nbsp;
+                <button mat-stroked-button color="primary" (click)="openChangePasswordDialog()">Change password</button>
+            </div>
+        </form>
     </mat-card-content>
 </mat-card>

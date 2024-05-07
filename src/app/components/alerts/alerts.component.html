@@ -1,0 +1,89 @@
+<div class="create-container">
+    <button mat-raised-button class="create" color="primary" (click)="createAlert()">
+        <mat-icon>add</mat-icon>Alert
+    </button>
+</div>
+
+<div *ngIf="subaccounts.length > 0" class="subaccount-list">
+    <div *ngFor="let subaccount of subaccounts" class="subaccount-item">
+        <span class="subaccount">{{ subaccount.name }}</span>
+        <hr>
+        <mat-expansion-panel disabled>
+            <mat-expansion-panel-header>
+                <table>
+                    <td>Name</td>
+                    <td class="subcell">Start Date</td>
+                    <td class="subcell">End Date</td>
+                    <td class="subcell">Platforms</td>
+                    <td class="subcell">Budget</td>
+                </table>
+            </mat-expansion-panel-header>
+        </mat-expansion-panel>
+
+        <mat-accordion *ngFor="let pacingAlert of getFilteredAlerts(subaccount.id)" hideToggle>
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <table>
+                        <tr>
+                            <td [attr.rowspan]="pacingAlert.platforms.length * 3 + 1" class="cell">
+                                {{ pacingAlert.campaignName }}
+                            </td>
+                        </tr>
+
+                        <ng-container *ngFor="let platform of pacingAlert.platforms; let last = last">
+                            <tr>
+                                <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'StartDate'] }}</td>
+                                <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
+                                <td class="cell subcell" [class.border-cell]="!last">{{ platforms[platform.platform] }}</td>
+                                <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
+                            </tr>
+                        </ng-container>
+                    </table>
+                </mat-expansion-panel-header>
+                <div>
+                    Détails de la campagne et plus...
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
+</div>
+
+<div *ngIf="subaccounts.length === 0" class="subaccount-list">
+    <mat-expansion-panel disabled>
+        <mat-expansion-panel-header>
+            <table>
+                <td>Name</td>
+                <td class="subcell">Start Date</td>
+                <td class="subcell">End Date</td>
+                <td class="subcell">Platforms</td>
+                <td class="subcell">Budget</td>
+            </table>
+        </mat-expansion-panel-header>
+    </mat-expansion-panel>
+
+    <mat-accordion *ngFor="let pacingAlert of pacingAlerts" hideToggle>
+        <mat-expansion-panel>
+            <mat-expansion-panel-header>
+                <table>
+                    <tr>
+                        <td [attr.rowspan]="pacingAlert.platforms.length * 3 + 1" class="cell">
+                            {{ pacingAlert.campaignName }}
+                        </td>
+                    </tr>
+
+                    <ng-container *ngFor="let platform of pacingAlert.platforms; let last = last">
+                        <tr>
+                            <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'StartDate'] }}</td>
+                            <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
+                            <td class="cell subcell" [class.border-cell]="!last">{{ platforms[platform.platform] }}</td>
+                            <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
+                        </tr>
+                    </ng-container>
+                </table>
+            </mat-expansion-panel-header>
+            <div>
+                Détails de la campagne et plus...
+            </div>
+        </mat-expansion-panel>
+    </mat-accordion>
+</div>

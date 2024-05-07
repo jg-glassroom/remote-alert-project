@@ -1,0 +1,39 @@
+<div class="create-container">
+    <button mat-raised-button class="create" color="primary" (click)="createAccount()">
+        <mat-icon>add</mat-icon>Account
+    </button>
+</div>
+
+<mat-card *ngFor="let account of accounts">
+    <mat-card-content>
+        <div class="info-alerts-container">
+            <div class="info">
+                <span class="title" (click)="selectAccount(account)">
+                    {{account.name}}
+                </span>
+                <div>
+                    <button mat-raised-button color="primary" (click)="addUsers(account.id)">
+                        <mat-icon>add</mat-icon>Users
+                    </button>
+                    <button mat-raised-button color="primary" class="delete" (click)="deleteAccount(account)">
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <div class="alerts">
+                <div class="icon">
+                    <span>0</span>
+                    <mat-icon style="color: green;">check_circle_outline</mat-icon>
+                </div>
+                <div class="icon">
+                    <span>0</span>
+                    <mat-icon style="color: rgb(189, 176, 3);">warning_amber</mat-icon>
+                </div>
+                <div class="icon">
+                    <span>0</span>
+                    <mat-icon style="color: red;">close</mat-icon>
+                </div>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>

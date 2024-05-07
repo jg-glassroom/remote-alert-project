@@ -3,23 +3,32 @@
 </div>
 <form [formGroup]="formGroup">
   <div class="header">
-    <mat-form-field class="form-element campaign-name">
+    <mat-form-field class="form-element">
       <mat-label>Campaign Name</mat-label>
       <input matInput formControlName="campaignName">
       <mat-error *ngIf="(submitted || formGroup.get('campaignName')!.touched) && formGroup.get('campaignName')!.invalid">
         The field is required
       </mat-error>
-    </mat-form-field>  
-    <button mat-stroked-button class="button refresh-button" (click)="refreshData()">Refresh data</button>
+    </mat-form-field>
+
+    <mat-form-field class="form-element">
+      <mat-label>Subaccount</mat-label>
+      <input matInput placeholder="Choose a subaccount" [matAutocomplete]="auto" formControlName="subaccount" (keydown.enter)="addSubaccount()">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+        <mat-option *ngFor="let subaccount of filteredSubaccounts | async" [value]="subaccount">
+          {{ subaccount.name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
   </div>
 
   <button
     mat-raised-button
-    class="button form-button"
+    class="button form-button create-button"
     color="primary"
     (click)="addTab()"
-    *ngIf="showAddTabButton">
-    Add new platform
+    type="button">
+    <mat-icon>add</mat-icon>Platform
   </button>
 
   <mat-tab-group [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
@@ -86,10 +95,10 @@
           <mat-form-field class="form-element">
               <mat-label>Select a platform</mat-label>
               <mat-select (valueChange)="getPlatform($event, index)">
-                <mat-option value="dv360" [disabled]="selectPlatforms.includes('dv360')">Display & Video 360</mat-option>
-                <mat-option value="facebook" [disabled]="selectPlatforms.includes('facebook')">Facebook</mat-option>
-                <mat-option value="googleAds" [disabled]="selectPlatforms.includes('googleAds')">Google Ads</mat-option>
-                <mat-option value="bing" [disabled]="selectPlatforms.includes('bing')">Bing</mat-option>
+                <mat-option value="dv360" [disabled]="!commonService.isConnected('google')">Display & Video 360</mat-option>
+                <mat-option value="facebook" [disabled]="!commonService.isConnected('facebook')">Facebook</mat-option>
+                <mat-option value="googleAds" [disabled]="!commonService.isConnected('google')">Google Ads</mat-option>
+                <mat-option value="bing" [disabled]="!commonService.isConnected('bing')">Bing</mat-option>
               </mat-select>
           </mat-form-field>
           <div class="form-element">

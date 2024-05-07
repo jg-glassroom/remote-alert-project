@@ -3,5 +3,4 @@ export interface User {
     displayName: string;
     emailUpdates: boolean;
     language: string;
-    role: string;
 }

@@ -14,7 +14,7 @@ export const notLoggedInGuard: CanActivateFn = (route, state) => {
     tap(notLoggedIn => {
       if (!notLoggedIn) {
         console.log('Already logged in, redirecting to home');
-        router.navigate(['/home']); 
+        router.navigate(['/accounts']); 
       }
     })
   );

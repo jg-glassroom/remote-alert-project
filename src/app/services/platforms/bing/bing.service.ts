@@ -10,7 +10,7 @@ export class BingService {
   private clientId = 'c0398004-411f-4e05-8478-4e57f2f63503';
   private hostname = window.location.hostname;
   private redirectUri = this.hostname === "localhost" ? 
-  'https://localhost:4200/profile/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile/microsoft';
+  'https://localhost:4200/integrations/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/microsoft';
   private scope = 'https://ads.microsoft.com/msads.manage offline_access';
   private state = uuidv4();
 

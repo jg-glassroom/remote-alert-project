@@ -11,8 +11,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -20,7 +18,14 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-sign-in',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatSelectModule, MatCheckboxModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule
+  ],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css'
 })
@@ -77,7 +82,6 @@ export class SignInComponent {
     this.formGroup = this.formBuilder.group({
       username: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
       language: this.registration ? new FormControl("en", Validators.required) : new FormControl(null),
-      role: this.registration ? new FormControl(this.registration ? "standard" : null, Validators.required) : new FormControl(null),
       email: new FormControl(null, [Validators.required, Validators.email]),
       confirmPassword: this.registration ? new FormControl(null, Validators.required) : new FormControl(null),
       password: this.registration ? new FormControl(null, [
@@ -121,10 +125,10 @@ export class SignInComponent {
     if (this.formGroup.valid) {
       const value = this.formGroup.value;
       if (this.registration) {
-        this.auth.signUp(value.email, value.password, value.username, value.language, "admin")
+        this.auth.signUp(value.email, value.password, value.username, value.language)
         .then(() => {
           this.toaster.success("Account successfully created", "Success");
-          this.toggleRegistration();
+          this.router.navigate(['/accounts']);
         })
         .catch((error) => {
             this.errorMessage = error.message || 'An unexpected error occurred.';
@@ -155,7 +159,7 @@ export class SignInComponent {
         } else {
           this.auth.emailPasswordSignIn(value.email, value.password)
           .then(() => {
-            this.router.navigate(['/home']);
+            this.router.navigate(['/accounts']);
           })
           .catch((error) => {
             this.errorMessage = error.message || 'An unexpected error occurred.';

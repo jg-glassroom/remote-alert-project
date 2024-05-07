@@ -1,0 +1,83 @@
+<div class="title">
+    <h1>Platforms integration</h1>
+</div>
+
+<div class="container">
+    <mat-card class="platform-card">
+        <mat-card-content class="mat-card-content">
+            <img src="../../../assets/google-logo.png" alt="Google logo" class="logo">
+            <div class="bottom">
+                <mat-accordion class="mat-elevation-z0">
+                    <mat-expansion-panel hideToggle>
+                        <mat-expansion-panel-header>
+                            <mat-panel-description>
+                                <div class="status-group">
+                                    <span class="status">Status:</span>
+                                    <mat-icon style="color: green;" *ngIf="commonService.isConnected('google')">check</mat-icon>
+                                    <mat-icon style="color: red;" *ngIf="!commonService.isConnected('google')">close</mat-icon>
+                                </div>
+                            </mat-panel-description>
+                        </mat-expansion-panel-header>
+                        <div class="google-scope" *ngIf="commonService.isConnected('google')">
+                            <div>
+                                <span class="status">Search Ads:</span>
+                                <mat-icon style="color: green;" *ngIf="googleService.searchAds">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!googleService.searchAds">close</mat-icon>
+                            </div>
+                            <div>
+                                <span class="status">Campaign Manager 360:</span>
+                                <mat-icon style="color: green;" *ngIf="googleService.CM360">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!googleService.CM360">close</mat-icon>
+                            </div>
+                            <div>
+                                <span class="status">Display & Video 360 Reports:</span>
+                                <mat-icon style="color: green;" *ngIf="googleService.DV360Metrics">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!googleService.DV360Metrics">close</mat-icon>
+                            </div>
+                            <div>
+                                <span class="status">Display & Video 360 Campaigns:</span>
+                                <mat-icon style="color: green;" *ngIf="googleService.DV360Config">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!googleService.DV360Config">close</mat-icon>
+                            </div>
+                            <div>
+                                <span class="status">Google Ads:</span>
+                                <mat-icon style="color: green;" *ngIf="googleService.googleAds">check</mat-icon>
+                                <mat-icon style="color: red;" *ngIf="!googleService.googleAds">close</mat-icon>
+                            </div>
+                        </div>
+                    </mat-expansion-panel>
+                </mat-accordion>
+                <button mat-raised-button color="primary" class="reconnect" (click)="googleService.googleConnect()" *ngIf="!commonService.isConnected('google')">Connect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="googleService.googleDisconnect()" *ngIf="commonService.isConnected('google')">Disconnect</button>
+            </div>                            
+        </mat-card-content>
+    </mat-card>
+    <mat-card class="platform-card">
+        <mat-card-content class="mat-card-content">
+            <img src="../../../assets/facebook-logo.png" alt="Facebook logo" class="logo">
+            <div class="bottom">
+                <div class="status-group">
+                    <span class="status">Status:</span>
+                    <mat-icon style="color: green;" *ngIf="commonService.isConnected('facebook')">check</mat-icon>
+                    <mat-icon style="color: red;" *ngIf="!commonService.isConnected('facebook')">close</mat-icon>
+                </div>
+                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookConnect()" *ngIf="!commonService.isConnected('facebook')">Connect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookDisconnect()" *ngIf="commonService.isConnected('facebook')">Disconnect</button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+    <mat-card class="platform-card">
+        <mat-card-content class="mat-card-content">
+            <img src="../../../assets/bing-logo.png" alt="Bing logo" class="logo">
+            <div class="bottom">
+                <div class="status-group">
+                    <span class="status">Status:</span>
+                    <mat-icon style="color: green;" *ngIf="commonService.isConnected('bing')">check</mat-icon>
+                    <mat-icon style="color: red;" *ngIf="!commonService.isConnected('bing')">close</mat-icon>
+                </div>
+                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingConnect()" *ngIf="!commonService.isConnected('bing')">Connect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingDisconnect()" *ngIf="commonService.isConnected('bing')">Disconnect</button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

@@ -4,22 +4,23 @@ import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { deleteField } from "firebase/firestore";
  
-import { AuthService } from '../../services/auth.service';
-import { ExternalPlatformsService } from '../../services/external-platforms.service';
-import { CommonService } from '../../services/common/common.service';
-import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
-import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
-import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
-import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AuthService } from '../../../services/auth.service';
+import { ExternalPlatformsService } from '../../../services/external-platforms.service';
+import { CommonService } from '../../../services/common/common.service';
+import { DV360ReportService } from '../../../services/reports/dv360/dv360-report.service';
+import { FacebookReportService } from '../../../services/reports/facebook/facebook-report.service';
+import { GoogleAdsReportService } from '../../../services/reports/google-ads/google-ads-report.service';
+import { BingReportService } from '../../../services/reports/bing/bing-report.service';
 
-import { Dv360FormComponent } from '../dv360-form/dv360-form.component';
-import { FacebookFormComponent } from '../facebook-form/facebook-form.component';
-import { GoogleAdsFormComponent } from '../google-ads-form/google-ads-form.component';
-import { BingFormComponent } from '../bing-form/bing-form.component';
+import { Dv360FormComponent } from '../platforms/dv360-form/dv360-form.component';
+import { FacebookFormComponent } from '../platforms/facebook-form/facebook-form.component';
+import { GoogleAdsFormComponent } from '../platforms/google-ads-form/google-ads-form.component';
+import { BingFormComponent } from '../platforms/bing-form/bing-form.component';
 
 import { ToastrService } from 'ngx-toastr';
 
-import { of } from 'rxjs';
+import { of, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,6 +29,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 
 @Component({
@@ -42,6 +44,7 @@ import { MatInputModule } from '@angular/material/input';
     MatSelectModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatAutocompleteModule,
     MatTabsModule,
     Dv360FormComponent,
     FacebookFormComponent,
@@ -59,6 +62,7 @@ export class DialogComponent {
 
   formGroup = new FormGroup({
     campaignName: new FormControl('', Validators.required),
+    subaccount: new FormControl(null),
   });
 
   submitted: boolean = false;
@@ -70,10 +74,12 @@ export class DialogComponent {
   tabs: any = [{name: 'New platform', value: 'new'}];
   selectedTab = new FormControl(0);
   tabErrors: boolean[] = [];
+  subaccounts: any = [];
+  filteredSubaccounts!: Observable<any[]>;
 
   constructor(
     private dialogRef: MatDialogRef<DialogComponent>,
-    public auth: AuthService,
+    public authService: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private DV360ReportService: DV360ReportService,
@@ -81,12 +87,13 @@ export class DialogComponent {
     private facebookReportService: FacebookReportService,
     private googleAdsReportService: GoogleAdsReportService,
     private bingReportService: BingReportService,
-    public platformsCommon: CommonService,
+    public commonService: CommonService,
     private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
       this.formGroup.get('campaignName')!.setValue(data.campaignName);
+      this.formGroup.get('subaccount')!.setValue(data.subaccount);
       this.documentId = data.id;
       this.tabs = []
       if (data && data.platforms) {
@@ -106,18 +113,80 @@ export class DialogComponent {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.getSubaccounts().then(() => {
+      this.filteredSubaccounts = this.formGroup.get('subaccount')!.valueChanges.pipe(
+        startWith(''),
+        map((value: any) => {
+          if (!value) {
+            return '';
+          }
+          return typeof value === 'string' ? value : value.name;
+        }),
+        map(name => name ? this._filterSubaccounts(name) : this.subaccounts.slice())
+      );
+    });
+  }
+
+  private _filterSubaccounts(value: string): any[] {
+    const filterValue = value.toLowerCase();
+    return this.subaccounts ? this.subaccounts.filter((subaccount: any) => subaccount.name.toLowerCase().includes(filterValue)) : [];
+  }
+
+  displayFn(subaccount: any): string {
+    return subaccount && subaccount.name ? subaccount.name : '';
+  }
+
+  addSubaccount() {
+    const subaccountName: any = this.formGroup.get('subaccount')!.value;
+    if (subaccountName !== null && subaccountName.trim() !== '') {
+      const newSubaccount: any = { name: this.formGroup.get('subaccount')!.value, accountId: this.commonService.selectedAccountId };
+      if (newSubaccount && !this.subaccounts.some((sub: any) => sub.name === newSubaccount.name)) {
+        this.db.collection('subaccount').add(newSubaccount).then((docRef) => {
+          this.subaccounts.push({ id: docRef.id, ...newSubaccount });
+          this.formGroup.get('subaccount')!.setValue({ id: docRef.id, ...newSubaccount });
+        }).catch(() => {
+          this.toaster.error('Failed to add subaccount', 'Error');
+        });
+      }
+    }
+  }
+
+  async getSubaccounts() {
+    return new Promise<void>((resolve, reject) => {
+      this.subaccounts = [];
+      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.commonService.selectedAccountId)).get().subscribe(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          const subaccount = {
+            id: doc.id,
+            ...doc.data() as any
+          };
+          this.subaccounts.push(subaccount);
+        });
+        resolve();
+      }, error => {
+        reject(error);
+      });
+    });
+  }  
 
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
   };
-  
+
   onSubmit(execute: boolean = false) {
     let allFormData: any = {
       campaignName: this.formGroup.get('campaignName')!.value,
+      subaccount: this.formGroup.get('subaccount')!.value,
+      accountId: this.commonService.selectedAccountId,
     };
-    this.platformsCommon.validateAllFormFields(this.formGroup);
-    let platforms: any = [];
+    this.authService.user$.subscribe(user => {
+      if (user) {
+        allFormData.userId = user.uid;
+      }
+    });
+    this.commonService.validateAllFormFields(this.formGroup);
+    let platforms: any[] = [];
     let doSubmit = true;
 
     if (this.formGroup.get('campaignName')!.value === '') {
@@ -138,13 +207,7 @@ export class DialogComponent {
     this.dv360Forms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        allFormData = {
-          ...formData,
-          ...allFormData,
-        };
-        if (!platforms.includes('dv360')) {
-          platforms.push('dv360');
-        }
+        platforms.push({ platform: 'dv360', formData: formData });
       } else {
         doSubmit = false;
         this.toaster.error('A DV360 form is not valid');
@@ -154,13 +217,7 @@ export class DialogComponent {
     this.facebookForms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        allFormData = {
-          ...formData,
-          ...allFormData,
-        };
-        if (!platforms.includes('facebook')) {
-          platforms.push('facebook');
-        }
+        platforms.push({ platform: 'facebook', formData: formData });
       } else {
         doSubmit = false;
         this.toaster.error('A Facebook form is not valid');
@@ -170,13 +227,7 @@ export class DialogComponent {
     this.googleAdsForms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        allFormData = {
-          ...formData,
-          ...allFormData,
-        };
-        if (!platforms.includes('googleAds')) {
-          platforms.push('googleAds');
-        }
+        platforms.push({ platform: 'googleAds', formData: formData });
       } else {
         doSubmit = false;
         this.toaster.error('A Google Ads form is not valid');
@@ -186,13 +237,7 @@ export class DialogComponent {
     this.bingForms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        allFormData = {
-          ...formData,
-          ...allFormData,
-        };
-        if (!platforms.includes('bing')) {
-          platforms.push('bing');
-        }
+        platforms.push({ platform: 'bing', formData: formData });
       } else {
         doSubmit = false;
         this.toaster.error('A Bing form is not valid');
@@ -209,62 +254,79 @@ export class DialogComponent {
     return of(null);
   }
 
-  prepareUpdateData(platforms: any, allFormData: any) {
+  prepareUpdateData(platforms: any[], allFormData: any) {
     let dataToUpdate: any = allFormData;
 
-    if (!platforms.includes('googleAds')) {
-      dataToUpdate.googleAdsAccount = deleteField();
-      dataToUpdate.googleAdsBudget = deleteField();
-      dataToUpdate.googleAdsCampaign = deleteField();
-      dataToUpdate.googleAdsEndDate = deleteField();
-      dataToUpdate.googleAdsPlatform = deleteField();
-      dataToUpdate.googleAdsStartDate = deleteField();
-    }
-
-    if (!platforms.includes('dv360')) {
-      dataToUpdate.dv360Advertiser = deleteField();
-      dataToUpdate.dv360Budget = deleteField();
-      dataToUpdate.dv360CampaignId = deleteField();
-      dataToUpdate.dv360EndDate = deleteField();
-      dataToUpdate.dv360Partner = deleteField();
-      dataToUpdate.dv360Platform = deleteField();
-      dataToUpdate.dv360StartDate = deleteField();
-    }
-
-    if (!platforms.includes('facebook')) {
-      dataToUpdate.facebookAdAccount = deleteField();
-      dataToUpdate.facebookBudget = deleteField();
-      dataToUpdate.facebookCampaign = deleteField();
-      dataToUpdate.facebookEndDate = deleteField();
-      dataToUpdate.facebookPlatform = deleteField();
-      dataToUpdate.facebookStartDate = deleteField();
-    }
-
-    if (!platforms.includes('bing')) {
-    }
-
+    platforms.forEach(platformData => {
+      const platform = platformData.platform;
+      
+      switch(platform) {
+        case 'googleAds':
+          if (!platforms.includes(platform)) {
+            dataToUpdate.googleAdsAccount = deleteField();
+            dataToUpdate.googleAdsBudget = deleteField();
+            dataToUpdate.googleAdsCampaign = deleteField();
+            dataToUpdate.googleAdsEndDate = deleteField();
+            dataToUpdate.googleAdsPlatform = deleteField();
+            dataToUpdate.googleAdsStartDate = deleteField();
+          }
+          break;
+        case 'dv360':
+          if (!platforms.includes(platform)) {
+            dataToUpdate.dv360Advertiser = deleteField();
+            dataToUpdate.dv360Budget = deleteField();
+            dataToUpdate.dv360CampaignId = deleteField();
+            dataToUpdate.dv360EndDate = deleteField();
+            dataToUpdate.dv360Partner = deleteField();
+            dataToUpdate.dv360Platform = deleteField();
+            dataToUpdate.dv360StartDate = deleteField();
+          }
+          break;
+        case 'facebook':
+          if (!platforms.includes(platform)) {
+            dataToUpdate.facebookAdAccount = deleteField();
+            dataToUpdate.facebookBudget = deleteField();
+            dataToUpdate.facebookCampaign = deleteField();
+            dataToUpdate.facebookEndDate = deleteField();
+            dataToUpdate.facebookPlatform = deleteField();
+            dataToUpdate.facebookStartDate = deleteField();
+          }
+          break;
+        case 'bing':
+          if (!platforms.includes(platform)) {
+            dataToUpdate.bingAccount = deleteField();
+            dataToUpdate.bingBudget = deleteField();
+            dataToUpdate.bingCampaign = deleteField();
+            dataToUpdate.bingEndDate = deleteField();
+            dataToUpdate.bingPlatform = deleteField();
+            dataToUpdate.bingStartDate = deleteField();
+          }
+          break;
+      }
+    });
     return dataToUpdate;
   }
 
-  async saveData(execute: boolean = false, platforms: any = [], allFormData: any) {
+  async saveData(execute: boolean = false, platforms: any[] = [], allFormData: any) {
     if (this.isEditMode && this.documentId) {
       const updateData = this.prepareUpdateData(platforms, allFormData);
 
       return this.db.collection('userSearch').doc(this.documentId).update(updateData).then(() => {
         this.toaster.success('Alert rule updated successfully', 'Success');
         if (execute) {
-          if (platforms.includes('dv360')) {
-            this.DV360ReportService.processReport({ id: this.documentId, ...updateData });
-          }
-          if (platforms.includes('facebook')) {
-            this.facebookReportService.processReport({ id: this.documentId, ...updateData });
-          }
-          if (platforms.includes('googleAds')) {
-            this.googleAdsReportService.processReport({ id: this.documentId, ...updateData });
-          }
-          if (platforms.includes('bing')) {
-            this.bingReportService.processReport({ id: this.documentId, ...updateData });
-          }
+          platforms.forEach(platformData => {
+            const platform = platformData.platform;
+            const data = updateData[platform];
+            if (platform === 'dv360') {
+              this.DV360ReportService.processReport({ id: this.documentId, ...data });
+            } else if (platform === 'facebook') {
+              this.facebookReportService.processReport({ id: this.documentId, ...data });
+            } else if (platform === 'googleAds') {
+              this.googleAdsReportService.processReport({ id: this.documentId, ...data });
+            } else if (platform === 'bing') {
+              this.bingReportService.processReport({ id: this.documentId, ...data });
+            }
+          });
         }
         localStorage.removeItem('partners');
         localStorage.removeItem('selectedPartner');
@@ -279,18 +341,19 @@ export class DialogComponent {
             this.toaster.success('Alert rule created and executed successfully', 'Success');
             let data: any = doc.data();
             data.id = docRef.id;
-            if (platforms.includes('dv360')) {
-              this.DV360ReportService.processReport(data);
-            }
-            if (platforms.includes('facebook')) {
-              this.facebookReportService.processReport(data);
-            }
-            if (platforms.includes('googleAds')) {
-              this.googleAdsReportService.processReport(data);
-            }
-            if (platforms.includes('bing')) {
-              this.bingReportService.processReport(data);
-            }
+            platforms.forEach(platformData => {
+              const platform = platformData.platform;
+              const data = allFormData.platforms[platform];
+              if (platform === 'dv360') {
+                this.DV360ReportService.processReport(data);
+              } else if (platform === 'facebook') {
+                this.facebookReportService.processReport(data);
+              } else if (platform === 'googleAds') {
+                this.googleAdsReportService.processReport(data);
+              } else if (platform === 'bing') {
+                this.bingReportService.processReport(data);
+              }
+            });
           } else {
             this.toaster.success('Alert rule created successfully', 'Success');
           }
@@ -306,13 +369,6 @@ export class DialogComponent {
 
   onCancel(): void {
     this.dialogRef.close();
-  }
-
-  refreshData() {
-    this.dv360Forms.forEach(form => form.refreshData());
-    this.facebookForms.forEach(form => form.refreshData());
-    this.googleAdsForms.forEach(form => form.refreshData());
-    this.bingForms.forEach(form => form.refreshData());
   }
 
   addTab() {
@@ -342,14 +398,6 @@ export class DialogComponent {
     };
     this.selectPlatforms.push(platform);
     this.tabs[index] = ({ name: platforms[platform], value: platform });
-  }
-
-  get showAddTabButton(): boolean {
-    const hasDv360 = this.tabs.some((t: any) => t.value === 'dv360');
-    const hasFacebook = this.tabs.some((t: any) => t.value === 'facebook');
-    const hasGoogleAds = this.tabs.some((t: any) => t.value === 'googleAds');
-    const hasBing = this.tabs.some((t: any) => t.value === 'bing');
-    return !(hasDv360 && hasFacebook && hasGoogleAds && hasBing);
   }
 
   updateValidity() {

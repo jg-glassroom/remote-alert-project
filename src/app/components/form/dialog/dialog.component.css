@@ -30,24 +30,21 @@ form {
     align-self: flex-start;
 }
 
+.create-button {
+    min-height: 30px !important;
+    height: 35px !important;
+}
+
 .form-button, .header {
     margin-left: 10px;
 }
 
-.header, .refresh-button {
-    margin-top: 10px;
-}
-
-.refresh-button {
-    height: 20px;
-    margin-right: 10px;
-}
-
 .header {
+    margin-top: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 50%;
+    gap: 5%;
 }
 
 .loader-overlay {

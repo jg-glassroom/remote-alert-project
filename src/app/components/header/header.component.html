@@ -1,7 +1,7 @@
 <mat-toolbar>
     <button *ngIf="auth.user$ | async as user" mat-icon-button class="menu-button" (click)="sidemenu.toggle()"><mat-icon>menu</mat-icon></button>
-    <img class="link-home" (click)="router.navigate(['/home'])" src="../../assets/glassroom-logo.png"/>
-    <span class="link-home" (click)="router.navigate(['/home'])">Alert project</span>
+    <img class="link-home logo" src="../../assets/glassroom-logo.png"/>
+    <span class="link-home">Alert project</span>
     <span class="spacer"></span>
     <button *ngIf="auth.user$ | async as user" mat-icon-button class="profile-icon" aria-label="Profile button" (click)="router.navigate(['/profile'])">
         <mat-icon>account_circle</mat-icon>
@@ -11,19 +11,43 @@
     </button>
 </mat-toolbar>
 <mat-drawer-container autosize>
-    <mat-drawer #sidemenu opened="false" mode="over">
+    <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side">
         <mat-nav-list>
-            <mat-list-item (click)="navigate('home')">
+            <mat-list-item
+                (mouseenter)="openMenu(businessTrigger)" 
+                #businessTrigger="matMenuTrigger" 
+                [matMenuTriggerFor]="business"
+                >
                 <span class="list-item">
-                    <mat-icon class="menu-icon">home</mat-icon> Home
+                    <mat-icon class="menu-icon">business</mat-icon>
                 </span>
             </mat-list-item>
-            <mat-list-item (click)="navigate('alerts')">
+            <mat-list-item 
+                *ngIf="!isRouteAccounts()" 
+                (mouseenter)="openMenu(accountTrigger)" 
+                #accountTrigger="matMenuTrigger" 
+                [matMenuTriggerFor]="account"
+                >
                 <span class="list-item">
-                    <mat-icon class="menu-icon">error_outline</mat-icon> Alerts
+                    <mat-icon class="menu-icon">account_balance</mat-icon>
                 </span>
             </mat-list-item>
         </mat-nav-list>
+        <div class="bottom-list">
+            <hr>
+            <mat-nav-list>
+                <mat-list-item (click)="navigate('integrations')">
+                    <span class="list-item">
+                        <mat-icon class="menu-icon">integration_instructions</mat-icon>
+                    </span>
+                </mat-list-item>
+                <mat-list-item (click)="editElement($event)">
+                    <span class="list-item">
+                        <mat-icon class="menu-icon">settings</mat-icon>
+                    </span>
+                </mat-list-item>
+            </mat-nav-list>
+        </div>
     </mat-drawer>
     <mat-drawer-content>
         <div class="content">
@@ -31,3 +55,28 @@
         </div>
     </mat-drawer-content>
 </mat-drawer-container>
+
+<mat-menu #business="matMenu">
+    <button 
+    mat-menu-item 
+    *ngFor="let business of businesses" 
+    [class.selected]="business.id === commonService.selectedBusinessId"
+    (click)="selectBusiness(business)" 
+    class="list">
+        {{business.name}}
+    </button>
+    <button mat-menu-item (click)="openBusinessDialog()">
+        <mat-icon class="add">add</mat-icon>Manager
+    </button>
+</mat-menu>
+
+<mat-menu #account="matMenu">
+    <button 
+    mat-menu-item 
+    *ngFor="let account of accounts" 
+    [class.selected]="account.id === commonService.selectedAccountId"
+    (click)="selectAccount(account)"
+    class="list">
+        {{account.name}}
+    </button>
+</mat-menu>

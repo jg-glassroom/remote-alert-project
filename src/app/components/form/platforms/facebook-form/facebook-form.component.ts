@@ -21,9 +21,9 @@ import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 
 import { ToastrService } from 'ngx-toastr';
 
-import { AuthService } from '../../services/auth.service';
-import { ExternalPlatformsService } from '../../services/external-platforms.service';
-import { CommonService } from '../../services/common/common.service';
+import { AuthService } from '../../../../services/auth.service';
+import { ExternalPlatformsService } from '../../../../services/external-platforms.service';
+import { CommonService } from '../../../../services/common/common.service';
 import { getAuth } from '@angular/fire/auth';
 
 @Component({

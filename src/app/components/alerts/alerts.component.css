@@ -1,0 +1,80 @@
+.create-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+    margin-right: 20px;
+}
+
+.create {
+    text-align: center;
+}
+
+.subaccount-list {
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.subaccount-item {
+    display: flex;
+    flex-direction: column;
+    margin-right: auto;
+    width: 100%;
+    margin-bottom: 50px;
+}
+
+.subaccount {
+    font-weight: bold;
+    font-size: 20px;
+    margin-right: auto;
+    margin-bottom: 5px;
+}
+
+hr {
+    width: 100%;
+    border-bottom: 0;
+    border-left: 0;
+    border-right: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    padding-bottom: 10px;
+}
+
+mat-expansion-panel-header {
+    align-items: center;
+    height: auto !important;
+    min-height: 48px;
+}
+
+.header {
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-spacing: 10px;
+    overflow-x: auto;
+}
+
+th, td {
+    padding: 10px;
+    color: black;
+    text-align: center;
+}
+
+.cell {
+    font-weight: normal;
+    padding: 10px;
+    color: black;
+    text-align: center;
+}
+
+.subcell {
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.border-cell {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}

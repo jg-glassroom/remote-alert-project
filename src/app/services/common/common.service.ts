@@ -12,6 +12,8 @@ import { startWith, map, switchMap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class CommonService {
+  selectedAccountId: string | null = null;
+  selectedBusinessId: string | null = null;
 
   constructor() { }
 
@@ -186,5 +188,17 @@ export class CommonService {
       control.markAsTouched({ onlySelf: true });
       control.updateValueAndValidity();
     });
+  }
+
+  isConnected(platform: string) {
+    if (platform === 'google') {
+      return !!localStorage.getItem('googleAccessToken');
+    } else if (platform === 'facebook') {
+      return !!localStorage.getItem('facebookAccessToken');
+    } else if (platform === 'bing') {
+      return !!localStorage.getItem('microsoftAccessToken');
+    } else {
+      return false;
+    }
   }
 }

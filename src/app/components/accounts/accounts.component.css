@@ -1,0 +1,57 @@
+.create-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+    margin-right: 20px;
+}
+
+.create {
+    text-align: center;
+}
+
+mat-icon {
+    font-weight: bold;
+}
+
+mat-card {
+    margin-right: 20px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.info-alerts-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+.title {
+    cursor: pointer;
+}
+
+.alerts {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-left: 10px;
+}
+
+.delete {
+    margin-left: 10px;
+}
+
+.icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-left: solid 1.5px rgba(0, 0, 0, 0.3);
+}

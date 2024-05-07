@@ -1,0 +1,39 @@
+<form [formGroup]="formGroup" class="form">
+    <h1>{{ isEditMode ? 'Edit ' + originalData.name : 'Create business'}}</h1>
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="form-element">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name">
+            <mat-error *ngIf="formGroup.get('name')?.errors?.['required']">
+                Name is required.
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-element">
+            <mat-label>Website</mat-label>
+            <input matInput formControlName="website">
+        </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="form-element">
+            <input type="text" placeholder="Select your country" formControlName="country" aria-label="country" matInput [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete">
+                <mat-option *ngFor="let country of countries$ | async" [value]="country">
+                    <span>{{ country.name }}</span>
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-element">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description"></textarea>
+        </mat-form-field>
+    </div>
+
+    <div class="form-element footer">
+      <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="saveBusiness()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
+      &nbsp;
+      <button mat-raised-button class="button" *ngIf="!disableCancel" (click)="onCancel()">Cancel</button>
+    </div>
+</form>
