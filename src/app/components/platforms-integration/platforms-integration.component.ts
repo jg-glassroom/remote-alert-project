@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
@@ -13,9 +13,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
 import { BingService } from '../../services/platforms/bing/bing.service';
-import { CommonService
+import { CommonService } from '../../services/common/common.service';
 
- } from '../../services/common/common.service';
+import { ToastrService } from 'ngx-toastr';
+
 import { getAuth } from 'firebase/auth';
 import { firstValueFrom } from 'rxjs';
 
@@ -34,6 +35,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './platforms-integration.component.css'
 })
 export class PlatformsIntegrationComponent {
+  toaster = inject(ToastrService);
 
   constructor(
     private route: ActivatedRoute,
@@ -82,6 +84,7 @@ export class PlatformsIntegrationComponent {
       });
       localStorage.setItem('microsoftAccessToken', result.access_token);
       history.replaceState(null, '', window.location.pathname);
+      this.toaster.success('Microsoft account connected successfully');
     } catch (error) {
       console.error('Error calling cloud function', error);
     }
@@ -101,6 +104,7 @@ export class PlatformsIntegrationComponent {
       this.googleService.getGoogleScopes();
       localStorage.setItem('googleAccessToken', result.access_token);
       history.replaceState(null, '', window.location.pathname);
+      this.toaster.success('Google account connected successfully');
     } catch (error) {
       console.error('Error calling cloud function', error);
     }

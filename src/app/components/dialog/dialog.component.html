@@ -43,7 +43,7 @@
             </span>
           </div>
         </ng-template>
-        <app-dv360-form #dv360Form (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-dv360-form>
+        <app-dv360-form #dv360Form (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-dv360-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'facebook'">
         <ng-template mat-tab-label>
@@ -55,7 +55,7 @@
             </span>
           </div>
         </ng-template>
-        <app-facebook-form #facebookForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-facebook-form>
+        <app-facebook-form #facebookForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-facebook-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'googleAds'">
         <ng-template mat-tab-label>
@@ -67,7 +67,7 @@
             </span>
           </div>
         </ng-template>
-        <app-google-ads-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-google-ads-form>
+        <app-google-ads-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-google-ads-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'bing'">
         <ng-template mat-tab-label>
@@ -79,7 +79,7 @@
             </span>
           </div>
         </ng-template>
-        <app-bing-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [disabledPlatforms]="selectPlatforms"></app-bing-form>
+        <app-bing-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-bing-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
         <ng-template mat-tab-label>
@@ -109,12 +109,12 @@
   </mat-tab-group>
 
   <div class="form-element footer">
-    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
+    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">{{ isEditMode ? 'Edit' : 'Save' }}</button>
     &nbsp;
     <ng-container *ngIf="!isEditMode">
-        <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)">Save & execute</button>
+        <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)" type="button">Save & execute</button>
         &nbsp;
     </ng-container>
-    <button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
+    <button mat-raised-button class="button" (click)="onCancel()" type="button">Cancel</button>
   </div>
 </form>

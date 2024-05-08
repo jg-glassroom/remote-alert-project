@@ -78,7 +78,7 @@ export class ExternalPlatformsService {
     const currentUser = auth.currentUser;
     const hostname = window.location.hostname;
     const redirectUri = hostname === "localhost" ? 
-    'https://localhost:4200/profile/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/profile/microsoft';
+    'https://localhost:4200/integrations/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/microsoft';
   
     if (!currentUser) {
       console.error('User not logged in');

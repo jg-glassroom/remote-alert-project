@@ -48,7 +48,7 @@ import { getAuth } from '@angular/fire/auth';
 })
 export class GoogleAdsFormComponent {
   @Output() platformChange = new EventEmitter<string>();
-  @Input() disabledPlatforms!: string[];
+  @Input() platformIndex: number = 0;
 
   formGroup!: FormGroup;
   submitted: boolean = false;
@@ -89,6 +89,9 @@ export class GoogleAdsFormComponent {
   }
 
   async ngOnInit() {
+    if (this.isEditMode) {
+      this.data = this.data.platforms[this.platformIndex].formData;
+    }
     this.createForm();
     await this.getAdAccounts();
   }

@@ -97,17 +97,20 @@ export class DialogComponent {
       this.documentId = data.id;
       this.tabs = []
       if (data && data.platforms) {
-        this.selectPlatforms = data.platforms;
+        this.selectPlatforms = data.platforms.map((platformData: any, index: number) => ({
+          platform: platformData.platform,
+          index: index
+        }));
       }
       this.selectPlatforms.forEach((platform: any) => {
-        if (platform === 'dv360') {
-          this.tabs.push({ name: 'Display & Video 360', value: platform });
-        } else if (platform === 'facebook') {
-          this.tabs.push({ name: 'Facebook', value: platform });
-        } else if (platform === 'googleAds') {
-          this.tabs.push({ name: 'Google Ads', value: platform });
-        } else if (platform === 'bing') {
-          this.tabs.push({ name: 'Bing', value: platform });
+        if (platform.platform === 'dv360') {
+          this.tabs.push({ name: 'Display & Video 360', value: platform.platform, index: platform.index });
+        } else if (platform.platform === 'facebook') {
+          this.tabs.push({ name: 'Facebook', value: platform.platform, index: platform.index });
+        } else if (platform.platform === 'googleAds') {
+          this.tabs.push({ name: 'Google Ads', value: platform.platform, index: platform.index });
+        } else if (platform.platform === 'bing') {
+          this.tabs.push({ name: 'Bing', value: platform.platform, index: platform.index });
         }
       });
     }

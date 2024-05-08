@@ -27,17 +27,21 @@
 .subaccount {
     font-weight: bold;
     font-size: 20px;
-    margin-right: auto;
-    margin-bottom: 5px;
 }
 
-hr {
-    width: 100%;
-    border-bottom: 0;
-    border-left: 0;
-    border-right: 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
-    padding-bottom: 10px;
+.subaccount-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.subaccount-button {
+    margin-bottom: 10px;
+}
+
+mat-divider {
+    margin-bottom: 20px;
 }
 
 mat-expansion-panel-header {
@@ -77,4 +81,33 @@ th, td {
 
 .border-cell {
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.panel-header {
+    position: relative;
+}
+
+.panel-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.icons {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-right: 20px;
+    padding-left: 20px;
+    height: 100%;
+    width: auto;
+    align-items: center;
+    justify-content: flex-end;
+    background-color: rgb(164, 164, 164);
+    flex-direction: row;
+}
+
+mat-accordion:hover .icons {
+    display: flex;
 }

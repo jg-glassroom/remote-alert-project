@@ -6,9 +6,20 @@
 
 <div *ngIf="subaccounts.length > 0" class="subaccount-list">
     <div *ngFor="let subaccount of subaccounts" class="subaccount-item">
-        <span class="subaccount">{{ subaccount.name }}</span>
-        <hr>
-        <mat-expansion-panel disabled>
+        <div class="subaccount-header">
+            <span class="subaccount">{{ subaccount.name }}</span>
+            <span class="subaccount-button">
+                <button mat-stroked-button (click)="editSubaccount(subaccount)" *ngIf="subaccount.id">
+                    Edit
+                </button>
+                &nbsp;
+                <button mat-stroked-button (click)="deleteSubaccount(subaccount)" *ngIf="subaccount.id">
+                    Delete
+                </button>
+            </span>
+        </div>
+        <mat-divider></mat-divider>
+        <mat-expansion-panel disabled *ngIf="getFilteredAlerts(subaccount.id).length > 0">
             <mat-expansion-panel-header>
                 <table>
                     <td>Name</td>
@@ -22,7 +33,7 @@
 
         <mat-accordion *ngFor="let pacingAlert of getFilteredAlerts(subaccount.id)" hideToggle>
             <mat-expansion-panel>
-                <mat-expansion-panel-header>
+                <mat-expansion-panel-header class="panel-header">
                     <table>
                         <tr>
                             <td [attr.rowspan]="pacingAlert.platforms.length * 3 + 1" class="cell">
@@ -39,6 +50,17 @@
                             </tr>
                         </ng-container>
                     </table>
+                    <div class="icons">
+                        <button mat-icon-button (click)="editAlert(pacingAlert, $event)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button class="icon" (click)="deleteAlert(pacingAlert, $event)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                        <button mat-icon-button class="icon">
+                            <mat-icon>play_arrow</mat-icon>
+                        </button>
+                    </div>
                 </mat-expansion-panel-header>
                 <div>
                     Détails de la campagne et plus...
@@ -49,7 +71,7 @@
 </div>
 
 <div *ngIf="subaccounts.length === 0" class="subaccount-list">
-    <mat-expansion-panel disabled>
+    <mat-expansion-panel disabled *ngIf="pacingAlerts.length > 0">
         <mat-expansion-panel-header>
             <table>
                 <td>Name</td>
@@ -63,7 +85,7 @@
 
     <mat-accordion *ngFor="let pacingAlert of pacingAlerts" hideToggle>
         <mat-expansion-panel>
-            <mat-expansion-panel-header>
+            <mat-expansion-panel-header class="panel-header">
                 <table>
                     <tr>
                         <td [attr.rowspan]="pacingAlert.platforms.length * 3 + 1" class="cell">
@@ -80,6 +102,11 @@
                         </tr>
                     </ng-container>
                 </table>
+                <div class="icons">
+                    <button mat-icon-button (click)="editAlert(pacingAlert, $event)"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button (click)="deleteAlert(pacingAlert, $event)"><mat-icon>delete</mat-icon></button>
+                    <button mat-icon-button><mat-icon>play_arrow</mat-icon></button>
+                </div>
             </mat-expansion-panel-header>
             <div>
                 Détails de la campagne et plus...

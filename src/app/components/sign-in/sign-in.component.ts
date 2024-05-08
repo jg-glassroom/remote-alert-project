@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { FormGroup, FormBuilder, ValidatorFn, Validators, FormControl, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
+import { CommonService } from '../../services/common/common.service';
 
 import { sendPasswordResetEmail, getAuth, fetchSignInMethodsForEmail } from 'firebase/auth';
 
@@ -38,7 +39,12 @@ export class SignInComponent {
   showForgotPassword: boolean = false;
   toaster = inject(ToastrService);
 
-  constructor(public auth: AuthService, private formBuilder: FormBuilder, private router: Router) {
+  constructor(
+    public auth: AuthService,
+    private formBuilder: FormBuilder,
+    private router: Router,
+    private commonService: CommonService
+  ) {
     this.createForm();
   }
 
@@ -159,7 +165,11 @@ export class SignInComponent {
         } else {
           this.auth.emailPasswordSignIn(value.email, value.password)
           .then(() => {
-            this.router.navigate(['/accounts']);
+            if (this.commonService.selectedAccountId) {
+              this.router.navigate(['/alerts', this.commonService.selectedAccountId]);
+            } else {
+              this.router.navigate(['/accounts']);
+            }
           })
           .catch((error) => {
             this.errorMessage = error.message || 'An unexpected error occurred.';

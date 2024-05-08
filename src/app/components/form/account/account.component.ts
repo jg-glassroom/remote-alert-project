@@ -113,7 +113,7 @@ export class AccountComponent {
     ).subscribe();
   }
   
-  updateBusinessAccount(businessId: string, accountId: string) {
+  async updateBusinessAccount(businessId: string, accountId: string) {
     return this.db.collection('business').doc(businessId).update({
       accounts: arrayUnion(accountId)
     }).then(() => {

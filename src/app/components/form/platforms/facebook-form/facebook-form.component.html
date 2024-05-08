@@ -7,10 +7,10 @@
         <mat-form-field class="form-element">
             <mat-label>Platform</mat-label>
             <mat-select formControlName="facebookPlatform" (selectionChange)="changePlatform($event.value)">
-                <mat-option value="dv360" [disabled]="disabledPlatforms.includes('dv360')">Display & Video 360</mat-option>
+                <mat-option value="dv360">Display & Video 360</mat-option>
                 <mat-option value="facebook" disabled>Facebook</mat-option>
-                <mat-option value="googleAds" [disabled]="disabledPlatforms.includes('googleAds')">Google Ads</mat-option>
-                <mat-option value="bing" [disabled]="disabledPlatforms.includes('bing')">Bing</mat-option>
+                <mat-option value="googleAds">Google Ads</mat-option>
+                <mat-option value="bing">Bing</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['facebookPlatform'].touched) && form['facebookPlatform'].invalid">
             The field is required
