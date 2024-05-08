@@ -1,0 +1,18 @@
+<form [formGroup]="formGroup" class="form">
+    <h1>{{ 'Edit ' + originalData.name}}</h1>
+    <div class="form-row">
+        <mat-form-field appearance="outline" class="form-element">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name">
+            <mat-error *ngIf="formGroup.get('name')?.errors?.['required']">
+                Name is required.
+            </mat-error>
+        </mat-form-field>
+    </div>
+
+    <div class="form-element">
+      <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="saveSubaccount()">Edit</button>
+      &nbsp;
+      <button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
+    </div>
+</form>
