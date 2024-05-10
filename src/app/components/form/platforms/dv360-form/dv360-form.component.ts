@@ -104,7 +104,7 @@ export class Dv360FormComponent {
   }
 
   async ngOnInit() {
-    if (this.isEditMode) {
+    if (this.isEditMode && this.data.platforms[this.platformIndex]) {
       this.data = this.data.platforms[this.platformIndex].formData;
     }
     this.createForm();
