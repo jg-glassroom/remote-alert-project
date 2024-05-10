@@ -7,6 +7,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { firstValueFrom } from 'rxjs';
 
 import { ExternalPlatformsService } from '../../external-platforms.service';
+import { CommonService } from '../../common/common.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -26,7 +27,8 @@ export class GoogleAdsReportService {
     private fns: AngularFireFunctions,
     private db: AngularFirestore, 
     private http: HttpClient,
-    public externalPlatforms: ExternalPlatformsService
+    public externalPlatforms: ExternalPlatformsService,
+    private commonService: CommonService
   ) { }
 
   convertDateFormat(dateStr: string) {
@@ -75,6 +77,7 @@ export class GoogleAdsReportService {
 
       if (response && response.length > 0) {
         this.reportJson = response[0].results;
+        this.reportJson = this.aggregateCampaignData(this.reportJson);
       }
     } catch (error: any) {
       if (retryCount > 0) {
@@ -86,31 +89,73 @@ export class GoogleAdsReportService {
     }
   }
 
-  async processReport(campaign: any) {
+  aggregateCampaignData(data: any) {
+    const aggregatedData: any = {};
+
+    data.forEach((item: any) => {
+        const date = item.segments.date;
+
+        if (!moment(date, "YYYY-MM-DD", true).isValid()) {
+            return;
+        }
+
+        if (!aggregatedData[date]) {
+            aggregatedData[date] = {
+                "Date": date,
+                "Campaign IDs": new Set(),
+                "Campaign Names": new Set(),
+                "Clicks": 0,
+                "Cost": 0,
+                "Impressions": 0
+            };
+        }
+
+        const entry = aggregatedData[date];
+        entry["Campaign IDs"].add(item.campaign.id);
+        entry["Campaign Names"].add(item.campaign.name);
+        entry.Clicks += parseInt(item.metrics.clicks) || 0;
+        entry.Cost += parseFloat(item.metrics.costMicros) / 1000000 || 0;
+        entry.Impressions += parseInt(item.metrics.impressions) || 0;
+    });
+
+    Object.values(aggregatedData).forEach((item: any) => {
+      item["Campaign IDs"] = Array.from(item["Campaign IDs"]);
+      item["Campaign Names"] = Array.from(item["Campaign Names"]);
+    });
+
+    return Object.values(aggregatedData);
+  }
+
+  async processReport(campaign: any, index: number) {
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
 
-      await this.getReport(campaign);
+      await this.getReport(campaign.platforms[index].formData);
       let reportToSave = {
         report: this.reportJson,
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
-        userId: userId
+        campaignId: campaign.id,
+        userId: userId,
+        platform: "googleAds"
       };
       this.db.collection('googleAdsReport').add(reportToSave);
 
-      const GoogleAdsPacingAlerts = this.fns.httpsCallable('GoogleAdsPacingAlerts');
+      const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
       if (this.reportJson) {
-        const GoogleAdsPacingAlerts$ = GoogleAdsPacingAlerts({
+        const AllPacingAlerts$ = AllPacingAlerts({
           userSearchId: userSearchId, 
           reportJson: this.reportJson, 
-          userId: userId
+          userId: userId,
+          platformIndex: index,
+          platform: "googleAds",
+          accountId: this.commonService.selectedAccountId
         });
 
         try {
-          await firstValueFrom(GoogleAdsPacingAlerts$);
+          await firstValueFrom(AllPacingAlerts$);
           this.resetReportVariables();
         } catch (error) {
           console.error('Error calling Firestore function: ', error);

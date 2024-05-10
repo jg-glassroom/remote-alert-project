@@ -48,6 +48,8 @@ mat-expansion-panel-header {
     align-items: center;
     height: auto !important;
     min-height: 48px;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .header {
@@ -73,10 +75,12 @@ th, td {
     padding: 10px;
     color: black;
     text-align: center;
+    overflow-x: scroll;
 }
 
 .subcell {
     border-left: 1px solid rgba(0, 0, 0, 0.2);
+    overflow-x: scroll;
 }
 
 .border-cell {
@@ -110,4 +114,8 @@ th, td {
 
 mat-accordion:hover .icons {
     display: flex;
+}
+
+.tooltip {
+    font-size: 15px;
 }

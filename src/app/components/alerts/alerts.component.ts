@@ -9,6 +9,11 @@ import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { SubaccountComponent } from '../form/subaccount/subaccount.component';
 
+import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
+import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
+import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
+import { BingReportService } from '../../services/reports/bing/bing-report.service';
+
 import { ToastrService } from 'ngx-toastr';
 
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 @Component({
@@ -27,7 +33,8 @@ import { MatDividerModule } from '@angular/material/divider';
     MatButtonModule,
     MatExpansionModule,
     MatTableModule,
-    MatDividerModule
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css'
@@ -37,7 +44,18 @@ export class AlertsComponent {
   public pacingAlerts: any[] = [];
   public subaccounts: any[] = [];
   private selectedAccountId: any = '';
-  displayedColumns: string[] = ['name', 'startDate', 'endDate', 'platforms', 'budget'];
+  displayedColumns: string[] = [
+    'name',
+    'startDate',
+    'endDate',
+    'platforms',
+    'budget',
+    'spend',
+    'estimatedSpend',
+    'overallPacing',
+    'pacing',
+    'spendPerDay'
+  ];
   headerColumns = [{
     name:'Campaign Name', startDate:'Start Date', endDate:'End Date', platforms:'Platforms', budget:'Budget'
   }];
@@ -52,7 +70,11 @@ export class AlertsComponent {
   constructor (
     private db: AngularFirestore, 
     private matDialog: MatDialog,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private DV360ReportService: DV360ReportService,
+    private facebookReportService: FacebookReportService,
+    private bingReportService: BingReportService,
+    private googleAdsReportService: GoogleAdsReportService
   ) {}
 
   ngOnInit() {
@@ -66,11 +88,11 @@ export class AlertsComponent {
   }
 
   async getData() {
-    await this.getSubaccounts();
     await this.getAlerts();
+    await this.getSubaccounts();
   }
 
-  getFilteredAlerts(subaccountId: string): any[] {
+  getFilteredAlerts(subaccountId: string | null): any[] {
     if (!subaccountId) {
       return this.pacingAlerts.filter(alert => !alert.subaccount).sort((a, b) => a.campaignName.localeCompare(b.campaignName));
     }
@@ -107,7 +129,7 @@ export class AlertsComponent {
           this.subaccounts.push(subaccount);
         });
         this.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
-        if (this.subaccounts.length > 0) {
+        if (this.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
           this.subaccounts.push({ id: null, name: 'Without Subaccounts' });
         }
         resolve();
@@ -138,7 +160,6 @@ export class AlertsComponent {
       if (result) {
         this.db.doc(`userSearch/${row.id}`).delete()
           .then(async () => {
-            this.toaster.success('Alert rule successfully deleted');
             await this.getData();
           })
           .catch(error => {
@@ -160,8 +181,10 @@ export class AlertsComponent {
       data: dataCopy
     });
   
-    dialogRef.afterClosed().subscribe(async () => {
-      await this.getData();
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        await this.getData();
+      }
     });
   }
 
@@ -183,7 +206,6 @@ export class AlertsComponent {
           batch.commit().then(() => {
             this.db.doc(`subaccount/${row.id}`).delete()
               .then(async () => {
-                this.toaster.success('Subaccount successfully deleted');
                 await this.getData();
               })
               .catch(error => {
@@ -207,8 +229,28 @@ export class AlertsComponent {
       data: dataCopy
     });
   
-    dialogRef.afterClosed().subscribe(async () => {
-      await this.getData();
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        await this.getData();
+      }
+    });
+  }
+
+  processReport(campaign: any, event: MouseEvent) {
+    event.stopPropagation();
+    campaign.platforms.forEach((platform: any, index: number) => {
+      if (platform.platform === 'dv360') {
+        this.DV360ReportService.processReport(campaign, index);
+      }
+      if (platform.platform === 'facebook') {
+        this.facebookReportService.processReport(campaign, index);
+      }
+      if (platform.platform === 'bing') {
+        this.bingReportService.processReport(campaign, index);
+      }
+      if (platform.platform === 'googleAds') {
+        this.googleAdsReportService.processReport(campaign, index);
+      }
     });
   }
 }

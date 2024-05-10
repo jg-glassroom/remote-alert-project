@@ -151,19 +151,7 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  processReport(campaign: any, event: MouseEvent) {
-    if (campaign.platforms.includes('dv360')) {
-      this.DV360ReportService.processReport(campaign, event);
-    }
-    if (campaign.platforms.includes('facebook')) {
-      this.facebookReportService.processReport(campaign);
-    }
-    if (campaign.platforms.includes('bing')) {
-      this.bingReportService.processReport(campaign);
-    }
-    if (campaign.platforms.includes('googleAds')) {
-      this.googleAdsReportService.processReport(campaign);
-    }
+  processReport(campaign: any) {
   }
 
   getButtonTopPosition(element: any): number {

@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
 import { ComponentType } from '@angular/cdk/overlay';
 
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { documentId } from 'firebase/firestore';
 
@@ -46,6 +47,7 @@ import { AccountComponent } from '../form/account/account.component';
 export class HeaderComponent {
   toaster = inject(ToastrService);
   isDialogOpen: boolean = false;
+  isAdmin: boolean = false;
   private destroy$ = new Subject<void>();
 
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
@@ -61,6 +63,7 @@ export class HeaderComponent {
     public commonService: CommonService,
     public router: Router,
     private db: AngularFirestore,
+    private afAuth: AngularFireAuth,
     private matDialog: MatDialog
   ) {}
 
@@ -192,7 +195,6 @@ export class HeaderComponent {
               this.router.navigate(['/accounts']);
               this.commonService.selectedBusinessId = business.id;
               this.commonService.selectedAccountId = null;
-              this.toaster.success('Business selection updated');
             })
             .catch(() => this.toaster.error('Failed to update business selection'));
           } else {
@@ -218,7 +220,6 @@ export class HeaderComponent {
             .then(() => {
               this.router.navigate(['/alerts', account.id]);
               this.commonService.selectedAccountId = account.id;
-              this.toaster.success('Account selection updated');
             })
             .catch(() => this.toaster.error('Failed to update account selection'));
           } else {
@@ -248,6 +249,7 @@ export class HeaderComponent {
         if (account) {
           await this.loadAccounts(user.uid);
         }
+        await this.getIsAdmin();
         return of([]);
       })
     ).subscribe();
@@ -281,5 +283,30 @@ export class HeaderComponent {
           }
         });
     }
+  }
+
+  async getIsAdmin(): Promise<any> {
+    return this.afAuth.currentUser.then(user => {
+      if (user) {
+        return this.db.collection('userRoles', ref => ref.where('userId', '==', user.uid))
+          .get()
+          .pipe(
+            map(querySnapshot => {
+              this.isAdmin = false;
+              querySnapshot.forEach(doc => {
+                const data: any = doc.data();
+                data.businessRoles?.forEach((role: any) => {
+                  if (role.businessId === this.commonService.selectedBusinessId && role.role === 'ADMIN') {
+                    this.isAdmin = true;
+                  }
+                });
+              });
+              return this.isAdmin;
+            })
+          ).toPromise();
+      } else {
+        return false;
+      }
+    });
   }
 }  

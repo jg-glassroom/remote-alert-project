@@ -13,6 +13,7 @@ import * as Papa from 'papaparse';
 import { firstValueFrom } from 'rxjs';
 
 import { ExternalPlatformsService } from '../../external-platforms.service';
+import { CommonService } from '../../common/common.service';
 
 
 @Injectable({
@@ -27,7 +28,8 @@ export class BingReportService {
   constructor(
     private fns: AngularFireFunctions,
     private db: AngularFirestore,
-    public externalPlatforms: ExternalPlatformsService
+    public externalPlatforms: ExternalPlatformsService,
+    private commonService: CommonService
   ) { }
 
   async generateReport(campaign: any, retryCount = 2): Promise<void> {
@@ -147,33 +149,37 @@ export class BingReportService {
     }
   }
 
-  async processReport(campaign: any) {
+  async processReport(campaign: any, index: number) {
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
 
-      await this.generateReport(campaign);
-      await this.getReportStatus(campaign);
-      await this.getReport(campaign);
+      await this.generateReport(campaign.platforms[index].formData);
+      await this.getReportStatus(campaign.platforms[index].formData);
+      await this.getReport(campaign.platforms[index].formData);
       let reportToSave = {
         report: this.reportJson,
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
+        campaignId: campaign.id,
         userId: userId
       };
       this.db.collection('bingReport').add(reportToSave);
 
-      const BingPacingAlerts = this.fns.httpsCallable('BingPacingAlerts');
+      const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
       if (this.reportJson) {
-        const BingPacingAlerts$ = BingPacingAlerts({
+        const AllPacingAlerts$ = AllPacingAlerts({
           userSearchId: userSearchId, 
           reportJson: this.reportJson, 
-          userId: userId
+          userId: userId,
+          platform: "bing",
+          platformIndex: index,
+          accountId: this.commonService.selectedAccountId
         });
 
         try {
-          await firstValueFrom(BingPacingAlerts$);
+          await firstValueFrom(AllPacingAlerts$);
           this.resetReportVariables();
         } catch (error) {
           console.error('Error calling Firestore function: ', error);

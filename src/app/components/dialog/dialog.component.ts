@@ -317,17 +317,18 @@ export class DialogComponent {
       return this.db.collection('userSearch').doc(this.documentId).update(updateData).then(() => {
         this.toaster.success('Alert rule updated successfully', 'Success');
         if (execute) {
-          platforms.forEach(platformData => {
+          platforms.forEach((platformData, index) => {
             const platform = platformData.platform;
             const data = updateData[platform];
+            console.log(data);
             if (platform === 'dv360') {
-              this.DV360ReportService.processReport({ id: this.documentId, ...data });
+              this.DV360ReportService.processReport({ id: this.documentId, ...data }, index);
             } else if (platform === 'facebook') {
-              this.facebookReportService.processReport({ id: this.documentId, ...data });
+              this.facebookReportService.processReport({ id: this.documentId, ...data }, index);
             } else if (platform === 'googleAds') {
-              this.googleAdsReportService.processReport({ id: this.documentId, ...data });
+              this.googleAdsReportService.processReport({ id: this.documentId, ...data }, index);
             } else if (platform === 'bing') {
-              this.bingReportService.processReport({ id: this.documentId, ...data });
+              this.bingReportService.processReport({ id: this.documentId, ...data }, index);
             }
           });
         }
@@ -344,17 +345,17 @@ export class DialogComponent {
             this.toaster.success('Alert rule created and executed successfully', 'Success');
             let data: any = doc.data();
             data.id = docRef.id;
-            platforms.forEach(platformData => {
+            allFormData.id = docRef.id;
+            platforms.forEach((platformData, index) => {
               const platform = platformData.platform;
-              const data = allFormData.platforms[platform];
               if (platform === 'dv360') {
-                this.DV360ReportService.processReport(data);
+                this.DV360ReportService.processReport(allFormData, index);
               } else if (platform === 'facebook') {
-                this.facebookReportService.processReport(data);
+                this.facebookReportService.processReport(allFormData, index);
               } else if (platform === 'googleAds') {
-                this.googleAdsReportService.processReport(data);
+                this.googleAdsReportService.processReport(allFormData, index);
               } else if (platform === 'bing') {
-                this.bingReportService.processReport(data);
+                this.bingReportService.processReport(allFormData, index);
               }
             });
           } else {

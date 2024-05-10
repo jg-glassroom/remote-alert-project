@@ -90,7 +90,7 @@
         <button mat-icon-button class="icon" [ngStyle]="{'top.%': getButtonTopPosition(element)}" aria-label="Delete button" (click)="deleteRow(element, $event)">
             <mat-icon>delete</mat-icon>
         </button>
-        <button mat-icon-button class="icon" [ngStyle]="{'top.%': getButtonTopPosition(element)}" aria-label="Process button" (click)="processReport(element, $event)">
+        <button mat-icon-button class="icon" [ngStyle]="{'top.%': getButtonTopPosition(element)}" aria-label="Process button" (click)="processReport(element)">
             <mat-icon>play_arrow</mat-icon>
         </button>
         <button mat-icon-button class="icon" [ngStyle]="{'top.%': getButtonTopPosition(element)}" aria-label="Show result button" (click)="showResult(element)">

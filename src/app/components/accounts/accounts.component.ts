@@ -79,7 +79,6 @@ export class AccountsComponent {
           if (user) {
             this.afs.doc(`account/${account.id}`).delete()
               .then(() => {
-                this.toaster.success('Account successfully deleted');
                 this.getAccounts(user.uid);
               })
               .catch(error => {
@@ -194,7 +193,6 @@ export class AccountsComponent {
           userDoc.update({ selectedAccount: account.id })
           .then(() => {
             this.router.navigate(['/alerts', account.id]);
-            this.toaster.success('Account selection updated');
           })
           .catch(() => this.toaster.error('Failed to update account selection'));
         }

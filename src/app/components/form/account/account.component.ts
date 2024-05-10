@@ -88,7 +88,6 @@ export class AccountComponent {
   
         if (this.isEditMode && this.documentId) {
           return this.db.collection('account').doc(this.documentId).update(this.formGroup.value).then(() => {
-            this.toaster.success('Account updated successfully', 'Success');
             this.dialogRef.close();
             return of(null);
           });
@@ -117,7 +116,6 @@ export class AccountComponent {
     return this.db.collection('business').doc(businessId).update({
       accounts: arrayUnion(accountId)
     }).then(() => {
-      this.toaster.success('Business account linked successfully', 'Success');
       return of(null);
     }).catch(error => {
       this.toaster.error('Failed to link business account', 'Error');

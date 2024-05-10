@@ -80,7 +80,6 @@ export class SubaccountComponent {
         return Promise.resolve();
       })
       .then(() => {
-        this.toaster.success('Subaccount updated successfully!');
         this.dialogRef.close(true);
       })
       .catch(error => {

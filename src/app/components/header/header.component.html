@@ -41,7 +41,7 @@
                         <mat-icon class="menu-icon">integration_instructions</mat-icon>
                     </span>
                 </mat-list-item>
-                <mat-list-item (click)="navigate('user_management')">
+                <mat-list-item (click)="navigate('user_management')" *ngIf="isAdmin">
                     <span class="list-item">
                         <mat-icon class="menu-icon">supervised_user_circle</mat-icon>
                     </span>

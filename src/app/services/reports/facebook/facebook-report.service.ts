@@ -9,6 +9,8 @@ import { getAuth } from 'firebase/auth';
 
 import moment from 'moment-timezone';
 
+import { CommonService } from '../../common/common.service';
+
 interface CampaignData {
   date_stop: string;
   account_id: string;
@@ -28,7 +30,11 @@ interface TransformedData {
 export class FacebookReportService {
   reportJson: any = [];
 
-  constructor(private fns: AngularFireFunctions, private db: AngularFirestore) { }
+  constructor(
+    private fns: AngularFireFunctions,
+    private db: AngularFirestore,
+    private commonService: CommonService
+  ) { }
 
   convertDateFormat(dateString: string) {
     const parts = dateString.split('/');
@@ -90,30 +96,34 @@ export class FacebookReportService {
     return transformedData;
   }  
 
-  async processReport(campaign: any) {
+  async processReport(campaign: any, index: number) {
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
 
-      await this.getReport(campaign);
+      await this.getReport(campaign.platforms[index].formData);
       let reportToSave = {
         report: this.transformReport(this.reportJson),
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
+        campaignId: campaign.id,
         userId: userId
       };
       this.db.collection('facebookReport').add(reportToSave);
 
-      const FacebookPacingAlerts = this.fns.httpsCallable('FacebookPacingAlerts');
+      const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
-      const FacebookPacingAlerts$ = FacebookPacingAlerts({
+      const AllPacingAlerts$ = AllPacingAlerts({
         userSearchId: userSearchId, 
         reportJson: this.reportJson, 
-        userId: userId
+        userId: userId,
+        platform: "facebook",
+        platformIndex: index,
+        accountId: this.commonService.selectedAccountId
       });
 
       try {
-        await firstValueFrom(FacebookPacingAlerts$);
+        await firstValueFrom(AllPacingAlerts$);
         this.resetReportVariables();
       } catch (error) {
         console.error('Error calling Firestore function: ', error);

@@ -22,11 +22,46 @@
         <mat-expansion-panel disabled *ngIf="getFilteredAlerts(subaccount.id).length > 0">
             <mat-expansion-panel-header>
                 <table>
-                    <td>Name</td>
-                    <td class="subcell">Start Date</td>
-                    <td class="subcell">End Date</td>
-                    <td class="subcell">Platforms</td>
-                    <td class="subcell">Budget</td>
+                    <td>
+                        Name
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Start Date
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        End Date
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Platforms
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Budget
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Spend
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Estimated Spend
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Overall Pacing
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Pacing
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        Spend/day
+                        <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
                 </table>
             </mat-expansion-panel-header>
         </mat-expansion-panel>
@@ -47,6 +82,52 @@
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platforms[platform.platform] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_campaign_cost']; else noSpend">
+                                        {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noSpend>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_estimated_cost']; else noEstimatedSpend">
+                                        {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noEstimatedSpend>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_overall_delta_value']; else noOverall">
+                                        {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                    </span>
+                                    <ng-template #noOverall>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_seven_days_delta_value']; else noSevenDaysPacing">
+                                        Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%
+                                    </span>
+                                    <ng-template #noSevenDaysPacing>
+                                        <span>Not available</span>
+                                    </ng-template><br>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_yesterday_delta_value']; else noYesterdayPacing">
+                                        Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%
+                                    </span>
+                                    <ng-template #noYesterdayPacing>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_daily_estimated_cost']; else noSpendPerDay">
+                                        {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noSpendPerDay>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </td>
                             </tr>
                         </ng-container>
                     </table>
@@ -57,7 +138,7 @@
                         <button mat-icon-button class="icon" (click)="deleteAlert(pacingAlert, $event)">
                             <mat-icon>delete</mat-icon>
                         </button>
-                        <button mat-icon-button class="icon">
+                        <button mat-icon-button class="icon" (click)="processReport(pacingAlert, $event)">
                             <mat-icon>play_arrow</mat-icon>
                         </button>
                     </div>
@@ -74,11 +155,46 @@
     <mat-expansion-panel disabled *ngIf="pacingAlerts.length > 0">
         <mat-expansion-panel-header>
             <table>
-                <td>Name</td>
-                <td class="subcell">Start Date</td>
-                <td class="subcell">End Date</td>
-                <td class="subcell">Platforms</td>
-                <td class="subcell">Budget</td>
+                <td>
+                    Name
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Start Date
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    End Date
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Platforms
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Budget
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Spend
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Estimated Spend
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Overall Pacing
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Pacing
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
+                <td class="subcell">
+                    Spend/day
+                    <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                </td>
             </table>
         </mat-expansion-panel-header>
     </mat-expansion-panel>
@@ -99,13 +215,59 @@
                             <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
                             <td class="cell subcell" [class.border-cell]="!last">{{ platforms[platform.platform] }}</td>
                             <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
+                            <td class="cell subcell" [class.border-cell]="!last">
+                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_campaign_cost']; else noSpend">
+                                    {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
+                                </span>
+                                <ng-template #noSpend>
+                                    <span>Not available</span>
+                                </ng-template>
+                            </td>
+                            <td class="cell subcell" [class.border-cell]="!last">
+                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_estimated_cost']; else noEstimatedSpend">
+                                    {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
+                                </span>
+                                <ng-template #noEstimatedSpend>
+                                    <span>Not available</span>
+                                </ng-template>
+                            </td>
+                            <td class="cell subcell" [class.border-cell]="!last">
+                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_overall_delta_value']; else noOverall">
+                                    {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                </span>
+                                <ng-template #noOverall>
+                                    <span>Not available</span>
+                                </ng-template>
+                            </td>
+                            <td class="cell subcell" [class.border-cell]="!last">
+                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_seven_days_delta_value']; else noSevenDaysPacing">
+                                    {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%
+                                </span>
+                                <ng-template #noSevenDaysPacing>
+                                    <span>Not available</span>
+                                </ng-template><br>
+                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_yesterday_delta_value']; else noYesterdayPacing">
+                                    {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%
+                                </span>
+                                <ng-template #noYesterdayPacing>
+                                    <span>Not available</span>
+                                </ng-template>
+                            </td>
+                            <td class="cell subcell" [class.border-cell]="!last">
+                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_daily_estimated_cost']; else noSpendPerDay">
+                                    {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
+                                </span>
+                                <ng-template #noSpendPerDay>
+                                    <span>Not available</span>
+                                </ng-template>
+                            </td>
                         </tr>
                     </ng-container>
                 </table>
                 <div class="icons">
                     <button mat-icon-button (click)="editAlert(pacingAlert, $event)"><mat-icon>edit</mat-icon></button>
                     <button mat-icon-button (click)="deleteAlert(pacingAlert, $event)"><mat-icon>delete</mat-icon></button>
-                    <button mat-icon-button><mat-icon>play_arrow</mat-icon></button>
+                    <button mat-icon-button (click)="processReport(pacingAlert, $event)"><mat-icon>play_arrow</mat-icon></button>
                 </div>
             </mat-expansion-panel-header>
             <div>

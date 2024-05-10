@@ -9,6 +9,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { getAuth } from 'firebase/auth';
 
 import { ExternalPlatformsService } from '../../external-platforms.service';
+import { CommonService } from '../../common/common.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -28,15 +29,12 @@ export class DV360ReportService {
     private http: HttpClient, 
     private fns: AngularFireFunctions,
     private db: AngularFirestore,
-    public externalPlatforms: ExternalPlatformsService
+    public externalPlatforms: ExternalPlatformsService,
+    private commonService: CommonService
   ) { }
 
-  async createQuery(campaign: any, campaignId: any, event?: MouseEvent, retryCount = 2) {
+  async createQuery(campaign: any, campaignId: any, retryCount = 2) {
     try {
-      if (event) {
-        event.stopPropagation();
-      }
-
       const body = {
         "metadata": {
           "title": campaign.campaignName + " | " + campaign.dv360StartDate + " - " + campaign.dv360EndDate,
@@ -103,7 +101,7 @@ export class DV360ReportService {
     } catch (error: any) {
       if (retryCount > 0) {
           await this.externalPlatforms.handleGoogleError(error);
-          this.createQuery(campaign, campaignId, event, retryCount - 1);
+          this.createQuery(campaign, campaignId, retryCount - 1);
       } else {
           this.toaster.error('An error occurred while processing Display & Video 360 pacing alerts', 'Error');
       }
@@ -137,6 +135,7 @@ export class DV360ReportService {
         this.reportLink = data.metadata.googleCloudStoragePath;
         console.log("Report link found:", this.reportLink);
       } else {
+        console.log("Report link not found in response:", data);
         throw new Error("googleCloudStoragePath not found in response");
       }
     } catch (error) {
@@ -149,7 +148,71 @@ export class DV360ReportService {
         console.log("Failed to get the report link after 10 attempts.");
       }
     }
-  }  
+  }
+
+  aggregateData(data: any) {
+    const aggregatedData: any = {};
+
+    data.forEach((item: any) => {
+        const date = item.Date;
+
+        if (!moment(date, "YYYY/MM/DD", true).isValid()) {
+            return;
+        }
+
+        if (!aggregatedData[date]) {
+            aggregatedData[date] = {
+                "Date": date,
+                "Advertiser ID": item["Advertiser ID"],
+                "Advertiser Currency": item["Advertiser Currency"],
+                "CM360 Placement ID": new Set(),
+                "Impressions": 0,
+                "Billable Impressions": 0,
+                "Active View: Eligible Impressions": 0,
+                "Active View: Measurable Impressions": 0,
+                "Active View: Viewable Impressions": 0,
+                "Active View: Average Viewable Time (seconds)": 0,
+                "Revenue (Adv Currency)": 0,
+                "Clicks": 0,
+                "Starts (Video)": 0,
+                "Pauses (Video)": 0,
+                "Midpoint Views (Video)": 0,
+                "Complete Views (Video)": 0,
+                "Skips (Video)": 0,
+                "Total Conversions": 0,
+                "viewableTimeCount": 0
+            };
+        }
+
+        const entry = aggregatedData[date];
+        entry["CM360 Placement ID"].add(item["CM360 Placement ID"]);
+        entry["Impressions"] += Number(item["Impressions"]) || 0;
+        entry["Billable Impressions"] += Number(item["Billable Impressions"]) || 0;
+        entry["Active View: Eligible Impressions"] += Number(item["Active View: Eligible Impressions"]) || 0;
+        entry["Active View: Measurable Impressions"] += Number(item["Active View: Measurable Impressions"]) || 0;
+        entry["Active View: Viewable Impressions"] += Number(item["Active View: Viewable Impressions"]) || 0;
+        entry["Revenue (Adv Currency)"] += Number(item["Revenue (Adv Currency)"]) || 0;
+        entry["Clicks"] += Number(item["Clicks"]) || 0;
+        entry["Starts (Video)"] += Number(item["Starts (Video)"]) || 0;
+        entry["Pauses (Video)"] += Number(item["Pauses (Video)"]) || 0;
+        entry["Midpoint Views (Video)"] += Number(item["Midpoint Views (Video)"]) || 0;
+        entry["Complete Views (Video)"] += Number(item["Complete Views (Video)"]) || 0;
+        entry["Skips (Video)"] += Number(item["Skips (Video)"]) || 0;
+        entry["Total Conversions"] += Number(item["Total Conversions"]) || 0;
+        entry["Active View: Average Viewable Time (seconds)"] += Number(item["Active View: Average Viewable Time (seconds)"]) || 0;
+        entry["viewableTimeCount"] += (item["Active View: Average Viewable Time (seconds)"] !== null) ? 1 : 0;
+    });
+
+    Object.values(aggregatedData).forEach((item: any) => {
+        if (item["viewableTimeCount"] > 0) {
+            item["Active View: Average Viewable Time (seconds)"] /= item["viewableTimeCount"];
+        }
+        item["CM360 Placement ID"] = Array.from(item["CM360 Placement ID"]);
+        delete item["viewableTimeCount"];
+    });
+
+    return Object.values(aggregatedData);
+  }
 
   async getReport(): Promise<void> {
     const proxyUrl = 'https://northamerica-northeast1-glassroom-firebase.cloudfunctions.net/downloadCSV';
@@ -162,6 +225,7 @@ export class DV360ReportService {
           try {
             response = this.csvToJSON(response);
             this.reportJson = this.reportJson.concat(response);
+            this.reportJson = this.aggregateData(this.reportJson);
             resolve();
           } catch (error) {
             console.error("Error processing CSV file: ", error);
@@ -228,15 +292,16 @@ export class DV360ReportService {
       report: filteredObj,
       date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
       campaignName: campaign.campaignName,
+      campaignId: campaign.id,
       userId: userId
     };
     this.db.collection('DV360Report').add(reportToSave);
   }
 
-  async processReport(campaign: any, event?: MouseEvent) {
+  async processReport(campaign: any, index: number) {
     try {
-      for (const item of campaign.dv360CampaignId) {
-        await this.createQuery(campaign, item.campaignId, event);
+      for (const item of campaign.platforms[index].formData.dv360CampaignId) {
+        await this.createQuery(campaign.platforms[index].formData, item.campaignId);
         await this.runQuery();
         await this.getReportLink();
         await this.getReport();
@@ -245,17 +310,20 @@ export class DV360ReportService {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
       await this.saveReport(this.reportJson, campaign, userId);
-      const DV360PacingAlerts = this.fns.httpsCallable('DV360PacingAlerts');
+      const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
       if (this.reportJson) {
-        const DV360PacingAlerts$ = DV360PacingAlerts({
+        const AllPacingAlerts$ = AllPacingAlerts({
           userSearchId: userSearchId, 
-          reportJson: this.reportJson, 
-          userId: userId
+          reportJson: this.reportJson,
+          userId: userId,
+          platform: "dv360",
+          platformIndex: index,
+          accountId: this.commonService.selectedAccountId
         });
 
         try {
-          await firstValueFrom(DV360PacingAlerts$);
+          await firstValueFrom(AllPacingAlerts$);
           this.resetReportVariables();
         } catch (error) {
           console.error('Error calling Firestore function: ', error);
