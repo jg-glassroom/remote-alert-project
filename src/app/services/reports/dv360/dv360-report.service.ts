@@ -325,17 +325,21 @@ export class DV360ReportService {
         try {
           await firstValueFrom(AllPacingAlerts$);
           this.resetReportVariables();
+          return true;
         } catch (error) {
           console.error('Error calling Firestore function: ', error);
           this.resetReportVariables();
+          return false;
         }
       } else {
         console.error('reportJson is null, skipping Firestore insertion.');
         this.resetReportVariables();
+        return false;
       }
     } catch (error) {
       console.error('Error processing DV360 report: ', error);
       this.resetReportVariables();
+      return false;
     }
   }
   

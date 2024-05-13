@@ -119,3 +119,7 @@ mat-accordion:hover .icons {
 .tooltip {
     font-size: 15px;
 }
+
+mat-spinner {
+    margin: auto;
+}

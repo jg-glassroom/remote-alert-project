@@ -83,49 +83,74 @@
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platforms[platform.platform] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_campaign_cost']; else noSpend">
-                                        {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
-                                    </span>
-                                    <ng-template #noSpend>
-                                        <span>Not available</span>
+                                    <div *ngIf="platform.loading; else noBudgetLoading" class="loader-overlay">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noBudgetLoading>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_campaign_cost']; else noSpend">
+                                            {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
+                                        </span>
+                                        <ng-template #noSpend>
+                                            <span>Not available</span>
+                                        </ng-template>
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_estimated_cost']; else noEstimatedSpend">
-                                        {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
-                                    </span>
-                                    <ng-template #noEstimatedSpend>
-                                        <span>Not available</span>
+                                    <div *ngIf="platform.loading; else noEstimatedSpendLoading" class="loader-overlay">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noEstimatedSpendLoading>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_estimated_cost']; else noEstimatedSpend">
+                                            {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
+                                        </span>
+                                        <ng-template #noEstimatedSpend>
+                                            <span>Not available</span>
+                                        </ng-template>
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_overall_delta_value']; else noOverall">
-                                        {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
-                                    </span>
-                                    <ng-template #noOverall>
-                                        <span>Not available</span>
+                                    <div *ngIf="platform.loading; else noOverallLoading" class="loader-overlay">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noOverallLoading>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_overall_delta_value']; else noOverall">
+                                            {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                        </span>
+                                        <ng-template #noOverall>
+                                            <span>Not available</span>
+                                        </ng-template>
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_seven_days_delta_value']; else noSevenDaysPacing">
-                                        Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%
-                                    </span>
-                                    <ng-template #noSevenDaysPacing>
-                                        <span>Not available</span>
-                                    </ng-template><br>
-                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_yesterday_delta_value']; else noYesterdayPacing">
-                                        Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%
-                                    </span>
-                                    <ng-template #noYesterdayPacing>
-                                        <span>Not available</span>
+                                    <div *ngIf="platform.loading; else noSevenDaysPacingLoading" class="loader-overlay">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noSevenDaysPacingLoading>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_seven_days_delta_value']; else noSevenDaysPacing">
+                                            Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%
+                                        </span>
+                                        <ng-template #noSevenDaysPacing>
+                                            <span>Not available</span>
+                                        </ng-template><br>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_yesterday_delta_value']; else noYesterdayPacing">
+                                            Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%
+                                        </span>
+                                        <ng-template #noYesterdayPacing>
+                                            <span>Not available</span>
+                                        </ng-template>
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_daily_estimated_cost']; else noSpendPerDay">
-                                        {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
-                                    </span>
-                                    <ng-template #noSpendPerDay>
-                                        <span>Not available</span>
+                                    <div *ngIf="platform.loading; else noSpendPerDayLoading" class="loader-overlay">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noSpendPerDayLoading>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts[platform.platform + '_daily_estimated_cost']; else noSpendPerDay">
+                                            {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
+                                        </span>
+                                        <ng-template #noSpendPerDay>
+                                            <span>Not available</span>
+                                        </ng-template>
                                     </ng-template>
                                 </td>
                             </tr>

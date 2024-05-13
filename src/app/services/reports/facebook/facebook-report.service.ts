@@ -125,12 +125,15 @@ export class FacebookReportService {
       try {
         await firstValueFrom(AllPacingAlerts$);
         this.resetReportVariables();
+        return true;
       } catch (error) {
         console.error('Error calling Firestore function: ', error);
         this.resetReportVariables();
+        return false;
       }
     } catch (error) {
       console.error('Error processing Facebook report: ', error);
+      return false;
     }
   }
   

@@ -210,7 +210,7 @@ export class DialogComponent {
     this.dv360Forms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        platforms.push({ platform: 'dv360', formData: formData });
+        platforms.push({ platform: 'dv360', formData: formData, loading: execute });
       } else {
         doSubmit = false;
         this.toaster.error('A DV360 form is not valid');
@@ -220,7 +220,7 @@ export class DialogComponent {
     this.facebookForms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        platforms.push({ platform: 'facebook', formData: formData });
+        platforms.push({ platform: 'facebook', formData: formData, loading: execute });
       } else {
         doSubmit = false;
         this.toaster.error('A Facebook form is not valid');
@@ -230,7 +230,7 @@ export class DialogComponent {
     this.googleAdsForms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        platforms.push({ platform: 'googleAds', formData: formData });
+        platforms.push({ platform: 'googleAds', formData: formData, loading: execute });
       } else {
         doSubmit = false;
         this.toaster.error('A Google Ads form is not valid');
@@ -240,7 +240,7 @@ export class DialogComponent {
     this.bingForms.forEach(form => {
       const formData = form.getFormData();
       if (formData) {
-        platforms.push({ platform: 'bing', formData: formData });
+        platforms.push({ platform: 'bing', formData: formData, loading: execute });
       } else {
         doSubmit = false;
         this.toaster.error('A Bing form is not valid');

@@ -22,6 +22,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 @Component({
@@ -34,7 +35,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatExpansionModule,
     MatTableModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css'
@@ -236,21 +238,62 @@ export class AlertsComponent {
     });
   }
 
+  updateData(campaignId: string, index: number) {
+    const docRef = this.db.collection('userSearch').doc(campaignId);
+    docRef.get().subscribe(doc => {
+      if (doc.exists) {
+        const userData: any = doc.data();
+  
+        const pacingAlert = this.pacingAlerts.find(p => p.id === campaignId);
+        if (pacingAlert && pacingAlert.platforms[index]) {
+          pacingAlert.platforms[index].loading = false;
+          pacingAlert.platforms[index].pacingAlerts = userData.platforms[index].pacingAlerts || [];
+        }
+      }
+    }, error => {
+      console.error("Error fetching or updating data: ", error);
+    });
+  }  
+
   processReport(campaign: any, event: MouseEvent) {
     event.stopPropagation();
-    campaign.platforms.forEach((platform: any, index: number) => {
-      if (platform.platform === 'dv360') {
-        this.DV360ReportService.processReport(campaign, index);
+    campaign.platforms.forEach(async (platform: any, index: number) => {
+      let data = campaign;
+      data.platforms[index].loading = true;
+      const pacingAlert = this.pacingAlerts.find(p => p.id === campaign.id);
+      if (pacingAlert && pacingAlert.platforms[index]) {
+        pacingAlert.platforms[index].loading = true;
       }
-      if (platform.platform === 'facebook') {
-        this.facebookReportService.processReport(campaign, index);
-      }
-      if (platform.platform === 'bing') {
-        this.bingReportService.processReport(campaign, index);
-      }
-      if (platform.platform === 'googleAds') {
-        this.googleAdsReportService.processReport(campaign, index);
-      }
+      this.db.collection(`userSearch`).doc(campaign.id).update(data).then(() => {
+        if (platform.platform === 'dv360') {
+          this.DV360ReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.updateData(campaign.id, index);
+            }
+          });
+        }
+        if (platform.platform === 'facebook') {
+          this.facebookReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.updateData(campaign.id, index);
+            }
+          });
+        }
+        if (platform.platform === 'bing') {
+          this.bingReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.updateData(campaign.id, index);
+            }
+          });
+        }
+        if (platform.platform === 'googleAds') {
+          this.googleAdsReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.updateData(campaign.id, index);
+            }
+          });
+        }
+      });
     });
   }
 }

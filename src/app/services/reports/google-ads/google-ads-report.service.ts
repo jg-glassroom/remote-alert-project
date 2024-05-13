@@ -157,16 +157,20 @@ export class GoogleAdsReportService {
         try {
           await firstValueFrom(AllPacingAlerts$);
           this.resetReportVariables();
+          return true;
         } catch (error) {
           console.error('Error calling Firestore function: ', error);
           this.resetReportVariables();
+          return false;
         }
       } else {
         console.error('reportJson is null, skipping Firestore insertion.');
         this.resetReportVariables();
+        return false;
       }
     } catch (error) {
       console.error('Error processing Google Ads report: ', error);
+      return false;
     }
   }
   

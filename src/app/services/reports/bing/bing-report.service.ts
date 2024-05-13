@@ -149,7 +149,7 @@ export class BingReportService {
     }
   }
 
-  async processReport(campaign: any, index: number) {
+  async processReport(campaign: any, index: number): Promise<boolean> {
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
@@ -181,16 +181,20 @@ export class BingReportService {
         try {
           await firstValueFrom(AllPacingAlerts$);
           this.resetReportVariables();
+          return true;
         } catch (error) {
           console.error('Error calling Firestore function: ', error);
           this.resetReportVariables();
+          return false;
         }
       } else {
         console.error('reportJson is null, skipping Firestore insertion.');
         this.resetReportVariables();
+        return false;
       }
     } catch (error) {
       console.error('Error processing Bing report: ', error);
+      return false;
     }
   }
   
