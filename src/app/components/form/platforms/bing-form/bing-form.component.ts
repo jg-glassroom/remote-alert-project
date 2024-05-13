@@ -231,6 +231,14 @@ export class BingFormComponent {
       customer = this.data?.bingCustomer;
     }
 
+    this.formGroup.patchValue({
+      bingAccount: null,
+      bingStartDate: null,
+      bingEndDate: null,
+      bingCampaign: [],
+    })
+    this.campaigns = []
+
     try {
       const callable = this.fns.httpsCallable('getBingAccounts');
       const result = await firstValueFrom(callable({ accessToken: localStorage.getItem('microsoftAccessToken'), customerId: customer.id}));
