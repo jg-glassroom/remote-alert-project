@@ -105,6 +105,7 @@ export class BingFormComponent {
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
+      bingLabel: [this.data?.bingLabel || null],
       bingCustomer: [this.data?.bingCustomer || null, [Validators.required]],
       bingAccount: [this.data?.bingAccount || null, [Validators.required]],
       bingCampaign: [this.data?.bingCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
@@ -216,6 +217,7 @@ export class BingFormComponent {
         await this.externalPlatforms.handleMicrosoftError();
         return this.getCustomers(retryCount - 1);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching Bing customers', 'Error');
         this.isLoading = false;
       }
@@ -252,6 +254,7 @@ export class BingFormComponent {
         await this.externalPlatforms.handleMicrosoftError();
         return this.getAdAccounts(retryCount - 1, event);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching Bing accounts', 'Error');
         this.isLoading = false;
       }
@@ -299,6 +302,7 @@ export class BingFormComponent {
         await this.externalPlatforms.handleMicrosoftError();
         return this.getAdAccountCampaigns(retryCount - 1, event);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching Bing campaigns', 'Error');
         this.isLoading = false;
       }
@@ -321,6 +325,7 @@ export class BingFormComponent {
   refreshData() {
     localStorage.removeItem('customers');
     this.formGroup.patchValue({
+      bingLabel: null,
       bingCustomer: null,
       bingAccount: null,
       bingStartDate: null,

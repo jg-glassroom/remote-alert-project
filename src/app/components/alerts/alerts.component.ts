@@ -55,7 +55,8 @@ export class AlertsComponent {
     'estimatedSpend',
     'overallPacing',
     'pacing',
-    'spendPerDay'
+    'spendPerDay',
+    'yesterdaySpent'
   ];
   headerColumns = [{
     name:'Campaign Name', startDate:'Start Date', endDate:'End Date', platforms:'Platforms', budget:'Budget'

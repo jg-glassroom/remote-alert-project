@@ -97,6 +97,7 @@ export class FacebookFormComponent {
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
+      facebookLabel: [this.data?.facebookLabel || null],
       facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
       facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       facebookPlatform: ['facebook', [Validators.required]],

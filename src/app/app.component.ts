@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { HomeComponent } from './components/home/home.component';
+import { IdleService } from './services/idle/idle.service';
+
 
 @Component({
   selector: 'app-root',
@@ -11,5 +13,13 @@ import { HomeComponent } from './components/home/home.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'alert-project';
+  constructor(private idleService: IdleService) {}
+
+  ngOnInit() {
+    this.idleService.startWatching();
+  }
+
+  ngOnDestroy() {
+    this.idleService.stopWatching();
+  }
 }

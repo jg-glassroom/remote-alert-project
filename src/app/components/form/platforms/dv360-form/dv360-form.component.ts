@@ -117,6 +117,7 @@ export class Dv360FormComponent {
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
+      dv360Label: [this.data?.dv360Label || null],
       dv360Partner: [this.data?.dv360Partner || null, [Validators.required]],
       dv360Platform: ['dv360', [Validators.required]],
       dv360Advertiser: [this.data?.dv360Advertiser || null, [Validators.required]],
@@ -170,6 +171,7 @@ export class Dv360FormComponent {
         await this.externalPlatforms.handleGoogleError(error);
         return this.getDV360Partner(retryCount - 1);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching partners', 'Error');
         this.isLoading = false;
       }
@@ -226,8 +228,9 @@ export class Dv360FormComponent {
           await this.externalPlatforms.handleGoogleError(error);
           return this.getDV360Advertiser(event, edit, retryCount - 1);
       } else {
-          this.toaster.error('An error occurred while fetching advertisers', 'Error');
-          this.isLoading = false;
+        console.error(error);
+        this.toaster.error('An error occurred while fetching advertisers', 'Error');
+        this.isLoading = false;
       }
     }
   }
@@ -297,6 +300,7 @@ export class Dv360FormComponent {
         await this.externalPlatforms.handleGoogleError(error);
         return this.getDV360Campaign(event, edit, retryCount - 1);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching campaigns', 'Error');
         this.isLoading = false;
       }

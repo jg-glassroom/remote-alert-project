@@ -126,26 +126,22 @@ export class DV360ReportService {
     }
   }
 
-  async getReportLink(tries: number = 10) {
-    try {
-      const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
-      const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
-      const data: any = await firstValueFrom(response$);
-      if (data && data.metadata && data.metadata.googleCloudStoragePath) {
-        this.reportLink = data.metadata.googleCloudStoragePath;
-        console.log("Report link found:", this.reportLink);
-      } else {
-        console.log("Report link not found in response:", data);
-        throw new Error("googleCloudStoragePath not found in response");
-      }
-    } catch (error) {
-      console.log(error);
-      if (tries > 1) {
-        console.log(`Attempt to retrieve report link, remaining tests: ${tries - 1}`);
-        await new Promise(resolve => setTimeout(resolve, 1000)); 
-        await this.getReportLink(tries - 1);
-      } else {
-        console.log("Failed to get the report link after 10 attempts.");
+  async getReportLink() {
+    let status = null;
+    while (status !== 'DONE') {
+      try {
+        const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+        const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
+        const data: any = await firstValueFrom(response$);
+        status = data.metadata.status.state;
+        if (data && data.metadata && data.metadata.googleCloudStoragePath) {
+          this.reportLink = data.metadata.googleCloudStoragePath;
+          console.log("Report link found:", data.metadata);
+        } else {
+          console.log("Report link not found in response:", data);
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
   }

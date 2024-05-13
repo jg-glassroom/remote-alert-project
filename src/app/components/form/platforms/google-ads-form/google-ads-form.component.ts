@@ -98,6 +98,7 @@ export class GoogleAdsFormComponent {
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
+      googleAdsLabel: [this.data?.googleAdsLabel || null],
       googleAdsAccount: [this.data?.googleAdsAccount || null, [Validators.required]],
       googleAdsCampaign: [this.data?.googleAdsCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       googleAdsPlatform: ['googleAds', [Validators.required]],
@@ -167,6 +168,7 @@ export class GoogleAdsFormComponent {
         await this.externalPlatforms.handleGoogleError(error);
         return this.getAdAccounts(retryCount - 1);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching Google Ads accounts', 'Error');
         this.isLoading = false;
       }
@@ -252,6 +254,7 @@ export class GoogleAdsFormComponent {
         await this.externalPlatforms.handleGoogleError(error);
         return this.getAdAccountCampaigns(retryCount - 1, event, edit);
       } else {
+        console.error(error);
         this.toaster.error('An error occurred while fetching Google Ads campaigns', 'Error');
         this.isLoading = false;
       }

@@ -123,3 +123,8 @@ mat-accordion:hover .icons {
 mat-spinner {
     margin: auto;
 }
+
+.label {
+    font-size: 10px;
+    color: rgb(67, 67, 67);
+}
