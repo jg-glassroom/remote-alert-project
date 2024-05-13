@@ -4,8 +4,8 @@
     </button>
 </div>
 
-<div *ngIf="subaccounts.length > 0" class="subaccount-list">
-    <div *ngFor="let subaccount of subaccounts" class="subaccount-item">
+<div *ngIf="alertsService.subaccounts.length > 0" class="subaccount-list">
+    <div *ngFor="let subaccount of alertsService.subaccounts" class="subaccount-item">
         <div class="subaccount-header">
             <span class="subaccount">{{ subaccount.name }}</span>
             <span class="subaccount-button">
@@ -176,8 +176,8 @@
     </div>
 </div>
 
-<div *ngIf="subaccounts.length === 0" class="subaccount-list">
-    <mat-expansion-panel disabled *ngIf="pacingAlerts.length > 0">
+<div *ngIf="alertsService.subaccounts.length === 0" class="subaccount-list">
+    <mat-expansion-panel disabled *ngIf="alertsService.pacingAlerts.length > 0">
         <mat-expansion-panel-header>
             <table>
                 <td>
@@ -224,7 +224,7 @@
         </mat-expansion-panel-header>
     </mat-expansion-panel>
 
-    <mat-accordion *ngFor="let pacingAlert of pacingAlerts" hideToggle>
+    <mat-accordion *ngFor="let pacingAlert of alertsService.pacingAlerts" hideToggle>
         <mat-expansion-panel>
             <mat-expansion-panel-header class="panel-header">
                 <table>

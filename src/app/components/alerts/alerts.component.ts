@@ -13,6 +13,7 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AlertsService } from '../../services/alerts/alerts.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -43,8 +44,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class AlertsComponent {
   toaster = inject(ToastrService);
-  public pacingAlerts: any[] = [];
-  public subaccounts: any[] = [];
   private selectedAccountId: any = '';
   displayedColumns: string[] = [
     'name',
@@ -76,7 +75,8 @@ export class AlertsComponent {
     private DV360ReportService: DV360ReportService,
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
-    private googleAdsReportService: GoogleAdsReportService
+    private googleAdsReportService: GoogleAdsReportService,
+    public alertsService: AlertsService
   ) {}
 
   ngOnInit() {
@@ -96,21 +96,21 @@ export class AlertsComponent {
 
   getFilteredAlerts(subaccountId: string | null): any[] {
     if (!subaccountId) {
-      return this.pacingAlerts.filter(alert => !alert.subaccount).sort((a, b) => a.campaignName.localeCompare(b.campaignName));
+      return this.alertsService.pacingAlerts.filter(alert => !alert.subaccount).sort((a, b) => a.campaignName.localeCompare(b.campaignName));
     }
-    return this.pacingAlerts.filter(alert => alert.subaccount && alert.subaccount.id === subaccountId).sort((a, b) => a.campaignName.localeCompare(b.campaignName));
+    return this.alertsService.pacingAlerts.filter(alert => alert.subaccount && alert.subaccount.id === subaccountId).sort((a, b) => a.campaignName.localeCompare(b.campaignName));
   }
 
   async getAlerts() {
     return new Promise<void>((resolve, reject) => {
-      this.pacingAlerts = [];
+      this.alertsService.pacingAlerts = [];
       this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(querySnapshot => {
         querySnapshot.forEach(doc => {
           const pacingAlert = {
             id: doc.id,
             ...doc.data() as any
           };
-          this.pacingAlerts.push(pacingAlert);
+          this.alertsService.pacingAlerts.push(pacingAlert);
         });
         resolve();
       }, error => {
@@ -121,18 +121,18 @@ export class AlertsComponent {
 
   async getSubaccounts() {
     return new Promise<void>((resolve, reject) => {
-      this.subaccounts = [];
+      this.alertsService.subaccounts = [];
       this.db.collection('subaccount', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(querySnapshot => {
         querySnapshot.forEach(doc => {
           const subaccount = {
             id: doc.id,
             ...doc.data() as any
           };
-          this.subaccounts.push(subaccount);
+          this.alertsService.subaccounts.push(subaccount);
         });
-        this.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
-        if (this.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
-          this.subaccounts.push({ id: null, name: 'Without Subaccounts' });
+        this.alertsService.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
+        if (this.alertsService.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
+          this.alertsService.subaccounts.push({ id: null, name: 'Without Subaccounts' });
         }
         resolve();
       }, error => {
@@ -238,29 +238,12 @@ export class AlertsComponent {
     });
   }
 
-  updateData(campaignId: string, index: number) {
-    const docRef = this.db.collection('userSearch').doc(campaignId);
-    docRef.get().subscribe(doc => {
-      if (doc.exists) {
-        const userData: any = doc.data();
-  
-        const pacingAlert = this.pacingAlerts.find(p => p.id === campaignId);
-        if (pacingAlert && pacingAlert.platforms[index]) {
-          pacingAlert.platforms[index].loading = false;
-          pacingAlert.platforms[index].pacingAlerts = userData.platforms[index].pacingAlerts || [];
-        }
-      }
-    }, error => {
-      console.error("Error fetching or updating data: ", error);
-    });
-  }  
-
   processReport(campaign: any, event: MouseEvent) {
     event.stopPropagation();
     campaign.platforms.forEach(async (platform: any, index: number) => {
       let data = campaign;
       data.platforms[index].loading = true;
-      const pacingAlert = this.pacingAlerts.find(p => p.id === campaign.id);
+      const pacingAlert = this.alertsService.pacingAlerts.find(p => p.id === campaign.id);
       if (pacingAlert && pacingAlert.platforms[index]) {
         pacingAlert.platforms[index].loading = true;
       }
@@ -268,28 +251,28 @@ export class AlertsComponent {
         if (platform.platform === 'dv360') {
           this.DV360ReportService.processReport(campaign, index).then(success => {
             if (success) {
-              this.updateData(campaign.id, index);
+              this.alertsService.updateData(campaign.id, index);
             }
           });
         }
         if (platform.platform === 'facebook') {
           this.facebookReportService.processReport(campaign, index).then(success => {
             if (success) {
-              this.updateData(campaign.id, index);
+              this.alertsService.updateData(campaign.id, index);
             }
           });
         }
         if (platform.platform === 'bing') {
           this.bingReportService.processReport(campaign, index).then(success => {
             if (success) {
-              this.updateData(campaign.id, index);
+              this.alertsService.updateData(campaign.id, index);
             }
           });
         }
         if (platform.platform === 'googleAds') {
           this.googleAdsReportService.processReport(campaign, index).then(success => {
             if (success) {
-              this.updateData(campaign.id, index);
+              this.alertsService.updateData(campaign.id, index);
             }
           });
         }

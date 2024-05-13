@@ -11,6 +11,7 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AlertsService } from '../../services/alerts/alerts.service';
 
 import { Dv360FormComponent } from '../form/platforms/dv360-form/dv360-form.component';
 import { FacebookFormComponent } from '../form/platforms/facebook-form/facebook-form.component';
@@ -88,7 +89,8 @@ export class DialogComponent {
     private googleAdsReportService: GoogleAdsReportService,
     private bingReportService: BingReportService,
     public commonService: CommonService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private alertsService: AlertsService
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -322,13 +324,29 @@ export class DialogComponent {
             const data = updateData[platform];
             console.log(data);
             if (platform === 'dv360') {
-              this.DV360ReportService.processReport({ id: this.documentId, ...data }, index);
+              this.DV360ReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+                if (success) {
+                  this.alertsService.updateData(this.documentId, index);
+                }
+              });
             } else if (platform === 'facebook') {
-              this.facebookReportService.processReport({ id: this.documentId, ...data }, index);
+              this.facebookReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+                if (success) {
+                  this.alertsService.updateData(this.documentId, index);
+                }
+              });
             } else if (platform === 'googleAds') {
-              this.googleAdsReportService.processReport({ id: this.documentId, ...data }, index);
+              this.googleAdsReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+                if (success) {
+                  this.alertsService.updateData(this.documentId, index);
+                }
+              });
             } else if (platform === 'bing') {
-              this.bingReportService.processReport({ id: this.documentId, ...data }, index);
+              this.bingReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+                if (success) {
+                  this.alertsService.updateData(this.documentId, index);
+                }
+              });
             }
           });
         }
@@ -349,13 +367,29 @@ export class DialogComponent {
             platforms.forEach((platformData, index) => {
               const platform = platformData.platform;
               if (platform === 'dv360') {
-                this.DV360ReportService.processReport(allFormData, index);
+                this.DV360ReportService.processReport(allFormData, index).then(success => {
+                  if (success) {
+                    this.alertsService.updateData(data.id, index);
+                  }
+                });
               } else if (platform === 'facebook') {
-                this.facebookReportService.processReport(allFormData, index);
+                this.facebookReportService.processReport(allFormData, index).then(success => {
+                  if (success) {
+                    this.alertsService.updateData(data.id, index);
+                  }
+                });
               } else if (platform === 'googleAds') {
-                this.googleAdsReportService.processReport(allFormData, index);
+                this.googleAdsReportService.processReport(allFormData, index).then(success => {
+                  if (success) {
+                    this.alertsService.updateData(data.id, index);
+                  }
+                });
               } else if (platform === 'bing') {
-                this.bingReportService.processReport(allFormData, index);
+                this.bingReportService.processReport(allFormData, index).then(success => {
+                  if (success) {
+                    this.alertsService.updateData(data.id, index);
+                  }
+                });
               }
             });
           } else {
