@@ -91,7 +91,7 @@ export class DV360ReportService {
           "frequency": "ONE_TIME",
         }
       };
-      const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+      const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
       const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries`, body, { headers });
       const data: any = await firstValueFrom(response$);
       this.queryId = data.queryId;
@@ -100,7 +100,7 @@ export class DV360ReportService {
       }
     } catch (error: any) {
       if (retryCount > 0) {
-          await this.externalPlatforms.handleGoogleError(error);
+          await this.externalPlatforms.handleGoogleError(error, 'dv360');
           this.createQuery(campaign, campaignId, retryCount - 1);
       } else {
           this.toaster.error('An error occurred while processing Display & Video 360 pacing alerts', 'Error');
@@ -110,7 +110,7 @@ export class DV360ReportService {
 
   async runQuery(retryCount = 2) {
     try {
-      const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+      const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
       const response$ = this.http.post(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}:run`, {}, { headers });
       const data: any = await firstValueFrom(response$);
       if (data && data.key) {
@@ -118,7 +118,7 @@ export class DV360ReportService {
       }
     } catch (error: any) {
       if (retryCount > 0) {
-          await this.externalPlatforms.handleGoogleError(error);
+          await this.externalPlatforms.handleGoogleError(error, 'dv360');
           this.runQuery(retryCount - 1);
       } else {
           this.toaster.error('An error occurred while processing Display & Video 360 pacing alerts', 'Error');
@@ -130,7 +130,7 @@ export class DV360ReportService {
     let status = null;
     while (status !== 'DONE') {
       try {
-        const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+        const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
         const response$ = this.http.get(`https://doubleclickbidmanager.googleapis.com/v2/queries/${this.queryId}/reports/${this.reportId}`, { headers });
         const data: any = await firstValueFrom(response$);
         status = data.metadata.status.state;

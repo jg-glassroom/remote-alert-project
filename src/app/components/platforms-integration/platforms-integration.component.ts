@@ -4,16 +4,20 @@ import { ActivatedRoute } from '@angular/router';
 
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { getFirestore, doc, updateDoc, deleteField } from '@firebase/firestore';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 
 import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
 import { BingService } from '../../services/platforms/bing/bing.service';
 import { CommonService } from '../../services/common/common.service';
+
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -38,20 +42,53 @@ export class PlatformsIntegrationComponent {
   toaster = inject(ToastrService);
 
   constructor(
+    private matDialog: MatDialog,
     private route: ActivatedRoute,
     private fns: AngularFireFunctions,
     private db: AngularFirestore,
     public googleService: GoogleService,
     public facebookService: FacebookService,
     public bingService: BingService,
-    public commonService: CommonService
+    public commonService: CommonService,
   ) {}
 
   ngOnInit(): void {
     this.handleQueryParams();
-    if (this.commonService.isConnected('google')) {
-      this.googleService.getGoogleScopes();
-    }
+  }
+
+  googleDisconnect(platform: string): void {
+    const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
+      width: '20%',
+      data: { message: "You will be disconnected from all Google platforms. Are you sure?" }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.googleService.googleDisconnect(platform);
+
+        const db = getFirestore();
+        const user = getAuth().currentUser;
+
+        let googlePlatforms = ['googleAds', 'dv360'];
+        googlePlatforms = googlePlatforms.filter(p => p !== platform);
+        googlePlatforms.forEach(async p => {
+          localStorage.removeItem(`${p}AccessToken`);
+  
+          if (user) {
+            try {
+              await updateDoc(doc(db, "user", user.uid), {
+                [`${p}RefreshToken`]: deleteField(),
+                [`${p}AccessToken`]: deleteField()
+              });
+            } catch (error) {
+              this.toaster.error(`Error disconnecting Google: ${error}`, "Error");
+            }
+          } else {
+            console.log("User not logged in");
+          }
+        });
+      }
+    });
   }
 
   private handleQueryParams(): void {
@@ -62,8 +99,12 @@ export class PlatformsIntegrationComponent {
     this.route.queryParams.subscribe(params => {
       const authCode = params['code'];
       if (authCode) {
-        if (source === 'google') {
-          this.exchangeGoogleTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+        if (source === 'dv360') {
+          this.exchangeGoogleTokens(authCode, source)
+          .catch(error => console.error('Error calling cloud function', error));
+        } else if (source === 'googleAds') {
+          this.exchangeGoogleTokens(authCode, source)
+          .catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'microsoft') {
           this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
         }
@@ -90,21 +131,20 @@ export class PlatformsIntegrationComponent {
     }
   }
 
-  private async exchangeGoogleTokens(authCode: string): Promise<void> {
+  private async exchangeGoogleTokens(authCode: string, platform: string): Promise<void> {
     const callable = this.fns.httpsCallable('exchangeGoogleTokens');
     try {
       const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
-      'https://localhost:4200/integrations/google' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/google' }));
+      'https://localhost:4200/integrations/' + platform : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/' + platform, platform: platform }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
       this.db.collection('user').doc(currentUser.uid).update({
-        googleAccessToken: result.access_token,
-        googleRefreshToken: result.refresh_token,
+        [`${platform}AccessToken`]: result.access_token,
+        [`${platform}RefreshToken`]: result.refresh_token,
       });
-      this.googleService.getGoogleScopes();
-      localStorage.setItem('googleAccessToken', result.access_token);
+      localStorage.setItem(`${platform}AccessToken`, result.access_token);
       history.replaceState(null, '', window.location.pathname);
-      this.toaster.success('Google account connected successfully');
+      this.toaster.success(`${platform === 'dv360' ? 'Display & Video 360' : 'Google Ads'} account connected successfully`);
     } catch (error) {
       console.error('Error calling cloud function', error);
     }

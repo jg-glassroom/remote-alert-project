@@ -30,7 +30,7 @@ export class ExternalPlatformsService {
   
   constructor(private db: AngularFirestore, private fns: AngularFireFunctions) {}
 
-  async refreshGoogleToken() {
+  async refreshGoogleToken(platform: string) {
     const auth = getAuth();
     const currentUser = auth.currentUser;
   
@@ -44,15 +44,15 @@ export class ExternalPlatformsService {
   
     const user: any = await firstValueFrom(userDocRef.valueChanges().pipe(first()));
     try {
-      const result = await firstValueFrom(callable({ refreshToken: user.googleRefreshToken }));
+      const result = await firstValueFrom(callable({ refreshToken: user.googleRefreshToken, platform: platform }));
       if (result && result.access_token) {
-        localStorage.setItem('googleAccessToken', result.access_token);
+        localStorage.setItem(`${platform}AccessToken`, result.access_token);
   
         await userDocRef.update({
-          googleAccessToken: result.access_token,
+          [`${platform}AccessToken`]: result.access_token,
         });
   
-        console.log('Google access token refreshed and updated successfully');
+        console.log(`${platform === 'dv360' ? 'Display & Video 360' : 'Google Ads'} access token refreshed and updated successfully`);
       } else {
         throw new Error('Failed to refresh access token');
       }
@@ -62,9 +62,9 @@ export class ExternalPlatformsService {
     }
   }
 
-  async handleGoogleError(error: HttpErrorResponse): Promise<void> {
+  async handleGoogleError(error: HttpErrorResponse, platform: string): Promise<void> {
     if (error.status === 401 || error.status === 403 || error.status === 400) {
-      return await this.refreshGoogleToken();
+      return await this.refreshGoogleToken(platform);
     } else {
       if (error.status && error.message) {
         console.error(`An unexpected error occurred [${error.status}]: ${error.message}`);

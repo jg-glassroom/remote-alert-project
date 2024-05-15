@@ -191,8 +191,10 @@ export class CommonService {
   }
 
   isConnected(platform: string) {
-    if (platform === 'google') {
-      return !!localStorage.getItem('googleAccessToken');
+    if (platform === 'googleAds') {
+      return !!localStorage.getItem('googleAdsAccessToken');
+    } else if (platform === 'dv360') {
+      return !!localStorage.getItem('dv360AccessToken');
     } else if (platform === 'facebook') {
       return !!localStorage.getItem('facebookAccessToken');
     } else if (platform === 'bing') {

@@ -154,7 +154,7 @@ export class Dv360FormComponent {
       return this.partners;
     }
   
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
   
     try {
       const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v3/partners', { headers });
@@ -168,7 +168,7 @@ export class Dv360FormComponent {
       this.partners$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'dv360Partner', 'displayName', localStorage.getItem("partners"));
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
+        await this.externalPlatforms.handleGoogleError(error, 'dv360');
         return this.getDV360Partner(retryCount - 1);
       } else {
         console.error(error);
@@ -203,7 +203,7 @@ export class Dv360FormComponent {
       this.campaigns = []
     }
   
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
 
     try {
       const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers?partnerId=${selectedPartner.partnerId}`, { headers });
@@ -225,7 +225,7 @@ export class Dv360FormComponent {
       this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
-          await this.externalPlatforms.handleGoogleError(error);
+          await this.externalPlatforms.handleGoogleError(error, 'dv360');
           return this.getDV360Advertiser(event, edit, retryCount - 1);
       } else {
         console.error(error);
@@ -261,7 +261,7 @@ export class Dv360FormComponent {
       this.campaigns = this.data?.dv360CampaignId;
     }
   
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}` };
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
     try {
       const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
       const data: any = await firstValueFrom(response$);
@@ -297,7 +297,7 @@ export class Dv360FormComponent {
       this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
+        await this.externalPlatforms.handleGoogleError(error, 'dv360');
         return this.getDV360Campaign(event, edit, retryCount - 1);
       } else {
         console.error(error);

@@ -135,9 +135,50 @@ export class AccountsComponent {
         console.error('Error fetching user data:', error);
         return of([]);
       })
-    ).subscribe(accounts => {
+    ).subscribe(async (accounts) => {
       this.accounts = accounts;
       this.accounts = this.accounts.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      await this.getAlerts();
+    });
+  }
+
+  async getAlerts() {
+    return new Promise<void>((resolve, reject) => {
+      this.accounts.forEach((account: any) => {
+        this.afs.collection('userSearch', ref => ref.where('accountId', '==', account.id)).get().subscribe(querySnapshot => {
+          let okCount = 0;
+          let warningCount = 0;
+          let errorCount = 0;
+      
+          querySnapshot.docs.forEach((doc: any) => {
+            const data = doc.data();
+            data.platforms.forEach((platform: any) => {
+              const overallDelta = platform.pacingAlerts[platform.platform + '_overall_delta_value'];
+
+              if (overallDelta > -5 && overallDelta < 5) {
+                okCount++;
+              }
+
+              if ((overallDelta <= -5 || overallDelta >= 5) && overallDelta > -10 && overallDelta < 10) {
+                warningCount++;
+              }
+
+              if (overallDelta <= -10 || overallDelta >= 10) {
+                errorCount++;
+              }
+            });
+          });
+          account.alerts = {
+            total: okCount + warningCount + errorCount,
+            ok: okCount,
+            warning: warningCount,
+            error: errorCount
+          };
+          resolve();
+        }, error => {
+          reject(error);
+        });
+      });
     });
   }
 

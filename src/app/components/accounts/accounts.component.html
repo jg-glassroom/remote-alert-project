@@ -22,19 +22,31 @@
             </div>
             <div class="alerts">
                 <div class="icon">
-                    <span>0</span>
+                    <span *ngIf="account.alerts && account.alerts.total; else noTotal">
+                        {{account.alerts.total}}
+                    </span>
+                    <ng-template #noTotal>0</ng-template>
                     <mat-icon style="color: black;">priority_high</mat-icon>
                 </div>
                 <div class="icon">
-                    <span>0</span>
+                    <span *ngIf="account.alerts && account.alerts.ok; else noOk">
+                        {{account.alerts.ok}}
+                    </span>
+                    <ng-template #noOk>0</ng-template>
                     <mat-icon style="color: green;">check_circle_outline</mat-icon>
                 </div>
                 <div class="icon">
-                    <span>0</span>
+                    <span *ngIf="account.alerts && account.alerts.warning; else noWarning">
+                        {{account.alerts.warning}}
+                    </span>
+                    <ng-template #noWarning>0</ng-template>
                     <mat-icon style="color: rgb(189, 176, 3);">warning_amber</mat-icon>
                 </div>
                 <div class="icon">
-                    <span>0</span>
+                    <span *ngIf="account.alerts && account.alerts.error; else noError">
+                        {{account.alerts.error}}
+                    </span>
+                    <ng-template #noError>0</ng-template>
                     <mat-icon style="color: red;">close</mat-icon>
                 </div>
             </div>

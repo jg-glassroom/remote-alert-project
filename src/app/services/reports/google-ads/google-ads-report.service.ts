@@ -41,7 +41,7 @@ export class GoogleAdsReportService {
   async getReport(campaign: any, retryCount = 2): Promise<void> {
     try {
       const headers = new HttpHeaders({
-        'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}`,
+        'Authorization': `Bearer ${localStorage.getItem('googleAdsAccessToken')}`,
         'Content-Type': 'application/json',
         'developer-token': 'mkH52QA2KonyxSyJy8TFUw',
         'login-customer-id': '2681551676'
@@ -81,7 +81,7 @@ export class GoogleAdsReportService {
       }
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
+        await this.externalPlatforms.handleGoogleError(error, 'googleAds');
         return this.getReport(campaign, retryCount - 1);
       } else {
         this.toaster.error('Failed to fetch Google Ads report', 'Error');

@@ -135,7 +135,7 @@ export class GoogleAdsFormComponent {
     }
 
     const headers = new HttpHeaders({
-        'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}`,
+        'Authorization': `Bearer ${localStorage.getItem('googleAdsAccessToken')}`,
         'Content-Type': 'application/json',
         'developer-token': 'mkH52QA2KonyxSyJy8TFUw'
     });
@@ -165,7 +165,7 @@ export class GoogleAdsFormComponent {
       this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
+        await this.externalPlatforms.handleGoogleError(error, 'googleAds');
         return this.getAdAccounts(retryCount - 1);
       } else {
         console.error(error);
@@ -230,7 +230,7 @@ export class GoogleAdsFormComponent {
     }
 
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${localStorage.getItem('googleAccessToken')}`,
+      'Authorization': `Bearer ${localStorage.getItem('googleAdsAccessToken')}`,
       'Content-Type': 'application/json',
       'developer-token': 'mkH52QA2KonyxSyJy8TFUw',
       'login-customer-id': '2681551676'
@@ -251,7 +251,7 @@ export class GoogleAdsFormComponent {
       this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
-        await this.externalPlatforms.handleGoogleError(error);
+        await this.externalPlatforms.handleGoogleError(error, 'googleAds');
         return this.getAdAccountCampaigns(retryCount - 1, event, edit);
       } else {
         console.error(error);

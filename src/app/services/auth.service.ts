@@ -60,8 +60,11 @@ export class AuthService {
       
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
       userDoc.pipe(first()).subscribe((user: any) => {
-        if (user.googleAccessToken) {
-          localStorage.setItem('googleAccessToken', user.googleAccessToken);
+        if (user.googleAdsAccessToken) {
+          localStorage.setItem('googleAdsAccessToken', user.googleAdsAccessToken);
+        }
+        if (user.dv360AccessToken) {
+          localStorage.setItem('dv360AccessToken', user.dv360AccessToken);
         }
         if (user.facebookAccessToken) {
           localStorage.setItem('facebookAccessToken', user.facebookAccessToken);
