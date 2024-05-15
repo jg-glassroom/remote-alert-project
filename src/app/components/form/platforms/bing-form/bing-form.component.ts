@@ -132,7 +132,12 @@ export class BingFormComponent {
   }
 
   extractCustomers(data: any) {
-    const customersInfo = data['s:Envelope']['s:Body'][0]['GetCustomersInfoResponse'][0]['CustomersInfo'][0]['a:CustomerInfo'];
+    let customersInfo: any;
+    try {
+      customersInfo = data['s:Envelope']['s:Body'][0]['GetCustomersInfoResponse'][0]['CustomersInfo'][0]['a:CustomerInfo'];
+    } catch (error: any) {
+      throw new Error(data.result['s:Envelope']['s:Body'][0]['s:Fault'][0].detail[0].AdApiFaultDetail[0].Errors[0].AdApiError[0].Message[0]);
+    }
 
     const customersList = customersInfo.map((customer: any) => ({
         id: customer['a:Id'][0],
@@ -218,7 +223,7 @@ export class BingFormComponent {
         return this.getCustomers(retryCount - 1);
       } else {
         console.error(error);
-        this.toaster.error('An error occurred while fetching Bing customers', 'Error');
+        this.toaster.error(error, 'Error');
         this.isLoading = false;
       }
     }
