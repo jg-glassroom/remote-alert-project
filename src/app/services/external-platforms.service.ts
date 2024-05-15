@@ -44,7 +44,7 @@ export class ExternalPlatformsService {
   
     const user: any = await firstValueFrom(userDocRef.valueChanges().pipe(first()));
     try {
-      const result = await firstValueFrom(callable({ refreshToken: user.googleRefreshToken, platform: platform }));
+      const result = await firstValueFrom(callable({ refreshToken: user[`${platform}RefreshToken`], platform: platform }));
       if (result && result.access_token) {
         localStorage.setItem(`${platform}AccessToken`, result.access_token);
   
