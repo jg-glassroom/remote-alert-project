@@ -101,6 +101,10 @@ export class BusinessComponent {
       website: [this.data?.website || null],
       country: [this.data?.country || ''],
     });
+
+    if (!this.data.isAdmin) {
+      this.formGroup.disable();
+    }
   }
 
   displayFn(country: any): string {

@@ -62,6 +62,10 @@ export class AccountComponent {
       website: [this.data?.website || null],
       industry: [this.data?.industry || null],
     });
+
+    if (!this.data.isAdmin) {
+      this.formGroup.disable();
+    }
   }
 
   saveAccount() {

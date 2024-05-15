@@ -269,7 +269,7 @@ export class HeaderComponent {
             const dialogRef = this.matDialog.open(componentType as ComponentType<any>, {
               width: '70%',
               height: '90vh',
-              data: {...data as any, id}
+              data: {...data as any, id, isAdmin: this.isAdmin}
             });
   
             dialogRef.afterClosed().subscribe(() => {
