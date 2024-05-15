@@ -11,13 +11,8 @@ img {
   margin-right: 1.5%;
 }
 
-mat-drawer {
-  width: 4%;
-  min-width: 80px;
-}
-
 .list-item {
-  margin-left: 12%;
+  margin-left: 5px;
   display: flex;
   align-items: center;
 }
@@ -31,7 +26,6 @@ mat-drawer {
   position: fixed;
   bottom: 0;
   overflow: auto;
-  width: 4%;
   min-width: 80px;
 }
 
@@ -72,4 +66,12 @@ mat-nav-list {
 
 .list.selected:hover {
   background-color: #303f9f;
+}
+
+.menu-label {
+  margin-left: 10px;
+}
+
+* {
+  transition: all 300ms ease-in-out;
 }

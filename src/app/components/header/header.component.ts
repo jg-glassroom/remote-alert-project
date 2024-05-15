@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
@@ -49,6 +49,8 @@ export class HeaderComponent {
   isDialogOpen: boolean = false;
   isAdmin: boolean = false;
   private destroy$ = new Subject<void>();
+  collapsed = signal(true);
+  sidenavWidth = computed(() => this.collapsed() ? '80px' : '230px');
 
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;

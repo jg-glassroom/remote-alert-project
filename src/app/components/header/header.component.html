@@ -1,5 +1,5 @@
 <mat-toolbar>
-    <button *ngIf="auth.user$ | async as user" mat-icon-button class="menu-button" (click)="sidemenu.toggle()"><mat-icon>menu</mat-icon></button>
+    <button *ngIf="auth.user$ | async as user" mat-icon-button class="menu-button" (click)="collapsed.set(!collapsed())"><mat-icon>menu</mat-icon></button>
     <img class="link-home logo" src="../../assets/glassroom-logo.png"/>
     <span class="link-home">Alert project</span>
     <span class="spacer"></span>
@@ -10,8 +10,8 @@
         <mat-icon>exit_to_app</mat-icon>
     </button>
 </mat-toolbar>
-<mat-drawer-container autosize>
-    <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side">
+<mat-drawer-container>
+    <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side" [style.width]="sidenavWidth()">
         <mat-nav-list>
             <mat-list-item
                 (mouseenter)="openMenu(businessTrigger)" 
@@ -20,6 +20,7 @@
                 >
                 <span class="list-item">
                     <mat-icon class="menu-icon">business</mat-icon>
+                    <span class="menu-label" *ngIf="!collapsed()">Businesses</span>
                 </span>
             </mat-list-item>
             <mat-list-item 
@@ -30,25 +31,29 @@
                 >
                 <span class="list-item">
                     <mat-icon class="menu-icon">account_balance</mat-icon>
+                    <span class="menu-label" *ngIf="!collapsed()">Accounts</span>
                 </span>
             </mat-list-item>
         </mat-nav-list>
-        <div class="bottom-list">
+        <div class="bottom-list" [style.width]="sidenavWidth()">
             <hr>
             <mat-nav-list>
                 <mat-list-item (click)="navigate('integrations')">
                     <span class="list-item">
                         <mat-icon class="menu-icon">integration_instructions</mat-icon>
+                        <span class="menu-label" *ngIf="!collapsed()">Integrations</span>
                     </span>
                 </mat-list-item>
                 <mat-list-item (click)="navigate('user_management')" *ngIf="isAdmin">
                     <span class="list-item">
                         <mat-icon class="menu-icon">supervised_user_circle</mat-icon>
+                        <span class="menu-label" *ngIf="!collapsed()">User management</span>
                     </span>
                 </mat-list-item>
                 <mat-list-item (click)="editElement($event)">
                     <span class="list-item">
                         <mat-icon class="menu-icon">settings</mat-icon>
+                        <span class="menu-label" *ngIf="!collapsed()">Settings</span>
                     </span>
                 </mat-list-item>
             </mat-nav-list>
