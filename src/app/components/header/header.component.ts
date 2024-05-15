@@ -1,4 +1,4 @@
-import { Component, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, ViewChild, computed, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
@@ -27,7 +27,6 @@ import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 import { AccountComponent } from '../form/account/account.component';
 
-
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -54,9 +53,9 @@ export class HeaderComponent {
 
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
+  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
 
   businesses: any = [];
-
   accounts: any = [];
   userSubscription: Subscription = new Subscription();
 
@@ -85,11 +84,18 @@ export class HeaderComponent {
     trigger.openMenu();
   }
 
+  public toggleSidemenu(): void {
+    this.collapsed.set(!this.collapsed());
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 300);
+  }
+
   openBusinessDialog() {
     this.matDialog.open(BusinessComponent, {
       width: '70%',
       height: '90vh'
-    })
+    });
   }
   
   async loadAccounts(userId: string) {
@@ -311,4 +317,4 @@ export class HeaderComponent {
       }
     });
   }
-}  
+}
