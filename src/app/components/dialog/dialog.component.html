@@ -13,8 +13,8 @@
 
     <mat-form-field class="form-element">
       <mat-label>Subaccount</mat-label>
-      <input matInput placeholder="Choose a subaccount" [matAutocomplete]="auto" formControlName="subaccount" (keydown.enter)="addSubaccount()">
-      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+      <input matInput placeholder="Choose a subaccount" [matAutocomplete]="auto" formControlName="subaccount">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="createSubaccount($event)">
         <mat-option *ngFor="let subaccount of filteredSubaccounts | async" [value]="subaccount">
           {{ subaccount.name }}
         </mat-option>

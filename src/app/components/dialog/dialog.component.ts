@@ -17,13 +17,14 @@ import { Dv360FormComponent } from '../form/platforms/dv360-form/dv360-form.comp
 import { FacebookFormComponent } from '../form/platforms/facebook-form/facebook-form.component';
 import { GoogleAdsFormComponent } from '../form/platforms/google-ads-form/google-ads-form.component';
 import { BingFormComponent } from '../form/platforms/bing-form/bing-form.component';
+import { SubaccountComponent } from '../form/subaccount/subaccount.component';
 
 import { ToastrService } from 'ngx-toastr';
 
 import { of, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -79,6 +80,7 @@ export class DialogComponent {
   filteredSubaccounts!: Observable<any[]>;
 
   constructor(
+    private matDialog: MatDialog,
     private dialogRef: MatDialogRef<DialogComponent>,
     public authService: AuthService,
     public externalPlatforms: ExternalPlatformsService,
@@ -142,18 +144,31 @@ export class DialogComponent {
     return subaccount && subaccount.name ? subaccount.name : '';
   }
 
+  createSubaccount(event: any) {
+    const subaccount: any = event.option.value;
+    if (subaccount.id === 'new') {
+      const dialogRef = this.matDialog.open(SubaccountComponent, {
+        width: '40%'
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.subaccounts.push(result);
+          this.formGroup.get('subaccount')!.setValue(result);
+        }
+      });
+    }
+  }
+
   addSubaccount() {
-    const subaccountName: any = this.formGroup.get('subaccount')!.value;
-    if (subaccountName !== null && subaccountName.trim() !== '') {
-      const newSubaccount: any = { name: this.formGroup.get('subaccount')!.value, accountId: this.commonService.selectedAccountId };
-      if (newSubaccount && !this.subaccounts.some((sub: any) => sub.name === newSubaccount.name)) {
-        this.db.collection('subaccount').add(newSubaccount).then((docRef) => {
-          this.subaccounts.push({ id: docRef.id, ...newSubaccount });
-          this.formGroup.get('subaccount')!.setValue({ id: docRef.id, ...newSubaccount });
-        }).catch(() => {
-          this.toaster.error('Failed to add subaccount', 'Error');
-        });
-      }
+    const newSubaccount: any = { name: this.formGroup.get('subaccount')!.value, accountId: this.commonService.selectedAccountId };
+    if (newSubaccount && !this.subaccounts.some((sub: any) => sub.name === newSubaccount.name)) {
+      this.db.collection('subaccount').add(newSubaccount).then((docRef) => {
+        this.subaccounts.push({ id: docRef.id, ...newSubaccount });
+        this.formGroup.get('subaccount')!.setValue({ id: docRef.id, ...newSubaccount });
+      }).catch(() => {
+        this.toaster.error('Failed to add subaccount', 'Error');
+      });
     }
   }
 
@@ -168,6 +183,7 @@ export class DialogComponent {
           };
           this.subaccounts.push(subaccount);
         });
+        this.subaccounts.push({ id: 'new', name: 'Add new subaccount' });
         resolve();
       }, error => {
         reject(error);
