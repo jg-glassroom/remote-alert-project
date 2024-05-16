@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonService } from '../../services/common/common.service';
 import { documentId } from 'firebase/firestore';
 
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom } from 'rxjs';
 
 
 @Component({

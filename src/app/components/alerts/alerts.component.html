@@ -1,21 +1,51 @@
-<div class="create-container">
+<div class="container">
+    <div class="filters">
+        <mat-form-field appearance="fill">
+            <mat-label>Subaccounts</mat-label>
+            <mat-select [(value)]="selectedSubaccounts" multiple>
+                <mat-option *ngFor="let subaccount of alertsService.subaccounts" [value]="subaccount.id">
+                    {{ subaccount.name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="filter">
+            <mat-label>Platforms</mat-label>
+            <mat-select [(value)]="selectedPlatforms" multiple>
+                <mat-option *ngFor="let key of platformKeys()" [value]="key">
+                    {{ platforms[key] }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="filter">
+            <mat-label>Users</mat-label>
+            <mat-select [(value)]="selectedUsers" multiple>
+                <mat-option *ngFor="let user of users" [value]="user.id">
+                    {{ user.email }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="filter">
+            <mat-label>Alert Name</mat-label>
+            <input matInput [(ngModel)]="filterName">
+        </mat-form-field>
+    </div>
+
     <button mat-raised-button class="create" color="primary" (click)="createAlert()">
         <mat-icon>add</mat-icon>Alert
     </button>
 </div>
 
 <div *ngIf="alertsService.subaccounts.length > 0" class="subaccount-list">
-    <div *ngFor="let subaccount of alertsService.subaccounts" class="subaccount-item">
+    <div *ngFor="let subaccount of filteredSubaccounts()" class="subaccount-item">
         <div class="subaccount-header">
             <span class="subaccount">{{ subaccount.name }}</span>
             <span class="subaccount-button">
-                <button mat-stroked-button (click)="editSubaccount(subaccount)" *ngIf="subaccount.id">
-                    Edit
-                </button>
+                <button mat-stroked-button (click)="editSubaccount(subaccount)" *ngIf="subaccount.id">Edit</button>
                 &nbsp;
-                <button mat-stroked-button (click)="deleteSubaccount(subaccount)" *ngIf="subaccount.id">
-                    Delete
-                </button>
+                <button mat-stroked-button (click)="deleteSubaccount(subaccount)" *ngIf="subaccount.id">Delete</button>
             </span>
         </div>
         <mat-divider></mat-divider>
