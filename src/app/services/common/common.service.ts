@@ -47,14 +47,14 @@ export class CommonService {
       announcer.announce(`Removed ${campaign}`);
     }
   }
-  
+
   removeCampaignFromChips(campaigns: any, campaign: any, searchField: any): void {
     const index = campaigns.findIndex((c: any) => c[searchField] === campaign[searchField]);
     if (index >= 0) {
       campaigns.splice(index, 1);
     }
   }
-  
+
   addCampaignToChips(campaigns: any, campaign: any, formField: any, searchField: any, formGroup: any, campaignInput: any): void {
     if (!campaigns.some((c: any) => c[searchField] === campaign[searchField])) {
       campaigns.push(campaign);
@@ -101,7 +101,7 @@ export class CommonService {
 
     event.option.deselect();
     event.option._getHostElement().blur();
-  
+
     if (index >= 0) {
       campaigns.splice(index, 1);
       announcer.announce(`Removed ${selectedCampaign.displayName}`);
@@ -109,7 +109,7 @@ export class CommonService {
       campaigns.push(selectedCampaign);
       announcer.announce(`Added ${selectedCampaign.displayName}`);
     }
-  
+
     if (campaignInput && campaignInput.nativeElement) {
       campaignInput.nativeElement.value = '';
     }
@@ -136,7 +136,7 @@ export class CommonService {
 
   formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${month}/${day}/${year}`;
   }
@@ -158,7 +158,7 @@ export class CommonService {
     if (!cachedData) {
       return of([]);
     }
-    
+
     try {
       const data = JSON.parse(cachedData);
       return of(data.filter((element: any) => element[searchField].toLowerCase().includes(filterValue)));
@@ -175,7 +175,7 @@ export class CommonService {
       switchMap((name: any) => this.filterElement(name, originalObservable, filterSearchField))
     );
   }
-  
+
   filterElement(filterValue: string, observable: Observable<any[]>, searchField: string): Observable<any[]> {
     return observable.pipe(
       map(elements => elements.filter(element => element[searchField].toLowerCase().includes(filterValue)))
