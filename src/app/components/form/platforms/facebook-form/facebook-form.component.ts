@@ -109,7 +109,7 @@ export class FacebookFormComponent {
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
-    this.platformsCommon.remove(campaign, campaigns, selection, announcer);
+    this.platformsCommon.remove(campaign, campaigns, this.campaigns$, 'id', selection, announcer);
     this.filterAdsetsByCampaigns();
   }
 
@@ -119,7 +119,7 @@ export class FacebookFormComponent {
   }
 
   removeAdset(adset: any, adsets: any, selection: any, announcer: any) {
-    this.platformsCommon.remove(adset, adsets, selection, announcer);
+    this.platformsCommon.remove(adset, adsets, this.adsets$, 'id', selection, announcer);
   }
 
   async createForm() {
@@ -276,29 +276,22 @@ export class FacebookFormComponent {
         return false;
       });
     });
-  }  
+  }
   
   async filterAdsetsByCampaigns() {
+    const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.id);
     this.originalAdsets$.subscribe(originalAdsets => {
-      const selectedCampaignIds = this.campaigns.map((campaign: any) => campaign.id);
       const filteredAdsets = originalAdsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
       const sortedAdsets = filteredAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
       this.adsets$ = of(sortedAdsets);
-    });
-  }  
-
-  updateAdsetSelection(): void {
-    this.adsets$.subscribe(adsets => {
-      const uniqueAdsets = new Set();
-      this.adsets = adsets.filter((adset: any) => {
-        if (!uniqueAdsets.has(adset.id) && this.campaigns.some((campaign: any) => campaign.id === adset.campaign_id)) {
-          uniqueAdsets.add(adset.id);
-          const isSelected = this.selectionAdset.selected.some((selectedAdset: any) => selectedAdset.id === adset.id);
-          adset.selected = isSelected;
-          return true;
+  
+      this.adsets.forEach((adset: any) => {
+        if (!selectedCampaignIds.includes(adset.campaign_id)) {
+          this.selectionAdset.deselect(adset);
+          adset.selected = false;
         }
-        return false;
       });
+      this.adsets = this.adsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
     });
   }
 

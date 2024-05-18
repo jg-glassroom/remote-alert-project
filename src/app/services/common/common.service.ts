@@ -36,13 +36,20 @@ export class CommonService {
     formGroup.get(formField)!.setValue(null);
   }
 
-  remove(campaign: any, campaigns: any, selection: any, announcer: any): void {
+  remove(campaign: any, campaigns: any, campaigns$: any, idField: any, selection: any, announcer: any): void {
     const index = campaigns.indexOf(campaign);
 
     if (index >= 0) {
       campaigns.splice(index, 1);
       selection.deselect(campaign);
       campaign.selected = false;
+      campaigns$.forEach((c: any) => {
+        let campaignToUpdate = c.find((cc: any) => cc[idField] === campaign[idField]);
+        campaignToUpdate.selected = false;
+        if (c[idField] === campaign[idField]) {
+          c.selected = false;
+        }
+      });
 
       announcer.announce(`Removed ${campaign}`);
     }

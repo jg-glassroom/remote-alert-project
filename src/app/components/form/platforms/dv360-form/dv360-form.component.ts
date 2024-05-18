@@ -117,7 +117,7 @@ export class Dv360FormComponent {
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
-    this.platformsCommon.remove(campaign, campaigns, selection, announcer);
+    this.platformsCommon.remove(campaign, campaigns, this.campaigns$, 'campaignId', selection, announcer);
     this.filterIOsByCampaigns();
   }
 
@@ -127,7 +127,7 @@ export class Dv360FormComponent {
   }
 
   removeIO(IO: any, IOs: any, selection: any, announcer: any) {
-    this.platformsCommon.remove(IO, IOs, selection, announcer);
+    this.platformsCommon.remove(IO, IOs, this.IOs$, 'insertionOrderId', selection, announcer);
   }
 
   async ngOnInit() {
@@ -303,28 +303,21 @@ export class Dv360FormComponent {
   }
   
   async filterIOsByCampaigns() {
+    const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.campaignId);
     this.originalIOs$.subscribe(originalIOs => {
-      const selectedCampaignIds = this.campaigns.map((campaign: any) => campaign.campaignId);
       const filteredIOs = originalIOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
       const sortedIOs = filteredIOs.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
       this.IOs$ = of(sortedIOs);
-    });
-  }  
-
-  updateIOSelection(): void {
-    this.IOs$.subscribe(IOs => {
-      const uniqueIOs = new Set();
-      this.IOs = IOs.filter((IO: any) => {
-        if (!uniqueIOs.has(IO.insertionOrderId) && this.campaigns.some((campaign: any) => campaign.campaignId === IO.campaignId)) {
-          uniqueIOs.add(IO.insertionOrderId);
-          const isSelected = this.selectionIO.selected.some((selectedIO: any) => selectedIO.insertionOrderId === IO.insertionOrderId);
-          IO.selected = isSelected;
-          return true;
+  
+      this.IOs.forEach((io: any) => {
+        if (!selectedCampaignIds.includes(io.campaignId)) {
+          this.selectionIO.deselect(io);
+          io.selected = false;
         }
-        return false;
       });
+      this.IOs = this.IOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
     });
-  }  
+  }
 
   async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
     this.isLoading = true;
