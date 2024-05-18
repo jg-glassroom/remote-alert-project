@@ -65,12 +65,19 @@ export class FacebookFormComponent {
   campaigns$!: Observable<any[]>;
   campaigns: any = [];
 
+  originalAdsets$!: Observable<any[]>;
+  adsets$!: Observable<any[]>;
+  adsets: any[] = [];
+
   separatorKeysCodes: number[] = [ENTER, COMMA];
   selection = new SelectionModel<any>(true, []);
+  selectionAdset = new SelectionModel<any>(true, []);
 
   announcer = inject(LiveAnnouncer);
+  announcerAdset = inject(LiveAnnouncer);
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('adsetInput') adsetInput!: ElementRef<HTMLInputElement>;
   
   constructor(
     private formBuilder: FormBuilder, 
@@ -95,10 +102,31 @@ export class FacebookFormComponent {
     await this.getAdAccounts();
   }
 
+  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    event.stopPropagation();
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput);
+    this.filterAdsetsByCampaigns();
+  }
+
+  removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
+    this.platformsCommon.remove(campaign, campaigns, selection, announcer);
+    this.filterAdsetsByCampaigns();
+  }
+
+  selectAdset(event: any, adsets: any, adset: any, formGroup: any, selection: any, adsetInput: any) {
+    event.stopPropagation();
+    this.platformsCommon.toggleSelection(adsets, adset, 'facebookAdset', 'id', formGroup, selection, adsetInput);
+  }
+
+  removeAdset(adset: any, adsets: any, selection: any, announcer: any) {
+    this.platformsCommon.remove(adset, adsets, selection, announcer);
+  }
+
   async createForm() {
     this.formGroup = this.formBuilder.group({
       facebookLabel: [this.data?.facebookLabel || null],
       facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
+      facebookAdset: [this.data?.facebookAdset || null],
       facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       facebookPlatform: ['facebook', [Validators.required]],
       facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
@@ -154,11 +182,13 @@ export class FacebookFormComponent {
     if (!edit) {
       this.formGroup.patchValue({
         facebookCampaign: [],
+        facebookAdset: [],
         facebookStartDate: null,
         facebookEndDate: null,
         facebookBudget: null,
-      })
-      this.campaigns = []
+      });
+      this.campaigns = [];
+      this.adsets = [];
     }
   
     const fields = 'account_id,id,name, business';
@@ -196,6 +226,82 @@ export class FacebookFormComponent {
     }
   }
 
+  async fetchAllAdsets(url: string, adsets: any[] = []): Promise<any[]> {
+    try {
+      const response = await firstValueFrom(this.http.get<any>(url));
+      const fetchedAdsets = response.data;
+      adsets = adsets.concat(fetchedAdsets);
+
+      if (response.paging && response.paging.next) {
+        return this.fetchAllAdsets(response.paging.next, adsets);
+      } else {
+        return adsets;
+      }
+    } catch (error) {
+      console.error('Error fetching Facebook Adsets:', error);
+      this.toaster.error('Error fetching Facebook Adsets', 'Error');
+      throw error;
+    }
+  }
+
+  async getAdsets(adsetId: string) {
+    const fields = 'id,name,campaign_id';
+    const url = `https://graph.facebook.com/v19.0/${adsetId}/adsets?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+
+    try {
+      const allAdsets = await this.fetchAllAdsets(url);
+      const sortedAdsets = allAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+      this.originalAdsets$ = of(sortedAdsets);
+      await this.filterAdsetsByCampaigns();
+      if (this.isEditMode) {
+        this.updateAdsetSelectionInEditMode();
+      }
+      this.isLoading = false;
+    } catch (error) {
+      console.error('Error fetching all Facebook Adsets:', error);
+    }
+  }
+
+  updateAdsetSelectionInEditMode(): void {
+    this.adsets$.subscribe(adsets => {
+      const uniqueAdsets = new Set();
+      const selectedAdsets = this.data?.facebookAdset || [];
+      this.adsets = adsets.filter((adset: any) => {
+        if (!uniqueAdsets.has(adset.id) && selectedAdsets.some((selectedAdset: any) => selectedAdset.id === adset.id)) {
+          uniqueAdsets.add(adset.id);
+          adset.selected = true;
+          this.selectionAdset.select(adset);
+          return true;
+        }
+        return false;
+      });
+    });
+  }  
+  
+  async filterAdsetsByCampaigns() {
+    this.originalAdsets$.subscribe(originalAdsets => {
+      const selectedCampaignIds = this.campaigns.map((campaign: any) => campaign.id);
+      const filteredAdsets = originalAdsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
+      const sortedAdsets = filteredAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+      this.adsets$ = of(sortedAdsets);
+    });
+  }  
+
+  updateAdsetSelection(): void {
+    this.adsets$.subscribe(adsets => {
+      const uniqueAdsets = new Set();
+      this.adsets = adsets.filter((adset: any) => {
+        if (!uniqueAdsets.has(adset.id) && this.campaigns.some((campaign: any) => campaign.id === adset.campaign_id)) {
+          uniqueAdsets.add(adset.id);
+          const isSelected = this.selectionAdset.selected.some((selectedAdset: any) => selectedAdset.id === adset.id);
+          adset.selected = isSelected;
+          return true;
+        }
+        return false;
+      });
+    });
+  }
+
   async getAdAccountCampaigns(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     this.isLoading = true;
     const fields = 'id,name,status';
@@ -209,33 +315,48 @@ export class FacebookFormComponent {
       this.isLoading = false;
       return;
     }
-
+  
     if (!edit) {
       this.formGroup.patchValue({
         facebookCampaign: [],
+        facebookAdset: [],
         facebookStartDate: null,
         facebookEndDate: null,
         facebookBudget: null,
-      })
-      this.campaigns = []
+      });
+      this.campaigns = [];
+      this.adsets = [];
     } else {
       this.campaigns = this.data?.facebookCampaign;
+      this.adsets = this.data?.facebookAdset;
     }
-
+  
     const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
     
     try {
       const allCampaigns = await this.fetchAllCampaigns(url);
       const sortedCampaigns = allCampaigns.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
-      this.campaigns$ = of(sortedCampaigns);
-      this.originalCampaigns$ = of(sortedCampaigns);
-      this.campaigns$ = this.platformsCommon.setupFiltering(this.formGroup, 'facebookCampaign', this.originalCampaigns$, 'name');
-      this.isLoading = false;
+      if (edit) {
+        const campaigns = sortedCampaigns.map((campaign: any) => {
+          const isSelected = this.campaigns.some((selectedCampaign: any) => selectedCampaign.id === campaign.id);
+          return {
+            ...campaign,
+            selected: isSelected,
+          };
+        });
+        this.campaigns$ = of(campaigns);
+        this.originalCampaigns$ = of(campaigns);
+      } else {
+        this.campaigns$ = of(sortedCampaigns);
+        this.originalCampaigns$ = of(sortedCampaigns);
+        this.campaigns$ = this.platformsCommon.setupFiltering(this.formGroup, 'facebookCampaign', this.originalCampaigns$, 'name');
+      }
+      await this.getAdsets(adAccount.id);
     } catch (error) {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
     }
-  }
+  }  
 
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
@@ -258,11 +379,15 @@ export class FacebookFormComponent {
       facebookEndDate: null,
       facebookBudget: null,
       facebookCampaign: [],
+      facebookAdset: [],
     });
     this.originalCampaigns$ = of([]);
     this.campaigns$ = of([]);
     this.campaigns = [];
+    this.adsets = [];
+    this.adsets$ = of([]);
     this.selection.clear();
+    this.selectionAdset.clear();
   }
 
   public getFormData(): any {

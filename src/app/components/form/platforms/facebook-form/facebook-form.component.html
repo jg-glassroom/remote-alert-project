@@ -41,32 +41,64 @@
 
         <mat-form-field class="form-element">
             <mat-label>Campaign*</mat-label>
-
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, selection, announcer)">
-                <span>{{ combineAndTruncateName(campaign, 25) }}</span>
-                <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
-                <mat-icon>cancel</mat-icon>
-                </button>
-            </mat-chip-row>
+                <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
+                    <span>{{ combineAndTruncateName(campaign, 25) }}</span>
+                    <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
+                        <mat-icon>cancel</mat-icon>
+                    </button>
+                </mat-chip-row>
             </mat-chip-grid>
-
             <input placeholder="Select your campaigns" #campaignInput formControlName="facebookCampaign"
-            [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
-            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-            (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
-
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'facebookCampaign', selection, announcer, campaignInput)">
-            <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput)">
-                {{ campaign.name }} | {{ campaign.id }}
-                </mat-checkbox>
-            </mat-option>
+                    [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+                <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
+                    <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
+                    {{ campaign.name }} | {{ campaign.id }}
+                    </mat-checkbox>
+                </mat-option>
             </mat-autocomplete>
-
             <mat-hint *ngIf="form['facebookCampaign'].errors?.['required'] && (submitted || form['facebookCampaign'].touched)">
                 <span class="mat-error">At least one campaign must be selected</span>
             </mat-hint>
+        </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field class="form-element">
+            <mat-label>Adsets</mat-label>
+            <mat-chip-grid #chipGridAdset aria-label="Adset Selection">
+                <mat-chip-row *ngFor="let adset of adsets" (removed)="removeAdset(adset, adsets, selectionAdset, announcerAdset)">
+                    <span>{{ combineAndTruncateName(adset, 25) }}</span>
+                    <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + adset.name">
+                        <mat-icon>cancel</mat-icon>
+                    </button>
+                </mat-chip-row>
+            </mat-chip-grid>
+            <input placeholder="Select your adsets" #adsetInput formControlName="facebookAdset"
+                   [matChipInputFor]="chipGridAdset" [matAutocomplete]="adsetsAuto"
+                   [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                   (matChipInputTokenEnd)="platformsCommon.add($event, adsets, formGroup, 'facebookAdset')"/>
+            <mat-autocomplete #adsetsAuto="matAutocomplete" (optionSelected)="selectAdset($event, adsets, formGroup, selectionAdset, announcerAdset, adsetInput)">
+                <mat-option *ngFor="let adset of adsets$ | async" [value]="adset">
+                    <mat-checkbox [checked]="adset.selected" (click)="selectAdset($event, adsets, adset, formGroup, selectionAdset, adsetInput)">
+                        {{ adset.name }} | {{ adset.campaign_id }}
+                    </mat-checkbox>
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field class="form-element">
+            <mat-label>Budget</mat-label>
+            <input matInput formControlName="facebookBudget">
+            <mat-error *ngIf="form['facebookBudget'].errors?.['required'] && (submitted || form['facebookBudget'].touched)">
+                The field is required
+            </mat-error>
+            <mat-error *ngIf="form['facebookBudget'].errors?.['pattern'] && (submitted || form['facebookBudget'].touched)">
+                Please enter a valid number
+            </mat-error>
         </mat-form-field>
     </div>
 
@@ -102,18 +134,4 @@
             </mat-error>
         </mat-form-field>
     </div>
-
-    <div class="form-row">
-        <mat-form-field class="form-element">
-            <mat-label>Budget</mat-label>
-            <input matInput formControlName="facebookBudget">
-            <mat-error *ngIf="form['facebookBudget'].errors?.['required'] && (submitted || form['facebookBudget'].touched)">
-                The field is required
-            </mat-error>
-            <mat-error *ngIf="form['facebookBudget'].errors?.['pattern'] && (submitted || form['facebookBudget'].touched)">
-                Please enter a valid number
-            </mat-error>
-        </mat-form-field>
-    </div>
-
 </form>

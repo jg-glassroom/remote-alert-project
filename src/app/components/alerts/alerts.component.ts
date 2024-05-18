@@ -216,7 +216,7 @@ export class AlertsComponent {
 
     const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
       width: '20%',
-      data: { message: "Are you sure to delete " + row.name + "?" }
+      data: { message: "Are you sure to delete " + row.campaignName + "?" }
     });
 
     dialogRef.afterClosed().subscribe(result => {

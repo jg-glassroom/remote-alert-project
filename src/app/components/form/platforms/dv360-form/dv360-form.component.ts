@@ -48,7 +48,7 @@ interface DV360Response {
     ReactiveFormsModule
   ],
   templateUrl: './dv360-form.component.html',
-  styleUrl: './dv360-form.component.css'
+  styleUrls: ['./dv360-form.component.css']
 })
 export class Dv360FormComponent {
   @Output() platformChange = new EventEmitter<string>();
@@ -73,12 +73,19 @@ export class Dv360FormComponent {
   campaigns$!: Observable<any[]>;
   campaigns: any = [];
 
+  originalIOs$!: Observable<any[]>;
+  IOs$!: Observable<any[]>;
+  IOs: any[] = [];
+
   separatorKeysCodes: number[] = [ENTER, COMMA];
   selection = new SelectionModel<any>(true, []);
+  selectionIO = new SelectionModel<any>(true, []);
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('IOInput') IOInput!: ElementRef<HTMLInputElement>;
 
   announcer = inject(LiveAnnouncer);
+  announcerIO = inject(LiveAnnouncer);
 
   constructor(
     private formBuilder: FormBuilder, 
@@ -103,6 +110,26 @@ export class Dv360FormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
+  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    event.stopPropagation();
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
+    this.filterIOsByCampaigns();
+  }
+
+  removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
+    this.platformsCommon.remove(campaign, campaigns, selection, announcer);
+    this.filterIOsByCampaigns();
+  }
+
+  selectIO(event: any, IOs: any, IO: any, formGroup: any, selection: any, IOInput: any) {
+    event.stopPropagation();
+    this.platformsCommon.toggleSelection(IOs, IO, 'dv360IO', 'insertionOrderId', formGroup, selection, IOInput);
+  }
+
+  removeIO(IO: any, IOs: any, selection: any, announcer: any) {
+    this.platformsCommon.remove(IO, IOs, selection, announcer);
+  }
+
   async ngOnInit() {
     if (this.isEditMode && this.data.platforms[this.platformIndex]) {
       this.data = this.data.platforms[this.platformIndex].formData;
@@ -121,6 +148,7 @@ export class Dv360FormComponent {
       dv360Partner: [this.data?.dv360Partner || null, [Validators.required]],
       dv360Platform: ['dv360', [Validators.required]],
       dv360Advertiser: [this.data?.dv360Advertiser || null, [Validators.required]],
+      dv360IO: [this.data?.dv360IO || []],
       dv360CampaignId: [this.data?.dv360CampaignId || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       dv360StartDate: [this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
       dv360EndDate: [this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
@@ -195,12 +223,14 @@ export class Dv360FormComponent {
     if (!edit) {
       this.formGroup.patchValue({
         dv360CampaignId: [],
+        dv360IO: [],
         dv360Advertiser: null,
         dv360StartDate: null,
         dv360EndDate: null,
         dv360Budget: null,
       })
       this.campaigns = []
+      this.IOs = []
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
@@ -222,7 +252,11 @@ export class Dv360FormComponent {
         }
       })
       localStorage.setItem('partners', JSON.stringify(partnersData));
-      this.isLoading = false;
+      if (edit) {
+        await this.getDV360Campaign(undefined, true);
+      } else {
+        this.isLoading = false;
+      }
     } catch (error: any) {
       if (retryCount > 0) {
           await this.externalPlatforms.handleGoogleError(error, 'dv360');
@@ -234,6 +268,63 @@ export class Dv360FormComponent {
       }
     }
   }
+
+  async getDV360IO(advertiserId: number): Promise<void> {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
+    try {
+        const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${advertiserId}/insertionOrders`, { headers });
+        const data: any = await firstValueFrom(response$);
+        this.originalIOs$ = of(data.insertionOrders);
+        await this.filterIOsByCampaigns();
+        if (this.isEditMode) {
+          this.updateIOSelectionInEditMode();
+        }
+        this.isLoading = false;
+    } catch (error: any) {
+      this.isLoading = false;
+      throw new Error(error);
+    }
+  }
+
+  updateIOSelectionInEditMode(): void {
+    this.IOs$.subscribe(IOs => {
+        const uniqueIOs = new Set();
+        const selectedIOs = this.data?.dv360IO || [];
+        this.IOs = IOs.filter((IO: any) => {
+            if (!uniqueIOs.has(IO.insertionOrderId) && selectedIOs.some((selectedIO: any) => selectedIO.insertionOrderId === IO.insertionOrderId)) {
+                uniqueIOs.add(IO.insertionOrderId);
+                IO.selected = true;
+                this.selectionIO.select(IO);
+                return true;
+            }
+            return false;
+        });
+    });
+  }
+  
+  async filterIOsByCampaigns() {
+    this.originalIOs$.subscribe(originalIOs => {
+      const selectedCampaignIds = this.campaigns.map((campaign: any) => campaign.campaignId);
+      const filteredIOs = originalIOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
+      const sortedIOs = filteredIOs.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
+      this.IOs$ = of(sortedIOs);
+    });
+  }  
+
+  updateIOSelection(): void {
+    this.IOs$.subscribe(IOs => {
+      const uniqueIOs = new Set();
+      this.IOs = IOs.filter((IO: any) => {
+        if (!uniqueIOs.has(IO.insertionOrderId) && this.campaigns.some((campaign: any) => campaign.campaignId === IO.campaignId)) {
+          uniqueIOs.add(IO.insertionOrderId);
+          const isSelected = this.selectionIO.selected.some((selectedIO: any) => selectedIO.insertionOrderId === IO.insertionOrderId);
+          IO.selected = isSelected;
+          return true;
+        }
+        return false;
+      });
+    });
+  }  
 
   async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
     this.isLoading = true;
@@ -252,13 +343,16 @@ export class Dv360FormComponent {
     if (!edit) {
       this.formGroup.patchValue({
         dv360CampaignId: [],
+        dv360IO: [],
         dv360StartDate: null,
         dv360EndDate: null,
         dv360Budget: null,
       })
       this.campaigns = []
+      this.IOs = []
     } else {
       this.campaigns = this.data?.dv360CampaignId;
+      this.IOs = this.data?.dv360IO;
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
@@ -294,7 +388,7 @@ export class Dv360FormComponent {
         this.campaigns$ = of(campaigns);
         this.originalCampaigns$ = of(campaigns);
       }
-      this.isLoading = false;
+      await this.getDV360IO(selectedAdvertiser.advertiserId);
     } catch (error: any) {
       if (retryCount > 0) {
         await this.externalPlatforms.handleGoogleError(error, 'dv360');
@@ -337,12 +431,17 @@ export class Dv360FormComponent {
       dv360EndDate: null,
       dv360Budget: null,
       dv360CampaignId: [],
+      dv360IO: [],
     });
     this.advertisers$ = of([]);
     this.originalAdvertisers$ = of([]);
     this.originalCampaigns$ = of([]);
     this.campaigns$ = of([]);
     this.campaigns = [];
+    this.IOs$ = of([]);
+    this.IOs = [];
+    this.originalIOs$ = of([]);
+    this.selectionIO.clear();
     this.selection.clear();
   }
 
