@@ -4,7 +4,6 @@ import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
 import { ComponentType } from '@angular/cdk/overlay';
 
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { documentId } from 'firebase/firestore';
 
@@ -46,7 +45,6 @@ import { AccountComponent } from '../form/account/account.component';
 export class HeaderComponent {
   toaster = inject(ToastrService);
   isDialogOpen: boolean = false;
-  isAdmin: boolean = false;
   private destroy$ = new Subject<void>();
   collapsed = signal(true);
   sidenavWidth = computed(() => this.collapsed() ? '80px' : '230px');
@@ -64,7 +62,6 @@ export class HeaderComponent {
     public commonService: CommonService,
     public router: Router,
     private db: AngularFirestore,
-    private afAuth: AngularFireAuth,
     private matDialog: MatDialog
   ) {}
 
@@ -257,7 +254,7 @@ export class HeaderComponent {
         if (account) {
           await this.loadAccounts(user.uid);
         }
-        await this.getIsAdmin();
+        await this.commonService.getIsAdmin();
         return of([]);
       })
     ).subscribe();
@@ -277,7 +274,7 @@ export class HeaderComponent {
             const dialogRef = this.matDialog.open(componentType as ComponentType<any>, {
               width: '70%',
               height: '90vh',
-              data: {...data as any, id, isAdmin: this.isAdmin}
+              data: {...data as any, id}
             });
   
             dialogRef.afterClosed().subscribe(() => {
@@ -291,30 +288,5 @@ export class HeaderComponent {
           }
         });
     }
-  }
-
-  async getIsAdmin(): Promise<any> {
-    return this.afAuth.currentUser.then(user => {
-      if (user) {
-        return this.db.collection('userRoles', ref => ref.where('userId', '==', user.uid))
-          .get()
-          .pipe(
-            map(querySnapshot => {
-              this.isAdmin = false;
-              querySnapshot.forEach(doc => {
-                const data: any = doc.data();
-                data.businessRoles?.forEach((role: any) => {
-                  if (role.businessId === this.commonService.selectedBusinessId && role.role === 'ADMIN') {
-                    this.isAdmin = true;
-                  }
-                });
-              });
-              return this.isAdmin;
-            })
-          ).toPromise();
-      } else {
-        return false;
-      }
-    });
   }
 }

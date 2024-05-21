@@ -1,0 +1,47 @@
+<div class="container">
+    <div *ngFor="let user of users" class="user-form">
+        <mat-form-field class="form-field">
+            <mat-label>Email</mat-label>
+            <input matInput placeholder="Email" [(ngModel)]="user.email" required>
+            <mat-error *ngIf="!user.email">
+                Email is required.
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field class="form-field">
+            <mat-label>Rattachment</mat-label>
+            <mat-select #selector placeholder="Rattachment" [(ngModel)]="user.rattachment" required multiple>
+                <mat-option (click)="selectAllAccounts(user)" [value]="{id: 'all'}">
+                    All Accounts
+                </mat-option>
+                <mat-divider></mat-divider>
+                <mat-option *ngFor="let option of options" (click)="updateAllSelected(user, option)" [value]="option">
+                    {{ option.name }}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="!user.rattachment">
+                Rattachment is required.
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field class="form-field">
+            <mat-label>Role</mat-label>
+            <mat-select placeholder="Role" [(ngModel)]="user.role" required>
+                <mat-option value="ADMIN">Admin</mat-option>
+                <mat-option value="STANDARD">Standard</mat-option>
+            </mat-select>
+            <mat-error *ngIf="!user.role">
+                Role is required.
+            </mat-error>
+        </mat-form-field>
+        <button mat-icon-button class="button" (click)="removeUser(user)">
+            <mat-icon>delete</mat-icon>
+        </button>
+    </div>
+    <div class="add">
+        <button mat-stroked-button color="primary" (click)="addUser()">Add user</button>
+    </div>
+    <div class="footer">
+        <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="sendInvitations()">Add</button>
+        &nbsp;
+        <button mat-raised-button class="button" (click)="onCancel()">Cancel</button>
+    </div>
+</div>

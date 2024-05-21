@@ -4,6 +4,9 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+
 import { Observable, of, catchError } from 'rxjs';
 import { startWith, map, switchMap } from 'rxjs/operators';
 
@@ -14,8 +17,12 @@ import { startWith, map, switchMap } from 'rxjs/operators';
 export class CommonService {
   selectedAccountId: string | null = null;
   selectedBusinessId: string | null = null;
+  isAdmin: boolean = false;
 
-  constructor() { }
+  constructor(
+    private afAuth: AngularFireAuth,
+    private db: AngularFirestore
+  ) { }
 
   campaignSelectionValidator(): ValidatorFn {
     return (control: AbstractControl): {[key: string]: any} | null => {
@@ -209,5 +216,30 @@ export class CommonService {
     } else {
       return false;
     }
+  }
+
+  async getIsAdmin(): Promise<any> {
+    return this.afAuth.currentUser.then(user => {
+      if (user) {
+        return this.db.collection('userRoles', ref => ref.where('userId', '==', user.uid))
+          .get()
+          .pipe(
+            map(querySnapshot => {
+              this.isAdmin = false;
+              querySnapshot.forEach(doc => {
+                const data: any = doc.data();
+                data.businessRoles?.forEach((role: any) => {
+                  if (role.businessId === this.selectedBusinessId && role.role === 'ADMIN') {
+                    this.isAdmin = true;
+                  }
+                });
+              });
+              return this.isAdmin;
+            })
+          ).toPromise();
+      } else {
+        return false;
+      }
+    });
   }
 }

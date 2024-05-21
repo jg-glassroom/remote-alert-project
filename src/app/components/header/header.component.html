@@ -42,7 +42,7 @@
                         <span class="menu-label" *ngIf="!collapsed()">Integrations</span>
                     </span>
                 </mat-list-item>
-                <mat-list-item (click)="navigate('user_management')" *ngIf="isAdmin">
+                <mat-list-item (click)="navigate('user_management')" *ngIf="commonService.isAdmin">
                     <span class="list-item">
                         <mat-icon class="menu-icon">supervised_user_circle</mat-icon>
                         <span class="menu-label" *ngIf="!collapsed()">User management</span>

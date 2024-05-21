@@ -1,0 +1,44 @@
+.container {
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-form {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-field {
+    margin-right: 10px;
+    flex: 1;
+}
+
+.add {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 20px;
+}
+
+.button {
+    margin-right: 10px;
+}
+
+.option-header {
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+}
+
+.sub-options {
+    display: flex;
+    flex-direction: column;
+    padding-left: 20px;
+}
