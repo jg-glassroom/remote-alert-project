@@ -33,7 +33,7 @@ import { MatDividerModule } from '@angular/material/divider';
   styleUrls: ['./user-management-form.component.css']
 })
 export class UserManagementFormComponent implements OnInit {
-  users: any[] = [{}];
+  users: any[] = [{rattachment: []}];
   options: any = [];
 
   constructor(
@@ -59,7 +59,7 @@ export class UserManagementFormComponent implements OnInit {
   sendInvitations() {}
 
   addUser() {
-    this.users.push({});
+    this.users.push({rattachment: []});
   }
 
   removeUser(user: any) {
@@ -74,37 +74,24 @@ export class UserManagementFormComponent implements OnInit {
   }
 
   selectAllAccounts(user: any) {
-    if (!user.rattachment || !Array.isArray(user.rattachment)) {
-      user.rattachment = [];
-    }
-  
-    console.log(user.rattachment.length, this.options.length);
-    if (user.rattachment.length === this.options.length + 1) {
-      console.log('all');
+    if (!user.rattachment.includes('all')) {
       user.rattachment = [];
     } else {
-      console.log('not all');
-      user.rattachment = [...this.options];
-    }
-  }  
-
-  updateAllSelected(user: any, option: any) {
-    if (!user.rattachment) {
-      user.rattachment = [];
-    }
-  
-    const index = user.rattachment.findIndex((item: any) => item.id === option.id);
-  
-    if (index >= 0) {
-      user.rattachment.splice(index, 1);
-    } else {
-      user.rattachment.push(option);
-    }
-  
-    const allIndex = user.rattachment.findIndex((item: any) => item.id === 'all');
-    if (allIndex >= 0 && option.id !== 'all') {
-      user.rattachment.splice(allIndex, 1);
+      user.rattachment = this.options.map((option: any) => option.id);
+      user.rattachment.push('all');
     }
   }
-  
+
+  updateAllSelected(user: any) {
+    if (user.rattachment.length === this.options.length) {
+      if (!user.rattachment.includes('all')) {
+        user.rattachment.push('all');
+      }
+    } else {
+      const allIndex = user.rattachment.indexOf('all');
+      if (allIndex >= 0) {
+        user.rattachment.splice(allIndex, 1);
+      }
+    }
+  }
 }
