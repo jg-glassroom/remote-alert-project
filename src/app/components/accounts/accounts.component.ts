@@ -152,21 +152,25 @@ export class AccountsComponent {
       
           querySnapshot.docs.forEach((doc: any) => {
             const data = doc.data();
-            data.platforms.forEach((platform: any) => {
-              const overallDelta = platform.pacingAlerts[platform.platform + '_overall_delta_value'];
-
-              if (overallDelta > -5 && overallDelta < 5) {
-                okCount++;
-              }
-
-              if ((overallDelta <= -5 || overallDelta >= 5) && overallDelta > -10 && overallDelta < 10) {
-                warningCount++;
-              }
-
-              if (overallDelta <= -10 || overallDelta >= 10) {
-                errorCount++;
-              }
-            });
+            if (data.platforms) {
+              data.platforms.forEach((platform: any) => {
+                if (platform.pacingAlerts) {
+                  const overallDelta = platform.pacingAlerts[platform.platform + '_overall_delta_value'];
+    
+                  if (overallDelta > -5 && overallDelta < 5) {
+                    okCount++;
+                  }
+    
+                  if ((overallDelta <= -5 || overallDelta >= 5) && overallDelta > -10 && overallDelta < 10) {
+                    warningCount++;
+                  }
+    
+                  if (overallDelta <= -10 || overallDelta >= 10) {
+                    errorCount++;
+                  }
+                }
+              });
+            }
           });
           account.alerts = {
             total: okCount + warningCount + errorCount,
