@@ -330,6 +330,13 @@ export class FacebookFormComponent {
       this.campaigns = [];
       this.adsets = [];
     } else {
+      this.formGroup.patchValue({
+        facebookCampaign: this.data?.facebookCampaign,
+        facebookAdset: this.data?.facebookAdset,
+        facebookStartDate: this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null,
+        facebookEndDate: this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null,
+        facebookBudget: this.data?.facebookBudget,
+      });
       this.campaigns = this.data?.facebookCampaign;
       this.adsets = this.data?.facebookAdset;
     }
@@ -359,7 +366,7 @@ export class FacebookFormComponent {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
     }
-  }  
+  }
 
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
