@@ -57,6 +57,7 @@ export class FacebookFormComponent {
   documentId: string | null = null;
   toaster = inject(ToastrService);
   isLoading: boolean = false;
+  limit: number = 4000;
 
   public adAccounts: any[] = [];
   private adAccountsSubject = new BehaviorSubject<any[]>([]);
@@ -195,7 +196,7 @@ export class FacebookFormComponent {
     }
   
     const fields = 'account_id,id,name, business';
-    const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
   
     try {
       const allAdAccounts = await this.fetchAllAdAccounts(url);
@@ -253,7 +254,7 @@ export class FacebookFormComponent {
     const adAccountId = this.formGroup.get('facebookAdAccount')!.value.id;
     const campaignIds = this.formGroup.get('facebookCampaign')!.value.map((campaign: any) => campaign.id).join(',');
   
-    const url = `https://graph.facebook.com/v19.0/${adAccountId}/adsets?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    const url = `https://graph.facebook.com/v19.0/${adAccountId}/adsets?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
   
     try {
       const allAdsets = await this.fetchAllAdsets(url, [], campaignIds);
@@ -308,7 +309,7 @@ export class FacebookFormComponent {
   async getAdAccountCampaigns(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     this.isLoading = true;
     const fields = 'id,name,status';
-    let adAccount: any = null
+    let adAccount: any = null;
     if (event) {
       adAccount = event.option.value;
     } else {
@@ -341,7 +342,7 @@ export class FacebookFormComponent {
       this.adsets = this.data?.facebookAdset;
     }
   
-    const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
     
     try {
       const allCampaigns = await this.fetchAllCampaigns(url);
@@ -366,7 +367,7 @@ export class FacebookFormComponent {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
     }
-  }
+  }  
 
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
