@@ -234,6 +234,15 @@ export class Dv360FormComponent {
       })
       this.campaigns = []
       this.IOs = []
+    } else {
+      this.formGroup.patchValue({
+        dv360CampaignId: this.data?.dv360CampaignId,
+        dv360IO: this.data?.dv360IO,
+        dv360Advertiser: this.data?.dv360Advertiser,
+        dv360StartDate: this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null,
+        dv360EndDate: this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null,
+        dv360Budget: this.data?.dv360Budget,
+      });
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
@@ -359,6 +368,13 @@ export class Dv360FormComponent {
       this.campaigns = []
       this.IOs = []
     } else {
+      this.formGroup.patchValue({
+        dv360CampaignId: this.data?.dv360CampaignId,
+        dv360IO: this.data?.dv360IO,
+        dv360StartDate: this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null,
+        dv360EndDate: this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null,
+        dv360Budget: this.data?.dv360Budget,
+      });
       this.campaigns = this.data?.dv360CampaignId;
       this.IOs = this.data?.dv360IO;
     }
