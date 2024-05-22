@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonService } from '../../../services/common/common.service';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +14,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+import { firstValueFrom } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
+
 
 @Component({
   selector: 'app-user-management-form',
@@ -27,19 +33,22 @@ import { MatDividerModule } from '@angular/material/divider';
     MatInputModule,
     MatIconModule,
     MatCheckboxModule,
-    MatDividerModule
+    MatDividerModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './user-management-form.component.html',
   styleUrls: ['./user-management-form.component.css']
 })
 export class UserManagementFormComponent implements OnInit {
-  users: any[] = [{rattachment: []}];
+  users: any[] = [{ rattachment: [] }];
   options: any = [];
+  isLoading: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<UserManagementFormComponent>,
     private db: AngularFirestore,
-    private commonService: CommonService
+    private commonService: CommonService,
+    private functions: AngularFireFunctions
   ) {}
 
   ngOnInit() {
@@ -56,10 +65,69 @@ export class UserManagementFormComponent implements OnInit {
     });
   }
 
-  sendInvitations() {}
+  async sendInvitations() {
+    this.isLoading = true;
+    const sendInvitationLinks = this.functions.httpsCallable('sendInvitationLinks');
+
+    for (const user of this.users) {
+      let userRecord;
+      let token = null;
+
+      try {
+        userRecord = await firstValueFrom(this.functions.httpsCallable('getUserByEmail')({ email: user.email }));
+      } catch (error: any) {
+        if (error.code === 'functions/not-found') {
+          userRecord = await firstValueFrom(this.functions.httpsCallable('createUser')({ email: user.email }));
+          token = uuidv4();
+          const date_created = moment().format('MM/DD/YYYY HH:mm:ss')
+          await this.db.collection('user').doc(userRecord.uid).set({ token, date_created });
+        } else {
+          console.error(`Error fetching user ${user.email}: `, error);
+          continue;
+        }
+      }
+
+      const userId = userRecord.uid;
+      const businessId = this.commonService.selectedBusinessId!;
+      const userRoleDocRef = this.db.collection('userRoles').doc(userId);
+
+      if (user.rattachment.includes('all')) {
+        await userRoleDocRef.set(
+          {
+            userId: userId,
+            businessRoles: [{ businessId: businessId, role: user.role }]
+          },
+          { merge: true }
+        );
+      } else {
+        const accountRoles = user.rattachment.map((accountId: string) => ({
+          accountId: accountId,
+          role: user.role
+        }));
+        await userRoleDocRef.set(
+          {
+            userId: userId,
+            accountRoles: accountRoles
+          },
+          { merge: true }
+        );
+      }
+
+      const invitationLink = `https://localhost:4200/invite/${token}`;
+      await firstValueFrom(
+        sendInvitationLinks({
+          userEmails: [user.email],
+          fromEmail: 'rrachidi@glassroom.ca',
+          invitationLink
+        })
+      );
+    }
+    this.isLoading = false;
+    this.dialogRef.close();
+  }
 
   addUser() {
-    this.users.push({rattachment: []});
+    this.users.push({ rattachment: [] });
   }
 
   removeUser(user: any) {

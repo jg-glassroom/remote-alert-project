@@ -25,6 +25,7 @@ import { BusinessComponent } from '../form/business/business.component';
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 import { AccountComponent } from '../form/account/account.component';
+import { user } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-header',
@@ -154,7 +155,7 @@ export class HeaderComponent {
         return this.db.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges();
       }),
       switchMap(userRoles => {
-        const businessIds = userRoles.flatMap((roles: any) => roles.businessRoles.map((br: any) => br.businessId));
+        const businessIds = userRoles.flatMap((roles: any) => roles.businessRoles ? roles.businessRoles.map((br: any) => br.businessId) : []);
         const accountIds = userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : []);
   
         const businesses$ = businessIds.map(id => 
@@ -164,12 +165,14 @@ export class HeaderComponent {
         );
   
         const businessesFromAccounts$ = accountIds.length ? this.db.collection('account', ref => ref.where(documentId(), 'in', accountIds))
-          .valueChanges().pipe(
-            switchMap(accounts => {
-              const indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
-              return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).valueChanges();
-            })
-          ) : of([]);
+        .valueChanges().pipe(
+          switchMap(accounts => {
+            const indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
+            return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).snapshotChanges().pipe(
+              map(actions => actions.map(action => ({ id: action.payload.doc.id, ...action.payload.doc.data() as any })))
+            );
+          })
+        ) : of([]);
   
         return combineLatest([
           businesses$.length ? combineLatest(businesses$) : of([]),
@@ -181,6 +184,14 @@ export class HeaderComponent {
       }),
       take(1)
     ).subscribe(businesses => {
+      this.db.doc(`user/${userId}`).valueChanges().pipe(
+        take(1)
+      ).subscribe((user: any) => {
+        if (user && !user.selectedBusiness && businesses.length > 0) {
+          const userDoc = this.db.doc(`user/${userId}`);
+          userDoc.update({ selectedBusiness: businesses[0].id });
+        }
+      });
       this.businesses = businesses;
       this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
       if (!this.commonService.selectedBusinessId && this.businesses.length > 0) {

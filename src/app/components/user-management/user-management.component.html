@@ -12,7 +12,8 @@
 
 <mat-card *ngFor="let user of users">
     <mat-card-content>
-        <span>{{ user.displayName }}</span>
+        <span *ngIf="user.displayName; else noDisplayName">{{ user.displayName }}</span>
+        <ng-template #noDisplayName>Invited</ng-template>
         <span>{{ user.email }}</span>
         <span>{{ roles[user.role] }}</span>
         <span>{{ getAccountNames(user) }}</span>
