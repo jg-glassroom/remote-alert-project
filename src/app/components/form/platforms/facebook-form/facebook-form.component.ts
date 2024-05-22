@@ -16,6 +16,7 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 
 import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 
@@ -40,7 +41,8 @@ import { getAuth } from '@angular/fire/auth';
     MatCheckboxModule,
     MatChipsModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatButtonModule
   ],
   templateUrl: './facebook-form.component.html',
   styleUrl: './facebook-form.component.css'
@@ -145,7 +147,8 @@ export class FacebookFormComponent {
     }
     if (this.isEditMode) {
       await this.getAdAccounts();
-      this.getAdAccountCampaigns(undefined, true);
+      await this.getAdAccountCampaigns(undefined, true);
+      await this.getAdsets();
     }
     this.cdRef.detectChanges();
   }
@@ -226,14 +229,15 @@ export class FacebookFormComponent {
     }
   }
 
-  async fetchAllAdsets(url: string, adsets: any[] = []): Promise<any[]> {
+  async fetchAllAdsets(url: string, adsets: any[] = [], filter: string = ''): Promise<any[]> {
     try {
-      const response = await firstValueFrom(this.http.get<any>(url));
+      const fullUrl = filter ? `${url}&filtering=[{"field":"campaign.id","operator":"IN","value":[${filter}]}]` : url;
+      const response = await firstValueFrom(this.http.get<any>(fullUrl));
       const fetchedAdsets = response.data;
       adsets = adsets.concat(fetchedAdsets);
-
+  
       if (response.paging && response.paging.next) {
-        return this.fetchAllAdsets(response.paging.next, adsets);
+        return this.fetchAllAdsets(response.paging.next, adsets, filter);
       } else {
         return adsets;
       }
@@ -244,12 +248,15 @@ export class FacebookFormComponent {
     }
   }
 
-  async getAdsets(adsetId: string) {
+  async getAdsets() {
     const fields = 'id,name,campaign_id';
-    const url = `https://graph.facebook.com/v19.0/${adsetId}/adsets?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-
+    const adAccountId = this.formGroup.get('facebookAdAccount')!.value.id;
+    const campaignIds = this.formGroup.get('facebookCampaign')!.value.map((campaign: any) => campaign.id).join(',');
+  
+    const url = `https://graph.facebook.com/v19.0/${adAccountId}/adsets?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+  
     try {
-      const allAdsets = await this.fetchAllAdsets(url);
+      const allAdsets = await this.fetchAllAdsets(url, [], campaignIds);
       const sortedAdsets = allAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
       this.originalAdsets$ = of(sortedAdsets);
       await this.filterAdsetsByCampaigns();
@@ -259,8 +266,9 @@ export class FacebookFormComponent {
       this.isLoading = false;
     } catch (error) {
       console.error('Error fetching all Facebook Adsets:', error);
+      this.isLoading = false;
     }
-  }
+  }  
 
   updateAdsetSelectionInEditMode(): void {
     this.adsets$.subscribe(adsets => {
@@ -280,19 +288,21 @@ export class FacebookFormComponent {
   
   async filterAdsetsByCampaigns() {
     const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.id);
-    this.originalAdsets$.subscribe(originalAdsets => {
-      const filteredAdsets = originalAdsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
-      const sortedAdsets = filteredAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
-      this.adsets$ = of(sortedAdsets);
-  
-      this.adsets.forEach((adset: any) => {
-        if (!selectedCampaignIds.includes(adset.campaign_id)) {
-          this.selectionAdset.deselect(adset);
-          adset.selected = false;
-        }
+    if (this.originalAdsets$) {
+      this.originalAdsets$.subscribe(originalAdsets => {
+        const filteredAdsets = originalAdsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
+        const sortedAdsets = filteredAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+        this.adsets$ = of(sortedAdsets);
+    
+        this.adsets.forEach((adset: any) => {
+          if (!selectedCampaignIds.includes(adset.campaign_id)) {
+            this.selectionAdset.deselect(adset);
+            adset.selected = false;
+          }
+        });
+        this.adsets = this.adsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
       });
-      this.adsets = this.adsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
-    });
+    }
   }
 
   async getAdAccountCampaigns(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
@@ -344,7 +354,7 @@ export class FacebookFormComponent {
         this.originalCampaigns$ = of(sortedCampaigns);
         this.campaigns$ = this.platformsCommon.setupFiltering(this.formGroup, 'facebookCampaign', this.originalCampaigns$, 'name');
       }
-      await this.getAdsets(adAccount.id);
+      this.isLoading = false;
     } catch (error) {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);

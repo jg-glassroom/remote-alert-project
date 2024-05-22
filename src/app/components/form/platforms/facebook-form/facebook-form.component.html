@@ -39,31 +39,34 @@
             </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
-            <mat-label>Campaign*</mat-label>
-            <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-                <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
-                    <span>{{ combineAndTruncateName(campaign, 25) }}</span>
-                    <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
-                        <mat-icon>cancel</mat-icon>
-                    </button>
-                </mat-chip-row>
-            </mat-chip-grid>
-            <input placeholder="Select your campaigns" #campaignInput formControlName="facebookCampaign"
-                    [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
-                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                    (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
-                <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                    <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
-                    {{ campaign.name }} | {{ campaign.id }}
-                    </mat-checkbox>
-                </mat-option>
-            </mat-autocomplete>
-            <mat-hint *ngIf="form['facebookCampaign'].errors?.['required'] && (submitted || form['facebookCampaign'].touched)">
-                <span class="mat-error">At least one campaign must be selected</span>
-            </mat-hint>
-        </mat-form-field>
+        <div class="form-element adset">
+            <mat-form-field>
+                <mat-label>Campaign*</mat-label>
+                <mat-chip-grid #chipGrid aria-label="Campaign Selection">
+                    <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
+                        <span>{{ combineAndTruncateName(campaign, 25) }}</span>
+                        <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+                    </mat-chip-row>
+                </mat-chip-grid>
+                <input placeholder="Select your campaigns" #campaignInput formControlName="facebookCampaign"
+                        [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
+                        [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                        (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
+                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+                    <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
+                        <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
+                        {{ campaign.name }} | {{ campaign.id }}
+                        </mat-checkbox>
+                    </mat-option>
+                </mat-autocomplete>
+                <mat-hint *ngIf="form['facebookCampaign'].errors?.['required'] && (submitted || form['facebookCampaign'].touched)">
+                    <span class="mat-error">At least one campaign must be selected</span>
+                </mat-hint>
+            </mat-form-field>
+            <button mat-stroked-button (click)="getAdsets()" class="adset-button">Get Adsets</button>
+        </div>
     </div>
 
     <div class="form-row">
