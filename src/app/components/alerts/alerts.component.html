@@ -2,8 +2,8 @@
     <div class="filters">
         <mat-form-field appearance="fill">
             <mat-label>Subaccounts</mat-label>
-            <input type="text" matInput [formControl]="subaccountFilter" placeholder="Search subaccounts">
-            <mat-select [(value)]="selectedSubaccounts" multiple>
+            <input type="text" matInput [formControl]="subaccountFilter" (focus)="openSelect('subaccountSelect')" placeholder="Search subaccounts">
+            <mat-select #subaccountSelect [(value)]="selectedSubaccounts" multiple>
                 <mat-option *ngFor="let subaccount of (filteredSubaccountOptions | async)" [value]="subaccount.id">
                     {{ subaccount.name }}
                 </mat-option>
@@ -12,8 +12,8 @@
 
         <mat-form-field appearance="fill" class="filter">
             <mat-label>Platforms</mat-label>
-            <input type="text" matInput [formControl]="platformFilter" placeholder="Search platforms">
-            <mat-select [(value)]="selectedPlatforms" multiple>
+            <input type="text" matInput [formControl]="platformFilter" (focus)="openSelect('platformSelect')" placeholder="Search platforms">
+            <mat-select #platformSelect [(value)]="selectedPlatforms" multiple>
                 <mat-option *ngFor="let platform of (filteredPlatformOptions | async)" [value]="platform.key">
                     {{ platform.name }}
                 </mat-option>
@@ -22,8 +22,8 @@
 
         <mat-form-field appearance="fill" class="filter">
             <mat-label>Users</mat-label>
-            <input type="text" matInput [formControl]="userFilter" placeholder="Search users">
-            <mat-select [(value)]="selectedUsers" multiple>
+            <input type="text" matInput [formControl]="userFilter" (focus)="openSelect('userSelect')" placeholder="Search users">
+            <mat-select #userSelect [(value)]="selectedUsers" multiple>
                 <mat-option *ngFor="let user of (filteredUserOptions | async)" [value]="user.id">
                     {{ user.email }}
                 </mat-option>
@@ -32,8 +32,8 @@
 
         <mat-form-field appearance="fill" class="filter">
             <mat-label>Alert Name</mat-label>
-            <input type="text" matInput [formControl]="alertFilter" placeholder="Search alerts">
-            <mat-select [(value)]="selectedAlerts" multiple>
+            <input type="text" matInput [formControl]="alertFilter" (focus)="openSelect('alertSelect')" placeholder="Search alerts">
+            <mat-select #alertSelect [(value)]="selectedAlerts" multiple>
                 <mat-option *ngFor="let alert of (filteredAlertOptions | async)" [value]="alert.id">
                     {{ alert.campaignName }}
                 </mat-option>

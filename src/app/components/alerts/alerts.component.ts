@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 
 import { MatDialog } from '@angular/material/dialog';
+import { MatSelect } from '@angular/material/select';
 
 import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -54,9 +55,14 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     MatAutocompleteModule
   ],
   templateUrl: './alerts.component.html',
-  styleUrl: './alerts.component.css'
+  styleUrls: ['./alerts.component.css']
 })
 export class AlertsComponent {
+  @ViewChild('subaccountSelect') subaccountSelect!: MatSelect;
+  @ViewChild('platformSelect') platformSelect!: MatSelect;
+  @ViewChild('userSelect') userSelect!: MatSelect;
+  @ViewChild('alertSelect') alertSelect!: MatSelect;
+
   toaster = inject(ToastrService);
   private selectedAccountId: any = '';
   users: any = [];
@@ -74,7 +80,7 @@ export class AlertsComponent {
     'yesterdaySpent'
   ];
   headerColumns = [{
-    name:'Campaign Name', startDate:'Start Date', endDate:'End Date', platforms:'Platforms', budget:'Budget'
+    name: 'Campaign Name', startDate: 'Start Date', endDate: 'End Date', platforms: 'Platforms', budget: 'Budget'
   }];
   platforms: any = {
     'facebook': 'Facebook',
@@ -180,7 +186,7 @@ export class AlertsComponent {
       })
       .filter(alert => alert.platforms.length > 0 && (subaccountId ? alert.subaccount && alert.subaccount.id === subaccountId : !alert.subaccount))
       .sort((a, b) => a.campaignName.localeCompare(b.campaignName));
-  }  
+  }
 
   filteredSubaccounts(): any[] {
     if (this.selectedSubaccounts.length > 0) {
@@ -401,5 +407,22 @@ export class AlertsComponent {
       }
       return true;
     });
-  }  
+  }
+
+  openSelect(selectName: string) {
+    switch (selectName) {
+      case 'subaccountSelect':
+        this.subaccountSelect.open();
+        break;
+      case 'platformSelect':
+        this.platformSelect.open();
+        break;
+      case 'userSelect':
+        this.userSelect.open();
+        break;
+      case 'alertSelect':
+        this.alertSelect.open();
+        break;
+    }
+  }
 }
