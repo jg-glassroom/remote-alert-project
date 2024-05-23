@@ -3,7 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 
 import { MatDialog } from '@angular/material/dialog';
 
@@ -19,7 +19,8 @@ import { AlertsService } from '../../services/alerts/alerts.service';
 
 import { ToastrService } from 'ngx-toastr';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +32,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-alerts',
@@ -38,6 +40,7 @@ import { MatInputModule } from '@angular/material/input';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatIconModule,
     MatButtonModule,
     MatExpansionModule,
@@ -47,7 +50,8 @@ import { MatInputModule } from '@angular/material/input';
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatInputModule
+    MatInputModule,
+    MatAutocompleteModule
   ],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css'
@@ -83,9 +87,19 @@ export class AlertsComponent {
   selectedSubaccounts: string[] = [];
   selectedPlatforms: string[] = [];
   selectedUsers: string[] = [];
-  filterName: string = '';
+  selectedAlerts: string[] = [];
 
-  constructor (
+  subaccountFilter = new FormControl('');
+  platformFilter = new FormControl('');
+  userFilter = new FormControl('');
+  alertFilter = new FormControl('');
+
+  filteredSubaccountOptions!: Observable<any[]>;
+  filteredPlatformOptions!: Observable<any[]>;
+  filteredUserOptions!: Observable<any[]>;
+  filteredAlertOptions!: Observable<any[]>;
+
+  constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
     private matDialog: MatDialog,
@@ -107,9 +121,38 @@ export class AlertsComponent {
     });
   }
 
+  private _filter(value: any, options: any[], field: string): any[] {
+    const filterValue = value.toLowerCase();
+    return options.filter(option => option && option[field] && option[field].toLowerCase().includes(filterValue));
+  }
+
+  private getFilters(): any {
+    this.filteredSubaccountOptions = this.subaccountFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.alertsService.subaccounts, 'name'))
+    );
+
+    this.filteredPlatformOptions = this.platformFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.platformKeys().map(key => ({ key, name: this.platforms[key] })), 'name'))
+    );
+
+    this.filteredUserOptions = this.userFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.users, 'email'))
+    );
+
+    this.filteredAlertOptions = this.alertFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.alertsService.pacingAlerts.sort((a: any, b: any) => a.campaignName.localeCompare(b.campaignName)), 'campaignName'))
+    );
+  }
+
   async getData() {
     await this.getAlerts();
     await this.getSubaccounts();
+    await this.getUsers();
+    this.getFilters();
     this.applyFilters();
   }
 
@@ -119,7 +162,7 @@ export class AlertsComponent {
         if (this.selectedSubaccounts.length > 0 && subaccountId !== null && !this.selectedSubaccounts.includes(subaccountId)) {
           return false;
         }
-        if (this.filterName && !alert.campaignName.toLowerCase().includes(this.filterName.toLowerCase())) {
+        if (this.selectedAlerts.length > 0 && !this.selectedAlerts.includes(alert.id)) {
           return false;
         }
         if (this.selectedUsers.length > 0 && !alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId))) {
@@ -158,7 +201,6 @@ export class AlertsComponent {
           };
           this.alertsService.pacingAlerts.push(pacingAlert);
         });
-        await this.getUsers();
         resolve();
       }, error => {
         reject(error);
