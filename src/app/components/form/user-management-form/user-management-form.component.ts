@@ -80,7 +80,7 @@ export class UserManagementFormComponent implements OnInit {
           userRecord = await firstValueFrom(this.functions.httpsCallable('createUser')({ email: user.email }));
           exists = false;
           token = uuidv4();
-          const date_created = moment().format('MM/DD/YYYY HH:mm:ss')
+          const date_created = moment().format('MM/DD/YYYY HH:mm:ss');
           await this.db.collection('user').doc(userRecord.uid).set({ token, date_created });
         } else {
           console.error(`Error fetching user ${user.email}: `, error);
@@ -115,13 +115,28 @@ export class UserManagementFormComponent implements OnInit {
       }
 
       if (exists) {
-        // const sendInformationEmail = this.functions.httpsCallable('sendInformationEmail');
-        // await firstValueFrom(
-        //   sendInformationEmail({
-        //     userEmails: [user.email],
-        //     fromEmail: 'rrachidi@glassroom.ca',
-        //   })
-        // );
+        let businessName = '';
+        let accountNames: string[] = [];
+
+        if (user.rattachment.includes('all')) {
+          const businessDoc: any = await this.db.collection('business').doc(businessId).get().toPromise();
+          businessName = businessDoc.exists ? businessDoc.data().name : '';
+        } else {
+          const accountPromises = user.rattachment.map((accountId: string) => 
+            this.db.collection('account').doc(accountId).get().toPromise()
+          );
+          const accountDocs = await Promise.all(accountPromises);
+          accountNames = accountDocs.map(doc => doc.exists ? doc.data().name : '').filter(name => name);
+        }
+        const sendInformationEmail = this.functions.httpsCallable('sendInformationEmail');
+        await firstValueFrom(
+          sendInformationEmail({
+            userEmails: [user.email],
+            fromEmail: 'rrachidi@glassroom.ca',
+            accounts: accountNames.join(', '),
+            business: businessName
+          })
+        );
       } else {
         const sendInvitationLinks = this.functions.httpsCallable('sendInvitationLinks');
         const hostname = window.location.hostname;

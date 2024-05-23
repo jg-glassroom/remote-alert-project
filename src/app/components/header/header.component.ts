@@ -155,8 +155,8 @@ export class HeaderComponent {
         return this.db.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges();
       }),
       switchMap(userRoles => {
-        const businessIds = userRoles.flatMap((roles: any) => roles.businessRoles ? roles.businessRoles.map((br: any) => br.businessId) : []);
-        const accountIds = userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : []);
+        const businessIds = Array.from(new Set(userRoles.flatMap((roles: any) => roles.businessRoles ? roles.businessRoles.map((br: any) => br.businessId) : [])));
+        const accountIds = Array.from(new Set(userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : [])));
   
         const businesses$ = businessIds.map(id => 
           this.db.collection('business').doc(id).snapshotChanges().pipe(
@@ -167,7 +167,9 @@ export class HeaderComponent {
         const businessesFromAccounts$ = accountIds.length ? this.db.collection('account', ref => ref.where(documentId(), 'in', accountIds))
         .valueChanges().pipe(
           switchMap(accounts => {
-            const indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
+            let indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
+            indirectBusinessIds = indirectBusinessIds.filter((id: any) => !businessIds.includes(id));
+            if (indirectBusinessIds.length === 0) return of([]);
             return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).snapshotChanges().pipe(
               map(actions => actions.map(action => ({ id: action.payload.doc.id, ...action.payload.doc.data() as any })))
             );
