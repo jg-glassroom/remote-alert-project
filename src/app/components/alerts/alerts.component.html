@@ -134,7 +134,7 @@
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noBudgetLoading>
-                                        <span *ngIf="platform.pacingAlerts && (platform.platform + '_campaign_cost') in platform.pacingAlerts; else noSpend">
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_campaign_cost'); else noSpend">
                                             {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
                                         </span>
                                         <ng-template #noSpend>
@@ -147,7 +147,7 @@
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noEstimatedSpendLoading>
-                                        <span *ngIf="platform.pacingAlerts && (platform.platform + '_estimated_cost') in platform.pacingAlerts; else noEstimatedSpend">
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_estimated_cost'); else noEstimatedSpend">
                                             {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
                                         </span>
                                         <ng-template #noEstimatedSpend>
@@ -160,7 +160,7 @@
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noOverallLoading>
-                                        <span *ngIf="platform.pacingAlerts && (platform.platform + '_overall_delta_value') in platform.pacingAlerts; else noOverall">
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverall">
                                             {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
                                         </span>
                                         <ng-template #noOverall>
@@ -173,7 +173,7 @@
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noYesterdaySpentLoading>
-                                        <span *ngIf="platform.pacingAlerts && (platform.platform + '_yesterday_spent') in platform.pacingAlerts; else noYesterdaySpent">
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_spent'); else noYesterdaySpent">
                                             {{ platform.pacingAlerts[platform.platform + '_yesterday_spent'] | number:'1.0-2' }}$
                                         </span>
                                         <ng-template #noYesterdaySpent>
@@ -186,7 +186,7 @@
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noYesterdayPacingLoading>
-                                        <span *ngIf="platform.pacingAlerts && (platform.platform + '_yesterday_delta_value') in platform.pacingAlerts; else noYesterdayPacing">
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_delta_value'); else noYesterdayPacing">
                                             {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%
                                         </span>
                                         <ng-template #noYesterdayPacing>
@@ -199,7 +199,7 @@
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noSpendPerDayLoading>
-                                        <span *ngIf="platform.pacingAlerts && (platform.platform + '_daily_estimated_cost') in platform.pacingAlerts; else noSpendPerDay">
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_daily_estimated_cost'); else noSpendPerDay">
                                             {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
                                         </span>
                                         <ng-template #noSpendPerDay>
@@ -308,7 +308,7 @@
                                     <mat-spinner [diameter]="30"></mat-spinner>
                                 </div>
                                 <ng-template #noBudgetLoadingBis>
-                                    <span *ngIf="platform.pacingAlerts && (platform.platform + '_campaign_cost') in platform.pacingAlerts; else noSpendBis">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_campaign_cost'); else noSpendBis">
                                         {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
                                     </span>
                                     <ng-template #noSpendBis>
@@ -321,7 +321,7 @@
                                     <mat-spinner [diameter]="30"></mat-spinner>
                                 </div>
                                 <ng-template #noEstimatedSpendLoadingBis>
-                                    <span *ngIf="platform.pacingAlerts && (platform.platform + '_estimated_cost') in platform.pacingAlerts; else noEstimatedSpendBis">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_estimated_cost'); else noEstimatedSpendBis">
                                         {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
                                     </span>
                                     <ng-template #noEstimatedSpendBis>
@@ -334,7 +334,7 @@
                                     <mat-spinner [diameter]="30"></mat-spinner>
                                 </div>
                                 <ng-template #noOverallLoadingBis>
-                                    <span *ngIf="platform.pacingAlerts && (platform.platform + '_overall_delta_value') in platform.pacingAlerts; else noOverallBis">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverallBis">
                                         {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
                                     </span>
                                     <ng-template #noOverallBis>
@@ -347,7 +347,7 @@
                                     <mat-spinner [diameter]="30"></mat-spinner>
                                 </div>
                                 <ng-template #noYesterdaySpentLoadingBis>
-                                    <span *ngIf="platform.pacingAlerts && (platform.platform + '_yesterday_spent') in platform.pacingAlerts; else noYesterdaySpentBis">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_spent'); else noYesterdaySpentBis">
                                         {{ platform.pacingAlerts[platform.platform + '_yesterday_spent'] | number:'1.0-2' }}$
                                     </span>
                                     <ng-template #noYesterdaySpentBis>
@@ -360,7 +360,7 @@
                                     <mat-spinner [diameter]="30"></mat-spinner>
                                 </div>
                                 <ng-template #noYesterdayPacingLoadingBis>
-                                    <span *ngIf="platform.pacingAlerts && (platform.platform + '_yesterday_delta_value') in platform.pacingAlerts; else noYesterdayPacingBis">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_delta_value'); else noYesterdayPacingBis">
                                         {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%
                                     </span>
                                     <ng-template #noYesterdayPacingBis>
@@ -373,7 +373,7 @@
                                     <mat-spinner [diameter]="30"></mat-spinner>
                                 </div>
                                 <ng-template #noSpendPerDayLoadingBis>
-                                    <span *ngIf="platform.pacingAlerts && (platform.platform + '_daily_estimated_cost') in platform.pacingAlerts; else noSpendPerDayBis">
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_daily_estimated_cost'); else noSpendPerDayBis">
                                         {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
                                     </span>
                                     <ng-template #noSpendPerDayBis>
