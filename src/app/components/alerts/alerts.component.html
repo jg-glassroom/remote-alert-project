@@ -1,6 +1,6 @@
 <div class="container">
     <div class="filters">
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill" *ngIf="alertsService.subaccounts.length > 0">
             <mat-label>Subaccounts</mat-label>
             <input type="text" matInput [formControl]="subaccountFilter" (focus)="openSelect('subaccountSelect')" placeholder="Search subaccounts">
             <mat-select #subaccountSelect [(value)]="selectedSubaccounts" multiple>
