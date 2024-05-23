@@ -129,7 +129,19 @@ export class AlertsComponent {
 
   private _filter(value: any, options: any[], field: string): any[] {
     const filterValue = value.toLowerCase();
-    return options.filter(option => option && option[field] && option[field].toLowerCase().includes(filterValue));
+    const selectedOptions = options.filter(option => 
+      this.selectedSubaccounts.includes(option.id) || 
+      this.selectedPlatforms.includes(option.key) || 
+      this.selectedUsers.includes(option.id) || 
+      this.selectedAlerts.includes(option.id)
+    );
+    const filteredOptions = options.filter(option => option && option[field] && option[field].toLowerCase().includes(filterValue));
+  
+    const combinedOptions = [...selectedOptions, ...filteredOptions];
+    const uniqueOptions = Array.from(new Set(combinedOptions.map(option => JSON.stringify(option))))
+                                .map(option => JSON.parse(option));
+  
+    return uniqueOptions;
   }
 
   private getFilters(): any {
@@ -404,6 +416,16 @@ export class AlertsComponent {
     }).filter(alert => {
       if (this.selectedUsers.length > 0) {
         return alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId));
+      }
+      return true;
+    }).filter(alert => {
+      if (this.selectedSubaccounts.length > 0) {
+        return this.selectedSubaccounts.includes(alert.subaccount?.id);
+      }
+      return true;
+    }).filter(alert => {
+      if (this.selectedAlerts.length > 0) {
+        return this.selectedAlerts.includes(alert.id);
       }
       return true;
     });
