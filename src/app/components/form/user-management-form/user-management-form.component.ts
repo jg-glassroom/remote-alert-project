@@ -67,17 +67,18 @@ export class UserManagementFormComponent implements OnInit {
 
   async sendInvitations() {
     this.isLoading = true;
-    const sendInvitationLinks = this.functions.httpsCallable('sendInvitationLinks');
 
     for (const user of this.users) {
       let userRecord;
       let token = null;
+      let exists = true;
 
       try {
         userRecord = await firstValueFrom(this.functions.httpsCallable('getUserByEmail')({ email: user.email }));
       } catch (error: any) {
         if (error.code === 'functions/not-found') {
           userRecord = await firstValueFrom(this.functions.httpsCallable('createUser')({ email: user.email }));
+          exists = false;
           token = uuidv4();
           const date_created = moment().format('MM/DD/YYYY HH:mm:ss')
           await this.db.collection('user').doc(userRecord.uid).set({ token, date_created });
@@ -113,14 +114,28 @@ export class UserManagementFormComponent implements OnInit {
         );
       }
 
-      const invitationLink = `https://localhost:4200/invite/${token}`;
-      await firstValueFrom(
-        sendInvitationLinks({
-          userEmails: [user.email],
-          fromEmail: 'rrachidi@glassroom.ca',
-          invitationLink
-        })
-      );
+      if (exists) {
+        // const sendInformationEmail = this.functions.httpsCallable('sendInformationEmail');
+        // await firstValueFrom(
+        //   sendInformationEmail({
+        //     userEmails: [user.email],
+        //     fromEmail: 'rrachidi@glassroom.ca',
+        //   })
+        // );
+      } else {
+        const sendInvitationLinks = this.functions.httpsCallable('sendInvitationLinks');
+        const hostname = window.location.hostname;
+        const url = hostname === "localhost" ? 
+          'https://localhost:4200' : 'https://alert-project-xy52mshrpa-nn.a.run.app';
+        const invitationLink = `${url}/invite/${token}`;
+        await firstValueFrom(
+          sendInvitationLinks({
+            userEmails: [user.email],
+            fromEmail: 'rrachidi@glassroom.ca',
+            invitationLink
+          })
+        );
+      }
     }
     this.isLoading = false;
     this.dialogRef.close();
