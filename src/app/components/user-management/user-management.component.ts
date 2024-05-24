@@ -8,6 +8,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+
+import { UserManagementFormComponent } from '../form/user-management-form/user-management-form.component';
 
 import { CommonService } from '../../services/common/common.service';
 import { documentId } from 'firebase/firestore';
@@ -37,6 +40,7 @@ export class UserManagementComponent {
   };
 
   constructor (
+    private matDialog: MatDialog,
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
     private commonService: CommonService
@@ -46,7 +50,17 @@ export class UserManagementComponent {
     await this.getUsers();
   }
 
-  addUsers() {}
+  addUsers() {
+    const dialogRef = this.matDialog.open(UserManagementFormComponent, {
+      width: '50%'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getUsers();
+      }
+    });
+  }
 
   async getUsers() {
     this.isLoading = true;

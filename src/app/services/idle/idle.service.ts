@@ -1,39 +1,59 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { AuthService } from '../auth.service';
+import { MatDialog } from '@angular/material/dialog';
+import { AutoDisconnectComponent } from '../../components/auto-disconnect/auto-disconnect.component';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Injectable({
   providedIn: 'root'
 })
 export class IdleService {
-  timeoutId: any;
-  timeout = 1800000;
+  private logoutTimer: any;
+  private readonly INACTIVITY_TIME_LIMIT = 30 * 60 * 1000;
 
-  constructor(private authService: AuthService) {}
-
-  startWatching() {
-    this.resetTimer();
-    window.addEventListener('mousemove', this.resetTimer.bind(this));
-    window.addEventListener('keydown', this.resetTimer.bind(this));
-    window.addEventListener('scroll', this.resetTimer.bind(this));
+  constructor(
+    private authService: AuthService,
+    private afAuth: AngularFireAuth,
+    private ngZone: NgZone,
+    private matDialog: MatDialog
+  ) {
+    this.afAuth.authState.subscribe(user => {
+      if (user) {
+        this.initListener();
+        this.resetLogoutTimer();
+      } else {
+        this.clearLogoutTimer();
+      }
+    });
   }
 
-  stopWatching() {
-    window.removeEventListener('mousemove', this.resetTimer.bind(this));
-    window.removeEventListener('keydown', this.resetTimer.bind(this));
-    window.removeEventListener('scroll', this.resetTimer.bind(this));
-    this.stopTimer();
+  private initListener() {
+    document.body.addEventListener('mousemove', () => this.resetLogoutTimer());
+    document.body.addEventListener('keydown', () => this.resetLogoutTimer());
+    document.body.addEventListener('click', () => this.resetLogoutTimer());
   }
 
-  resetTimer() {
-    this.stopTimer();
-    this.timeoutId = setTimeout(() => {
-      this.stopWatching();
-      this.authService.signOut();
-      alert('You have been logged out due to inactivity.');
-    }, this.timeout);
+  private resetLogoutTimer() {
+    if (this.logoutTimer) {
+      clearTimeout(this.logoutTimer);
+    }
+
+    this.logoutTimer = setTimeout(async () => {
+      const user = await this.afAuth.currentUser;
+      if (user) {
+        this.ngZone.run(() => {
+          this.matDialog.open(AutoDisconnectComponent, {
+            width: '20%',
+          });
+          this.authService.signOut();
+        });
+      }
+    }, this.INACTIVITY_TIME_LIMIT);
   }
 
-  stopTimer() {
-    clearTimeout(this.timeoutId);
+  public clearLogoutTimer() {
+    if (this.logoutTimer) {
+      clearTimeout(this.logoutTimer);
+    }
   }
 }

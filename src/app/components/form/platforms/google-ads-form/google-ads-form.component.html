@@ -42,7 +42,7 @@
             <mat-label>Campaign*</mat-label>
 
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, selection, announcer)">
+            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, campaigns$, 'id', selection, announcer)">
                 <span>{{ combineAndTruncateName(campaign, 25) }}</span>
                 <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
                 <mat-icon>cancel</mat-icon>

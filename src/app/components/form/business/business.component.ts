@@ -7,6 +7,8 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { arrayUnion } from 'firebase/firestore';
 import { getAuth } from '@angular/fire/auth';
 
+import { CommonService } from '../../../services/common/common.service';
+
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -52,7 +54,8 @@ export class BusinessComponent {
     private dialogRef: MatDialogRef<BusinessComponent>,
     private formBuilder: FormBuilder,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private db: AngularFirestore
+    private db: AngularFirestore,
+    public commonService: CommonService
   ) {
     this.isEditMode = !!data && data.id;
     if (data && data.disableCancel) {
@@ -102,7 +105,7 @@ export class BusinessComponent {
       country: [this.data?.country || ''],
     });
 
-    if (!this.data.isAdmin) {
+    if (!this.commonService.isAdmin) {
       this.formGroup.disable();
     }
   }

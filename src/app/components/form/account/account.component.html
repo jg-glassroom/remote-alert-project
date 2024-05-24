@@ -32,7 +32,7 @@
         </mat-form-field>
     </div>
 
-    <div class="form-element footer" *ngIf="data.isAdmin">
+    <div class="form-element footer" *ngIf="commonService.isAdmin">
       <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="saveAccount()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
       &nbsp;
       <button mat-raised-button class="button" (click)="onCancel()">Cancel</button>

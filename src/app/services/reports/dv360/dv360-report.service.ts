@@ -75,6 +75,7 @@ export class DV360ReportService {
           "filters": [
             {"type": "FILTER_ADVERTISER", "value": campaign.dv360Advertiser.advertiserId},
             {"type": "FILTER_MEDIA_PLAN", "value": campaignId},
+            campaign.dv360IO.map((io: any) => io.insertionOrderId).map((ioId: any) => ({"type": "FILTER_INSERTION_ORDER", "value": ioId}))
           ]
         },
         "schedule": {
