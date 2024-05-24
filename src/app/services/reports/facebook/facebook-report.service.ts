@@ -76,7 +76,7 @@ export class FacebookReportService {
   private transformReport(dataArray: any): TransformedData | null {
     if (!dataArray) return null;
     let transformedData: TransformedData = {};
-  
+
     dataArray.forEach((item: any) => {
       const formattedDate = item.date_start.replace(/-/g, '/');
       const campaignData: CampaignData = {
@@ -89,12 +89,12 @@ export class FacebookReportService {
         impressions: item.impressions,
         spend: item.spend
       };
-  
+
       transformedData[formattedDate] = campaignData;
     });
-  
+
     return transformedData;
-  }  
+  }
 
   async processReport(campaign: any, index: number) {
     try {
@@ -114,8 +114,8 @@ export class FacebookReportService {
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
       const AllPacingAlerts$ = AllPacingAlerts({
-        userSearchId: userSearchId, 
-        reportJson: this.reportJson, 
+        userSearchId: userSearchId,
+        reportJson: this.reportJson,
         userId: userId,
         platform: "facebook",
         platformIndex: index,
@@ -136,8 +136,8 @@ export class FacebookReportService {
       return false;
     }
   }
-  
+
   resetReportVariables() {
     this.reportJson = [];
-  }  
+  }
 }

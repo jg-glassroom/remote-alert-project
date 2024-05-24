@@ -81,7 +81,7 @@ export class PacingAlertsComponent {
   public round(value: number): number {
     return Math.round(value);
   }
-  
+
   public getAlerts() {
     this.authService.user$.pipe(
       take(1),
@@ -130,12 +130,21 @@ export class PacingAlertsComponent {
           }))
         );
 
+        const appleReports$ = this.db.collection<Report>('appleReport', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
+          take(1),
+          map(actions => actions.map(a => {
+            const data = a.payload.doc.data() as object;
+            return { id: a.payload.doc.id, ...(data as any) };
+          }))
+        );
+
         return forkJoin({
           alerts: alerts$,
           dv360Reports: dv360Reports$,
           facebookReports: facebookReports$,
           googleAdsReports: googleAdsReports$,
-          bingReports: bingReports$
+          bingReports: bingReports$,
+          appleReports: appleReports$
         });
       }),
       map((result) => {
@@ -143,7 +152,7 @@ export class PacingAlertsComponent {
           return [];
         }
 
-        const { alerts, dv360Reports, facebookReports, googleAdsReports, bingReports } = result;
+        const { alerts, dv360Reports, facebookReports, googleAdsReports, bingReports, appleReports } = result;
         return alerts.map(alert => {
           let modifiedAlert = { ...alert };
           const dv360Report = dv360Reports.find(report => report.campaignName === alert.CampaignName);
@@ -163,6 +172,10 @@ export class PacingAlertsComponent {
           if (bingReport) {
             modifiedAlert.bingReport = this.transformReportData(bingReport.report, "bing");
           }
+          const appleReport = appleReports.find(report => report.campaignName === alert.CampaignName);
+          if (appleReport) {
+            modifiedAlert.appleReport = appleReport.report;
+          }
           return modifiedAlert;
         });
       })
@@ -181,6 +194,9 @@ export class PacingAlertsComponent {
         }
         if (alert.bingCampaignID) {
           ids = ids.concat(alert.bingCampaignID.split(';'));
+        }
+        if (alert.appleCampaignID) {
+          ids = ids.concat(alert.appleCampaignID.split(';'));
         }
         return ids;
       }))];
@@ -229,7 +245,7 @@ export class PacingAlertsComponent {
 
   toggleCampaignName(campaignName: string) {
     const index = this.selectedCampaignNames.indexOf(campaignName);
-  
+
     if (index >= 0) {
       this.selectedCampaignNames.splice(index, 1);
     } else {
@@ -244,7 +260,7 @@ export class PacingAlertsComponent {
       this.applyFilters();
     }
   }
-  
+
   toggleCampaignId(id: string) {
     const index = this.selectedCampaignIds.indexOf(id);
     if (index >= 0) {
@@ -261,7 +277,7 @@ export class PacingAlertsComponent {
       this.applyFilters();
     }
   }
-  
+
   toggleUser(user: string) {
     const index = this.selectedUsers.indexOf(user);
     if (index >= 0) {
@@ -284,11 +300,13 @@ export class PacingAlertsComponent {
         const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
         const googleAdsCampaignIds = data.googleAdsCampaignID ? data.googleAdsCampaignID.split(';') : [];
         const bingCampaignIds = data.bingCampaignID ? data.bingCampaignID.split(';') : [];
+        const appleCampaignIds = data.appleCampaignID ? data.appleCampaignID.split(';') : [];
         return this.selectedCampaignIds.some(id => {
           fbCampaignIds.includes(id) ||
           dv360CampaignIds.includes(id) ||
           googleAdsCampaignIds.includes(id) ||
-          bingCampaignIds.includes(id);
+          bingCampaignIds.includes(id) ||
+          appleCampaignIds.includes(id) ;
         });
       }).map(data => {
         let modifiedData = { ...data };
@@ -296,28 +314,39 @@ export class PacingAlertsComponent {
         const dv360CampaignIds = data.dv360CampaignID ? data.dv360CampaignID.split(';') : [];
         const googleAdsCampaignIds = data.googleAdsCampaignID ? data.googleAdsCampaignID.split(';') : [];
         const bingCampaignIds = data.bingCampaignID ? data.bingCampaignID.split(';') : [];
-        
+        const appleCampaignIds = data.appleCampaignID ? data.appleCampaignID.split(';') : [];
+
         const fbSelected = this.selectedCampaignIds.some(id => fbCampaignIds.includes(id));
         const dv360Selected = this.selectedCampaignIds.some(id => dv360CampaignIds.includes(id));
         const googleAdsSelected = this.selectedCampaignIds.some(id => googleAdsCampaignIds.includes(id));
         const bingSelected = this.selectedCampaignIds.some(id => bingCampaignIds.includes(id));
+        const appleSelected = this.selectedCampaignIds.some(id => appleCampaignIds.includes(id));
 
-        if (fbSelected && !dv360Selected && !googleAdsSelected && !bingSelected) {
+        if (fbSelected && !dv360Selected && !googleAdsSelected && !bingSelected && !appleSelected) {
             delete modifiedData.dv360Platform;
             delete modifiedData.googleAdsPlatform;
             delete modifiedData.bingPlatform;
-        } else if (!fbSelected && dv360Selected && !googleAdsSelected && !bingSelected) {
+            delete modifiedData.applePlatform;
+        } else if (!fbSelected && dv360Selected && !googleAdsSelected && !bingSelected && !appleSelected) {
             delete modifiedData.facebookPlatform;
             delete modifiedData.googleAdsPlatform;
             delete modifiedData.bingPlatform;
-        } else if (!fbSelected && !dv360Selected && googleAdsSelected && !bingSelected) {
+            delete modifiedData.applePlatform;
+        } else if (!fbSelected && !dv360Selected && googleAdsSelected && !bingSelected && !appleSelected) {
             delete modifiedData.facebookPlatform;
             delete modifiedData.dv360Platform;
             delete modifiedData.bingPlatform;
-        } else if (!fbSelected && !dv360Selected && !googleAdsSelected && bingSelected) {
+            delete modifiedData.applePlatform;
+        } else if (!fbSelected && !dv360Selected && !googleAdsSelected && bingSelected && !appleSelected) {
             delete modifiedData.facebookPlatform;
             delete modifiedData.dv360Platform;
             delete modifiedData.googleAdsPlatform;
+            delete modifiedData.applePlatform;
+        } else if (!fbSelected && !dv360Selected && !googleAdsSelected && !bingSelected && appleSelected) {
+            delete modifiedData.facebookPlatform;
+            delete modifiedData.dv360Platform;
+            delete modifiedData.googleAdsPlatform;
+            delete modifiedData.bingPlatform;
         }
 
         return modifiedData;

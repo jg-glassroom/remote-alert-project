@@ -11,6 +11,7 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AppleReportService } from '../../services/reports/apple/apple-report.service';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -40,13 +41,14 @@ export class HomeComponent implements OnInit {
   public dataSource = new MatTableDataSource<any>([]);
 
   constructor (
-    private db: AngularFirestore, 
-    private matDialog: MatDialog, 
-    private authService: AuthService, 
+    private db: AngularFirestore,
+    private matDialog: MatDialog,
+    private authService: AuthService,
     private DV360ReportService: DV360ReportService,
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
+    private appleReportService: AppleReportService,
     public router: Router
   ) {}
 
@@ -84,7 +86,7 @@ export class HomeComponent implements OnInit {
               return {};
             }
           });
-          this.dataSource.data = data; 
+          this.dataSource.data = data;
         });
       }
     });
@@ -111,10 +113,15 @@ export class HomeComponent implements OnInit {
         return '';
       }
       return element.googleAdsCampaign.map((c: any) => c.id).join(', ');
+    } else if (platform === 'apple') {
+      if (!element.appleCampaign) {
+        return '';
+      }
+      return element.appleCampaign.map((c: any) => c.id).join(', ');
     }
     return '';
   }
-  
+
   editRule(row: any) {
     const dataCopy = JSON.parse(JSON.stringify(row));
 
@@ -123,12 +130,12 @@ export class HomeComponent implements OnInit {
       height: '90vh',
       data: dataCopy
     });
-  
+
     dialogRef.afterClosed().subscribe(() => {
       this.getSearch();
     });
   }
-  
+
   showResult(row: any) {
     this.router.navigate(['/pacing', row.campaignName]);
   }
@@ -160,5 +167,5 @@ export class HomeComponent implements OnInit {
     } else {
       return 20;
     }
-  }  
+  }
 }

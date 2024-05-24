@@ -11,13 +11,13 @@ import { getAuth } from 'firebase/auth';
 
 import { firstValueFrom } from 'rxjs';
 
-declare const FB: any;
+//declare const FB: any;
 
 
 @Injectable({
   providedIn: 'root'
 })
-export class FacebookService {
+export class AppleService {
   private toaster = inject(ToastrService);
 
   constructor(
@@ -26,7 +26,9 @@ export class FacebookService {
     private http: HttpClient
   ) { }
 
-  async facebookConnect(): Promise<any> {
+  async appleConnect(): Promise<any> {
+    return null;
+    /*
     return new Promise((resolve, reject) => {
       FB.login(async (response: any) => {
         if (response.authResponse) {
@@ -59,9 +61,12 @@ export class FacebookService {
         }
       }, {scope: 'email,ads_read,business_management'});
     });
+    */
   }
 
-  facebookDisconnect() {
+  appleDisconnect() {
+    return null;
+    /*
     const url = `https://graph.facebook.com/me/permissions?access_token=${localStorage.getItem('facebookAccessToken')}`;
 
     this.http.delete(url).subscribe({
@@ -88,5 +93,6 @@ export class FacebookService {
         this.toaster.error('Error disconnecting Facebook', error);
       }
     });
+    */
   }
 }

@@ -27,7 +27,7 @@ import { CommonService } from '../../../../services/common/common.service';
 import { getAuth } from '@angular/fire/auth';
 
 @Component({
-  selector: 'app-facebook-form',
+  selector: 'app-apple-form',
   standalone: true,
   imports: [
     CommonModule,
@@ -42,10 +42,10 @@ import { getAuth } from '@angular/fire/auth';
     FormsModule,
     ReactiveFormsModule
   ],
-  templateUrl: './facebook-form.component.html',
-  styleUrl: './facebook-form.component.css'
+  templateUrl: './apple-form.component.html',
+  styleUrl: './apple-form.component.css'
 })
-export class FacebookFormComponent {
+export class AppleFormComponent {
   @Output() platformChange = new EventEmitter<string>();
   @Input() platformIndex: number = 0;
 
@@ -71,9 +71,9 @@ export class FacebookFormComponent {
   announcer = inject(LiveAnnouncer);
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
-  
+
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -97,17 +97,17 @@ export class FacebookFormComponent {
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
-      facebookLabel: [this.data?.facebookLabel || null],
-      facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
-      facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
-      facebookPlatform: ['facebook', [Validators.required]],
-      facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
-      facebookEndDate: [this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
-      facebookBudget: [this.data?.facebookBudget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
+      appleLabel: [this.data?.appleLabel || null],
+      appleAdAccount: [this.data?.appleAdAccount || null, [Validators.required]],
+      appleCampaign: [this.data?.appleCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
+      applePlatform: ['apple', [Validators.required]],
+      appleStartDate: [this.data?.appleStartDate ? new Date(this.data.appleStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
+      appleEndDate: [this.data?.appleEndDate ? new Date(this.data.appleEndDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
+      appleBudget: [this.data?.appleBudget || null, [Validators.required, Validators.pattern(/^\d+\.?\d*$/)]],
     });
 
-    const startDateControl = this.formGroup.get('facebookStartDate');
-    const endDateControl = this.formGroup.get('facebookEndDate');
+    const startDateControl = this.formGroup.get('appleStartDate');
+    const endDateControl = this.formGroup.get('appleEndDate');
     if (startDateControl && endDateControl) {
       endDateControl.setValidators([
         ...endDateControl.validator ? [endDateControl.validator] : [],
@@ -123,11 +123,13 @@ export class FacebookFormComponent {
   }
 
   async fetchAllAdAccounts(url: string, adAccounts: any[] = []): Promise<any[]> {
+    return [];
+    /*
     try {
       const response = await firstValueFrom(this.http.get<any>(url));
       const fetchedAdAccounts = response.data;
       adAccounts = adAccounts.concat(fetchedAdAccounts);
-  
+
       if (response.paging && response.paging.next) {
         return this.fetchAllAdAccounts(response.paging.next, adAccounts);
       } else {
@@ -138,32 +140,34 @@ export class FacebookFormComponent {
       this.toaster.error('Error fetching Facebook Ad Accounts', 'Error');
       throw error;
     }
+    */
   }
-  
+
   async getAdAccounts(edit?: boolean) {
     this.isLoading = true;
     const cachedData = localStorage.getItem('adAccounts');
     if (cachedData) {
       this.adAccounts = JSON.parse(cachedData);
       this.adAccountsSubject.next(this.adAccounts);
-      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'facebookAdAccount', 'name', localStorage.getItem("adAccounts"));
+      this.adAccounts$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'appleAdAccount', 'name', localStorage.getItem("adAccounts"));
       this.isLoading = false;
       return;
     }
 
     if (!edit) {
       this.formGroup.patchValue({
-        facebookCampaign: [],
-        facebookStartDate: null,
-        facebookEndDate: null,
-        facebookBudget: null,
+        appleCampaign: [],
+        appleStartDate: null,
+        appleEndDate: null,
+        appleBudget: null,
       })
       this.campaigns = []
     }
-  
+    return null;
+    /*
     const fields = 'account_id,id,name, business';
     const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-  
+
     try {
       const allAdAccounts = await this.fetchAllAdAccounts(url);
       const sortedAdAccounts = allAdAccounts.sort((a: any, b: any) => a.name.localeCompare(b.name));
@@ -176,6 +180,7 @@ export class FacebookFormComponent {
       console.error('Error fetching all Facebook Ad Accounts:', error);
       this.isLoading = false;
     }
+    */
   }
 
   async fetchAllCampaigns(url: string, campaigns: any[] = []): Promise<any[]> {
@@ -190,8 +195,8 @@ export class FacebookFormComponent {
         return campaigns;
       }
     } catch (error) {
-      console.error('Error fetching Facebook Campaigns:', error);
-      this.toaster.error('Error fetching Facebook Campaigns', 'Error');
+      console.error('Error fetching Apple Campaigns:', error);
+      this.toaster.error('Error fetching Apple Campaigns', 'Error');
       throw error;
     }
   }
@@ -203,7 +208,7 @@ export class FacebookFormComponent {
     if (event) {
       adAccount = event.option.value;
     } else {
-      adAccount = this.data?.facebookAdAccount;
+      adAccount = this.data?.appleAdAccount;
     }
     if (!adAccount) {
       this.isLoading = false;
@@ -212,18 +217,19 @@ export class FacebookFormComponent {
 
     if (!edit) {
       this.formGroup.patchValue({
-        facebookCampaign: [],
-        facebookStartDate: null,
-        facebookEndDate: null,
-        facebookBudget: null,
+        appleCampaign: [],
+        appleStartDate: null,
+        appleEndDate: null,
+        appleBudget: null,
       })
       this.campaigns = []
     } else {
-      this.campaigns = this.data?.facebookCampaign;
+      this.campaigns = this.data?.appleCampaign;
     }
-
+    return null;
+    /*
     const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-    
+
     try {
       const allCampaigns = await this.fetchAllCampaigns(url);
       const sortedCampaigns = allCampaigns.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
@@ -235,14 +241,15 @@ export class FacebookFormComponent {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
     }
+    */
   }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 
-  displayFn(facebookAdAccount: any): string {
-    return facebookAdAccount && facebookAdAccount.name ? facebookAdAccount.name : '';
+  displayFn(appleAdAccount: any): string {
+    return appleAdAccount && appleAdAccount.name ? appleAdAccount.name : '';
   }
 
   combineAndTruncateName(campaign: any, num: number): string {
@@ -253,11 +260,11 @@ export class FacebookFormComponent {
   refreshData() {
     localStorage.removeItem('adAccounts');
     this.formGroup.patchValue({
-      facebookAdAccount: null,
-      facebookStartDate: null,
-      facebookEndDate: null,
-      facebookBudget: null,
-      facebookCampaign: [],
+      appleAdAccount: null,
+      appleStartDate: null,
+      appleEndDate: null,
+      appleBudget: null,
+      appleCampaign: [],
     });
     this.originalCampaigns$ = of([]);
     this.campaigns$ = of([]);
@@ -271,8 +278,8 @@ export class FacebookFormComponent {
       if (user)  {
         const formData = {
           ...this.formGroup.value,
-          facebookStartDate: this.platformsCommon.formatDate(this.formGroup.value.facebookStartDate),
-          facebookEndDate: this.platformsCommon.formatDate(this.formGroup.value.facebookEndDate),
+          appleStartDate: this.platformsCommon.formatDate(this.formGroup.value.appleStartDate),
+          appleEndDate: this.platformsCommon.formatDate(this.formGroup.value.appleEndDate),
           userId: user.uid
         };
         return formData;

@@ -23,7 +23,7 @@ export class AuthService {
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
     private router: Router
-  ) { 
+  ) {
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
         if (user) {
@@ -57,7 +57,7 @@ export class AuthService {
 
       const userRef = this.afs.collection('user').doc(currentUser.uid);
       await userRef.update({ last_login: moment().format('MM/DD/YYYY HH:mm:ss') });
-      
+
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
       userDoc.pipe(first()).subscribe((user: any) => {
         if (user.googleAdsAccessToken) {
@@ -71,6 +71,9 @@ export class AuthService {
         }
         if (user.microsoftAccessToken) {
           localStorage.setItem('microsoftAccessToken', user.microsoftAccessToken);
+        }
+        if (user.appleAccessToken) {
+          localStorage.setItem('appleAccessToken', user.appleAccessToken);
         }
       });
     } catch (error) {

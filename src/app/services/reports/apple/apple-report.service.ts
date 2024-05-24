@@ -27,7 +27,7 @@ interface TransformedData {
 @Injectable({
   providedIn: 'root'
 })
-export class FacebookReportService {
+export class AppleReportService {
   reportJson: any = [];
 
   constructor(
@@ -43,6 +43,8 @@ export class FacebookReportService {
   }
 
   async getReport(campaign: any) {
+    return null;
+    /*
     const fields = [
       'date_start',
       'date_stop',
@@ -71,12 +73,15 @@ export class FacebookReportService {
     } catch (error) {
       console.error('Error fetching campaign metrics:', error);
     }
+    */
   }
 
   private transformReport(dataArray: any): TransformedData | null {
+    return null;
+    /*
     if (!dataArray) return null;
     let transformedData: TransformedData = {};
-  
+
     dataArray.forEach((item: any) => {
       const formattedDate = item.date_start.replace(/-/g, '/');
       const campaignData: CampaignData = {
@@ -89,14 +94,17 @@ export class FacebookReportService {
         impressions: item.impressions,
         spend: item.spend
       };
-  
+
       transformedData[formattedDate] = campaignData;
     });
-  
+
     return transformedData;
-  }  
+    */
+  }
 
   async processReport(campaign: any, index: number) {
+    return null;
+    /*
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
@@ -114,8 +122,8 @@ export class FacebookReportService {
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
       const AllPacingAlerts$ = AllPacingAlerts({
-        userSearchId: userSearchId, 
-        reportJson: this.reportJson, 
+        userSearchId: userSearchId,
+        reportJson: this.reportJson,
         userId: userId,
         platform: "facebook",
         platformIndex: index,
@@ -135,9 +143,10 @@ export class FacebookReportService {
       console.error('Error processing Facebook report: ', error);
       return false;
     }
+    */
   }
-  
+
   resetReportVariables() {
     this.reportJson = [];
-  }  
+  }
 }

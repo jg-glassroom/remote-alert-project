@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FacebookFormComponent } from './facebook-form.component';
+import { AppleFormComponent } from './apple-form.component';
 
-describe('FacebookFormComponent', () => {
-  let component: FacebookFormComponent;
-  let fixture: ComponentFixture<FacebookFormComponent>;
+describe('AppleFormComponent', () => {
+  let component: AppleFormComponent;
+  let fixture: ComponentFixture<AppleFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FacebookFormComponent]
+      imports: [AppleFormComponent]
     })
     .compileComponents();
-    
-    fixture = TestBed.createComponent(FacebookFormComponent);
+
+    fixture = TestBed.createComponent(AppleFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

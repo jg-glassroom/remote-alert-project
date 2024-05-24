@@ -6,27 +6,28 @@
     <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Platform</mat-label>
-            <mat-select formControlName="facebookPlatform" (selectionChange)="changePlatform($event.value)">
+            <mat-select formControlName="applePlatform" (selectionChange)="changePlatform($event.value)">
                 <mat-option value="dv360">Display & Video 360</mat-option>
-                <mat-option value="facebook" disabled>Facebook</mat-option>
+                <mat-option value="facebook">Facebook</mat-option>
                 <mat-option value="googleAds">Google Ads</mat-option>
                 <mat-option value="bing">Bing</mat-option>
+                <mat-option value="apple disabled">Apple Search Ads</mat-option>
             </mat-select>
-            <mat-error *ngIf="(submitted || form['facebookPlatform'].touched) && form['facebookPlatform'].invalid">
+            <mat-error *ngIf="(submitted || form['applePlatform'].touched) && form['applePlatform'].invalid">
             The field is required
             </mat-error>
         </mat-form-field>
         <mat-form-field class="form-element">
           <mat-label>Label</mat-label>
-          <input matInput formControlName="facebookLabel">
+          <input matInput formControlName="appleLabel">
         </mat-form-field>
     </div>
 
     <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Ad account</mat-label>
-            <input type="text" placeholder="Select your ad account" formControlName="facebookAdAccount" aria-label="ad account" matInput [matAutocomplete]="adAccountsAuto">
-            <mat-error *ngIf="(submitted || form['facebookAdAccount'].touched) && form['facebookAdAccount'].invalid">
+            <input type="text" placeholder="Select your ad account" formControlName="appleAdAccount" aria-label="ad account" matInput [matAutocomplete]="adAccountsAuto">
+            <mat-error *ngIf="(submitted || form['appleAdAccount'].touched) && form['appleAdAccount'].invalid">
                 The field is required
             </mat-error>
             <mat-autocomplete #adAccountsAuto="matAutocomplete" (optionSelected)="getAdAccountCampaigns($event)" [displayWith]="displayFn">
@@ -51,20 +52,20 @@
             </mat-chip-row>
             </mat-chip-grid>
 
-            <input placeholder="Select your campaigns" #campaignInput formControlName="facebookCampaign"
+            <input placeholder="Select your campaigns" #campaignInput formControlName="appleCampaign"
             [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-            (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
+            (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'appleCampaign')"/>
 
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'facebookCampaign', selection, announcer, campaignInput)">
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'appleCampaign', selection, announcer, campaignInput)">
             <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput)">
+                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'appleCampaign', 'id', formGroup, selection, campaignInput)">
                 {{ campaign.name }} | {{ campaign.id }}
                 </mat-checkbox>
             </mat-option>
             </mat-autocomplete>
 
-            <mat-hint *ngIf="form['facebookCampaign'].errors?.['required'] && (submitted || form['facebookCampaign'].touched)">
+            <mat-hint *ngIf="form['appleCampaign'].errors?.['required'] && (submitted || form['appleCampaign'].touched)">
                 <span class="mat-error">At least one campaign must be selected</span>
             </mat-hint>
         </mat-form-field>
@@ -73,31 +74,31 @@
     <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="startPicker" formControlName="facebookStartDate">
+            <input matInput [matDatepicker]="startPicker" formControlName="appleStartDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
-            <mat-error *ngIf="form['facebookStartDate'].errors?.['required']">
+            <mat-error *ngIf="form['appleStartDate'].errors?.['required']">
                 This field is required.
             </mat-error>
-            <mat-error *ngIf="form['facebookStartDate'].errors?.['invalidDate']">
+            <mat-error *ngIf="form['appleStartDate'].errors?.['invalidDate']">
                 Please enter a valid date.
             </mat-error>
         </mat-form-field>
 
         <mat-form-field class="form-element">
             <mat-label>End Date</mat-label>
-            <input matInput [matDatepicker]="endPicker" formControlName="facebookEndDate">
+            <input matInput [matDatepicker]="endPicker" formControlName="appleEndDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
-            <mat-error *ngIf="form['facebookEndDate'].errors?.['required']">
+            <mat-error *ngIf="form['appleEndDate'].errors?.['required']">
                 This field is required.
             </mat-error>
-            <mat-error *ngIf="form['facebookEndDate'].errors?.['invalidDate']">
+            <mat-error *ngIf="form['appleEndDate'].errors?.['invalidDate']">
                 Please enter a valid date.
             </mat-error>
-            <mat-error *ngIf="form['facebookEndDate'].errors?.['dateMismatch']">
+            <mat-error *ngIf="form['appleEndDate'].errors?.['dateMismatch']">
                 End date must be after or equal to start date.
             </mat-error>
         </mat-form-field>
@@ -106,11 +107,11 @@
     <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Budget</mat-label>
-            <input matInput formControlName="facebookBudget">
-            <mat-error *ngIf="form['facebookBudget'].errors?.['required'] && (submitted || form['facebookBudget'].touched)">
+            <input matInput formControlName="appleBudget">
+            <mat-error *ngIf="form['appleBudget'].errors?.['required'] && (submitted || form['appleBudget'].touched)">
                 The field is required
             </mat-error>
-            <mat-error *ngIf="form['facebookBudget'].errors?.['pattern'] && (submitted || form['facebookBudget'].touched)">
+            <mat-error *ngIf="form['appleBudget'].errors?.['pattern'] && (submitted || form['appleBudget'].touched)">
                 Please enter a valid number
             </mat-error>
         </mat-form-field>

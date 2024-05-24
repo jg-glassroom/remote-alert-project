@@ -71,21 +71,25 @@
         <span *ngIf="data.dv360Platform">
           <app-line-chart *ngIf="data.dv360Report" [chartData]="data" platform="dv360" [uniqueId]="'chartdiv_' + data.id + '_DV'" platformRevenue="Revenue (Adv Currency)"></app-line-chart>
         </span>
-        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.facebookPlatform">
           <app-line-chart *ngIf="data.facebookReport" [chartData]="data" platform="facebook" [uniqueId]="'chartdiv_' + data.id + '_Facebook'" platformRevenue="spend"></app-line-chart>
         </span>
-        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform)) && !(data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.googleAdsPlatform">
           <app-line-chart *ngIf="data.googleAdsReport" [chartData]="data" platform="googleAds" [uniqueId]="'chartdiv_' + data.id + '_GoogleAds'" platformRevenue="costMicros"></app-line-chart>
         </span>
-        <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
+        <hr *ngIf="(data.googleAdsPlatform && (data.bingPlatform || data.applePlatform)) && !(data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.bingPlatform">
           <app-line-chart *ngIf="data.bingReport" [chartData]="data" platform="bing" [uniqueId]="'chartdiv_' + data.id + '_Bing'" platformRevenue="Spend"></app-line-chart>
         </span>
+        <hr *ngIf="data.bingPlatform && data.applePlatform">
+        <span *ngIf="data.applePlatform">
+          <app-line-chart *ngIf="data.appleReport" [chartData]="data" platform="apple" [uniqueId]="'chartdiv_' + data.id + '_Apple'" platformRevenue="spend"></app-line-chart>
+        </span>
       </td>
     </ng-container>
-    
+
 
     <!-- Platform Column -->
     <ng-container matColumnDef="platform">
@@ -96,23 +100,29 @@
           {{data.dv360StartDate}} - {{data.dv360EndDate}}<br>
           {{round(data.dv360_perc_days_passed)}}%
         </span>
-        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.facebookPlatform">
           {{data.facebookPlatform}}<br>
           {{data.facebookStartDate}} - {{data.facebookEndDate}}<br>
           {{round(data.facebook_perc_days_passed)}}%
         </span>
-        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform)) && !(data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.googleAdsPlatform">
           {{data.googleAdsPlatform}}<br>
           {{data.googleAdsStartDate}} - {{data.googleAdsEndDate}}<br>
           {{round(data.googleAds_perc_days_passed)}}%
         </span>
-        <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
+        <hr *ngIf="(data.googleAdsPlatform && (data.bingPlatform || data.applePlatform)) && !(data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.bingPlatform">
           {{data.bingPlatform}}<br>
           {{data.bingStartDate}} - {{data.bingEndDate}}<br>
           {{round(data.bing_perc_days_passed)}}%
+        </span>
+        <hr *ngIf="data.bingPlatform && data.applePlatform">
+        <span *ngIf="data.applePlatform">
+          {{data.applePlatform}}<br>
+          {{data.appleStartDate}} - {{data.appleEndDate}}<br>
+          {{round(data.apple_perc_days_passed)}}%
         </span>
       </td>
     </ng-container>
@@ -125,20 +135,25 @@
           ${{round(data.dv360_campaign_cost)}}<br>
           ${{round(data.dv360Budget)}}
         </span>
-        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.facebookPlatform">
           ${{round(data.facebook_campaign_cost)}}<br>
           ${{round(data.facebookBudget)}}
         </span>
-        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform)) && !(data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.googleAdsPlatform">
           ${{round(data.googleAds_campaign_cost)}}<br>
           ${{round(data.googleAdsBudget)}}
         </span>
-        <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
+        <hr *ngIf="(data.googleAdsPlatform && (data.bingPlatform || data.applePlatform)) && !(data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.bingPlatform">
           ${{round(data.bing_campaign_cost)}}<br>
           ${{round(data.bingBudget)}}
+        </span>
+        <hr *ngIf="data.bingPlatform && data.applePlatform">
+        <span *ngIf="data.applePlatform">
+          ${{round(data.apple_campaign_cost)}}<br>
+          ${{round(data.appleBudget)}}
         </span>
       </td>
     </ng-container>
@@ -150,17 +165,21 @@
         <span *ngIf="data.dv360Platform">
           {{data.dv360_overall_error_rule_message ? data.dv360_overall_error_rule_message : data.dv360_budget_error_rule_message}}
         </span>
-        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.facebookPlatform">
           {{data.facebook_overall_error_rule_message ? data.facebook_overall_error_rule_message : data.facebook_budget_error_rule_message}}
         </span>
-        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform)) && !(data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.googleAdsPlatform">
           {{data.googleAds_overall_error_rule_message ? data.googleAds_overall_error_rule_message : data.googleAds_budget_error_rule_message}}
         </span>
-        <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
+        <hr *ngIf="(data.googleAdsPlatform && (data.bingPlatform || data.applePlatform)) && !(data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.bingPlatform">
           {{data.bing_overall_error_rule_message ? data.bing_overall_error_rule_message : data.bing_budget_error_rule_message}}
+        </span>
+        <hr *ngIf="data.bingPlatform && data.applePlatform">
+        <span *ngIf="data.applePlatform">
+          {{data.apple_overall_error_rule_message ? data.apple_overall_error_rule_message : data.apple_budget_error_rule_message}}
         </span>
       </td>
     </ng-container>
@@ -173,20 +192,25 @@
           {{data.dv360_yesterday_error_rule_message}}<br>
           {{data.dv360_seven_days_error_rule_message}}
         </span>
-        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.facebookPlatform">
           {{data.facebook_yesterday_error_rule_message}}<br>
           {{data.facebook_seven_days_error_rule_message}}
         </span>
-        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform)) && !(data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.googleAdsPlatform">
           {{data.googleAds_yesterday_error_rule_message}}<br>
           {{data.googleAds_seven_days_error_rule_message}}
         </span>
-        <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
+        <hr *ngIf="(data.googleAdsPlatform && (data.bingPlatform || data.applePlatform)) && !(data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.bingPlatform">
           {{data.bing_yesterday_error_rule_message}}<br>
           {{data.bing_seven_days_error_rule_message}}
+        </span>
+        <hr *ngIf="data.bingPlatform && data.applePlatform">
+        <span *ngIf="data.applePlatform">
+          {{data.apple_yesterday_error_rule_message}}<br>
+          {{data.apple_seven_days_error_rule_message}}
         </span>
       </td>
     </ng-container>
@@ -198,17 +222,21 @@
         <span *ngIf="data.dv360Platform">
           ${{round(data.dv360_daily_estimated_cost)}}/day
         </span>
-        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.dv360Platform && (data.facebookPlatform || data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.facebookPlatform && !data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.facebookPlatform">
           ${{round(data.facebook_daily_estimated_cost)}}/day
         </span>
-        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform)) && !(data.googleAdsPlatform && !data.bingPlatform)">
+        <hr *ngIf="(data.facebookPlatform && (data.googleAdsPlatform || data.bingPlatform || data.applePlatform)) && !(data.googleAdsPlatform && !data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.googleAdsPlatform">
           ${{round(data.googleAds_daily_estimated_cost)}}/day
         </span>
-        <hr *ngIf="data.googleAdsPlatform && data.bingPlatform">
+        <hr *ngIf="(data.googleAdsPlatform && (data.bingPlatform || data.applePlatform)) && !(data.bingPlatform && !data.applePlatform)">
         <span *ngIf="data.bingPlatform">
           ${{round(data.bing_daily_estimated_cost)}}/day
+        </span>
+        <hr *ngIf="data.bingPlatform && data.applePlatform">
+        <span *ngIf="data.applePlatform">
+          ${{round(data.apple_daily_estimated_cost)}}/day
         </span>
       </td>
     </ng-container>

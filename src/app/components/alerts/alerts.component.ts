@@ -15,6 +15,7 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AppleReportService } from '../../services/reports/apple/apple-report.service';
 import { AlertsService } from '../../services/alerts/alerts.service';
 
 import { ToastrService } from 'ngx-toastr';
@@ -77,6 +78,7 @@ export class AlertsComponent {
     'googleAds': 'Google Ads',
     'bing': 'Bing',
     'dv360': 'Display & Video 360',
+    'apple': 'Apple Search Ads',
   };
   panelOpenState = false;
 
@@ -94,6 +96,7 @@ export class AlertsComponent {
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
+    private appleReportService: AppleReportService,
     public alertsService: AlertsService
   ) {}
 
@@ -137,7 +140,7 @@ export class AlertsComponent {
       })
       .filter(alert => alert.platforms.length > 0 && (subaccountId ? alert.subaccount && alert.subaccount.id === subaccountId : !alert.subaccount))
       .sort((a, b) => a.campaignName.localeCompare(b.campaignName));
-  }  
+  }
 
   filteredSubaccounts(): any[] {
     if (this.selectedSubaccounts.length > 0) {
@@ -337,6 +340,13 @@ export class AlertsComponent {
             }
           });
         }
+        if (platform.platform === 'apple') {
+          this.appleReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.alertsService.updateData(campaign.id, index);
+            }
+          });
+        }
       });
     });
   }
@@ -359,5 +369,5 @@ export class AlertsComponent {
       }
       return true;
     });
-  }  
+  }
 }

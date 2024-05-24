@@ -65,11 +65,11 @@
             <div class="bottom">
                 <div class="status-group">
                     <span class="status">Status:</span>
-                    <mat-icon style="color: green;" *ngIf="commonService.isConnected('facebook')">check</mat-icon>
-                    <mat-icon style="color: red;" *ngIf="!commonService.isConnected('facebook')">close</mat-icon>
+                    <mat-icon style="color: green;" *ngIf="commonService.isConnected('apple')">check</mat-icon>
+                    <mat-icon style="color: red;" *ngIf="!commonService.isConnected('apple')">close</mat-icon>
                 </div>
-                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookConnect()" *ngIf="!commonService.isConnected('facebook')">Connect</button>
-                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookDisconnect()" *ngIf="commonService.isConnected('facebook')">Disconnect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="appleService.appleConnect()" *ngIf="!commonService.isConnected('apple')">Connect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="appleService.appleDisconnect()" *ngIf="commonService.isConnected('apple')">Disconnect</button>
             </div>
         </mat-card-content>
     </mat-card>

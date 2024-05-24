@@ -199,6 +199,8 @@ export class CommonService {
       return !!localStorage.getItem('facebookAccessToken');
     } else if (platform === 'bing') {
       return !!localStorage.getItem('microsoftAccessToken');
+    } else if (platform === 'apple') {
+      return !!localStorage.getItem('appleAccessToken');
     } else {
       return false;
     }
