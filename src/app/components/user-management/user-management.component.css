@@ -18,13 +18,38 @@
     margin-right: 10px;
 }
 
-mat-card-content {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 20px;
+.container {
+    margin: 20px;
 }
 
-mat-card {
-    margin: 20px;
+mat-card-content {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 100%;
+    min-height: 50px;
+}
+
+.cell {
+    padding: 10px;
+    color: black;
+    text-align: center;
+    overflow-x: auto;
+}
+
+.header-row {
+    font-weight: bold;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.data-row {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.border {
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
 }

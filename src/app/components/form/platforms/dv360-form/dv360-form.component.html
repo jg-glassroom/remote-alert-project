@@ -11,6 +11,7 @@
                 <mat-option value="facebook">Facebook</mat-option>
                 <mat-option value="googleAds">Google Ads</mat-option>
                 <mat-option value="bing">Bing</mat-option>
+                <mat-option value="apple">Apple Search Ads</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['dv360Platform'].touched) && form['dv360Platform'].invalid">
             The field is required
@@ -51,45 +52,56 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
-            <mat-label>Campaign*</mat-label>
+        <div class="form-element io">
+            <mat-form-field>
+                <mat-label>Campaign*</mat-label>
+                <mat-chip-grid #chipGrid aria-label="Campaign Selection">
+                    <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
+                        <span>{{ combineAndTruncateName(campaign, 25) }}</span>
+                        <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+                    </mat-chip-row>
+                </mat-chip-grid>
+                <input placeholder="Select your campaigns" #campaignInput formControlName="dv360CampaignId"
+                    [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'dv360CampaignId')"/>
+                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+                    <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
+                        <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
+                            {{ campaign.displayName }} | {{ campaign.campaignId }}
+                        </mat-checkbox>
+                    </mat-option>
+                </mat-autocomplete>
+                <mat-hint *ngIf="form['dv360CampaignId'].errors?.['required'] && (submitted || form['dv360CampaignId'].touched)">
+                    <span class="mat-error">At least one campaign must be selected</span>
+                </mat-hint>
+            </mat-form-field>
+            <button mat-stroked-button (click)="getDV360IO()" class="io-button">Get IOs</button>
+        </div>
 
-            <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, selection, announcer)">
-                <span>{{ combineAndTruncateName(campaign, 25) }}</span>
-                <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
-                <mat-icon>cancel</mat-icon>
-                </button>
-            </mat-chip-row>
+        <mat-form-field class="form-element">
+            <mat-label>IOs</mat-label>
+            <mat-chip-grid #chipGridIO aria-label="IO Selection">
+                <mat-chip-row *ngFor="let IO of IOs" (removed)="removeIO(IO, IOs, selectionIO, announcerIO)">
+                    <span>{{ combineAndTruncateName(IO, 25) }}</span>
+                    <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + IO.displayName">
+                        <mat-icon>cancel</mat-icon>
+                    </button>
+                </mat-chip-row>
             </mat-chip-grid>
-
-            <input placeholder="Select your campaigns" #campaignInput formControlName="dv360CampaignId"
-            [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
-            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-            (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'dv360CampaignId')"/>
-
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'dv360CampaignId', selection, announcer, campaignInput)">
-            <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput)">
-                {{ campaign.displayName }} | {{ campaign.campaignId }}
-                </mat-checkbox>
-            </mat-option>
+            <input placeholder="Select your IOs" #IOInput formControlName="dv360IO"
+                   [matChipInputFor]="chipGridIO" [matAutocomplete]="IOsAuto"
+                   [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                   (matChipInputTokenEnd)="platformsCommon.add($event, IOs, formGroup, 'dv360IO')"/>
+            <mat-autocomplete #IOsAuto="matAutocomplete" (optionSelected)="selectIO($event, IOs, formGroup, selectionIO, announcerIO, IOInput)">
+                <mat-option *ngFor="let IO of IOs$ | async" [value]="IO">
+                    <mat-checkbox [checked]="IO.selected" (click)="selectIO($event, IOs, IO, formGroup, selectionIO, IOInput)">
+                        {{ IO.displayName }} | {{ IO.campaignId }}
+                    </mat-checkbox>
+                </mat-option>
             </mat-autocomplete>
-
-            <mat-hint *ngIf="form['dv360CampaignId'].errors?.['required'] && (submitted || form['dv360CampaignId'].touched)">
-                <span class="mat-error">At least one campaign must be selected</span>
-            </mat-hint>
-        </mat-form-field>
-
-        <mat-form-field class="form-element">
-            <mat-label>Budget</mat-label>
-            <input matInput formControlName="dv360Budget">
-            <mat-error *ngIf="form['dv360Budget'].errors?.['required'] && (submitted || form['dv360Budget'].touched)">
-                The field is required
-            </mat-error>
-            <mat-error *ngIf="form['dv360Budget'].errors?.['pattern'] && (submitted || form['dv360Budget'].touched)">
-                Please enter a valid number
-            </mat-error>
         </mat-form-field>
     </div>
 
@@ -109,7 +121,7 @@
         </mat-form-field>
 
         <mat-form-field class="form-element">
-            <mat-label>End Date</mat-label>
+            <mat-label>End Date*</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="dv360EndDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
             <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
@@ -124,6 +136,20 @@
                 End date must be after or equal to start date.
             </mat-error>
         </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field class="form-element">
+            <mat-label>Budget</mat-label>
+            <input matInput formControlName="dv360Budget">
+            <mat-error *ngIf="form['dv360Budget'].errors?.['required'] && (submitted || form['dv360Budget'].touched)">
+                The field is required
+            </mat-error>
+            <mat-error *ngIf="form['dv360Budget'].errors?.['pattern'] && (submitted || form['dv360Budget'].touched)">
+                Please enter a valid number
+            </mat-error>
+        </mat-form-field>
+        <div class="form-element"></div>
     </div>
 
 </form>

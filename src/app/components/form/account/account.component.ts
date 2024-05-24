@@ -8,6 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 
+import { CommonService } from '../../../services/common/common.service';
+
 import { getAuth } from 'firebase/auth';
 import { arrayUnion } from '@firebase/firestore';
 
@@ -42,7 +44,8 @@ export class AccountComponent {
     private dialogRef: MatDialogRef<AccountComponent>,
     private formBuilder: FormBuilder,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private db: AngularFirestore
+    private db: AngularFirestore,
+    public commonService: CommonService
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -63,7 +66,7 @@ export class AccountComponent {
       industry: [this.data?.industry || null],
     });
 
-    if (!this.data.isAdmin) {
+    if (!this.commonService.isAdmin) {
       this.formGroup.disable();
     }
   }

@@ -48,6 +48,7 @@ export class FacebookReportService {
       'date_stop',
       'account_id',
       'campaign_id',
+      'adset_id',
       'outbound_clicks',
       'impressions',
       'spend',
@@ -55,14 +56,21 @@ export class FacebookReportService {
 
     const adAccount = campaign.facebookAdAccount.id;
     const campaignIds = campaign.facebookCampaign.map((c: any) => c.id);
+    const adsetIds = campaign.facebookAdset ? campaign.facebookAdset.map((a: any) => a.id) : [];
     const accessToken = localStorage.getItem('facebookAccessToken');
     const startDate = this.convertDateFormat(campaign.facebookStartDate);
     const endDate = this.convertDateFormat(campaign.facebookEndDate);
 
-    const filtering = `[{'field':'campaign.id','operator':'IN','value':[${campaignIds.join(',')}] }]`;
+    const filtering = [];
+    if (campaignIds.length) {
+      filtering.push({ field: 'campaign.id', operator: 'IN', value: campaignIds });
+    }
+    if (adsetIds.length) {
+      filtering.push({ field: 'adset.id', operator: 'IN', value: adsetIds });
+    }
 
     const timeRange = `{"since":"${startDate}","until":"${endDate}"}`;
-    const url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(filtering)}&time_increment=1`;
+    const url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(JSON.stringify(filtering))}&time_increment=1`;
 
     try {
       const response = await fetch(url);

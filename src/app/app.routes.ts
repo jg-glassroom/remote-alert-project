@@ -9,6 +9,7 @@ import { AccountsComponent } from './components/accounts/accounts.component';
 import { PlatformsIntegrationComponent } from './components/platforms-integration/platforms-integration.component';
 import { AlertsComponent } from './components/alerts/alerts.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
+import { InviteComponent } from './components/invite/invite.component';
 
 import { loggedInGuard } from './guards/logged-in/logged-in.guard';
 import { notLoggedInGuard } from './guards/not-logged-in/not-logged-in.guard';
@@ -22,6 +23,7 @@ export const routes: Routes = [
     { path: 'integrations/:oauthProvider', component: PlatformsIntegrationComponent, canActivate: [loggedInGuard] },
     { path: 'user_management', component: UserManagementComponent, canActivate: [loggedInGuard] },
     { path: '', component: SignInComponent, canActivate: [notLoggedInGuard] },
+    { path: 'invite/:token', component: InviteComponent, canActivate: [notLoggedInGuard] },
 
     // To delete
     { path: 'home', component: HomeComponent, canActivate: [loggedInGuard] },

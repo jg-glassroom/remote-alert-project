@@ -16,6 +16,7 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 
 import { Observable, of, firstValueFrom, BehaviorSubject } from 'rxjs';
 
@@ -40,7 +41,8 @@ import { getAuth } from '@angular/fire/auth';
     MatCheckboxModule,
     MatChipsModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatButtonModule
   ],
   templateUrl: './facebook-form.component.html',
   styleUrl: './facebook-form.component.css'
@@ -55,6 +57,7 @@ export class FacebookFormComponent {
   documentId: string | null = null;
   toaster = inject(ToastrService);
   isLoading: boolean = false;
+  limit: number = 4000;
 
   public adAccounts: any[] = [];
   private adAccountsSubject = new BehaviorSubject<any[]>([]);
@@ -65,12 +68,19 @@ export class FacebookFormComponent {
   campaigns$!: Observable<any[]>;
   campaigns: any = [];
 
+  originalAdsets$!: Observable<any[]>;
+  adsets$!: Observable<any[]>;
+  adsets: any[] = [];
+
   separatorKeysCodes: number[] = [ENTER, COMMA];
   selection = new SelectionModel<any>(true, []);
+  selectionAdset = new SelectionModel<any>(true, []);
 
   announcer = inject(LiveAnnouncer);
+  announcerAdset = inject(LiveAnnouncer);
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('adsetInput') adsetInput!: ElementRef<HTMLInputElement>;
   
   constructor(
     private formBuilder: FormBuilder, 
@@ -95,10 +105,31 @@ export class FacebookFormComponent {
     await this.getAdAccounts();
   }
 
+  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    event.stopPropagation();
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput);
+    this.filterAdsetsByCampaigns();
+  }
+
+  removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
+    this.platformsCommon.remove(campaign, campaigns, this.campaigns$, 'id', selection, announcer);
+    this.filterAdsetsByCampaigns();
+  }
+
+  selectAdset(event: any, adsets: any, adset: any, formGroup: any, selection: any, adsetInput: any) {
+    event.stopPropagation();
+    this.platformsCommon.toggleSelection(adsets, adset, 'facebookAdset', 'id', formGroup, selection, adsetInput);
+  }
+
+  removeAdset(adset: any, adsets: any, selection: any, announcer: any) {
+    this.platformsCommon.remove(adset, adsets, this.adsets$, 'id', selection, announcer);
+  }
+
   async createForm() {
     this.formGroup = this.formBuilder.group({
       facebookLabel: [this.data?.facebookLabel || null],
       facebookAdAccount: [this.data?.facebookAdAccount || null, [Validators.required]],
+      facebookAdset: [this.data?.facebookAdset || null],
       facebookCampaign: [this.data?.facebookCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       facebookPlatform: ['facebook', [Validators.required]],
       facebookStartDate: [this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
@@ -117,7 +148,8 @@ export class FacebookFormComponent {
     }
     if (this.isEditMode) {
       await this.getAdAccounts();
-      this.getAdAccountCampaigns(undefined, true);
+      await this.getAdAccountCampaigns(undefined, true);
+      await this.getAdsets();
     }
     this.cdRef.detectChanges();
   }
@@ -154,15 +186,17 @@ export class FacebookFormComponent {
     if (!edit) {
       this.formGroup.patchValue({
         facebookCampaign: [],
+        facebookAdset: [],
         facebookStartDate: null,
         facebookEndDate: null,
         facebookBudget: null,
-      })
-      this.campaigns = []
+      });
+      this.campaigns = [];
+      this.adsets = [];
     }
   
     const fields = 'account_id,id,name, business';
-    const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+    const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
   
     try {
       const allAdAccounts = await this.fetchAllAdAccounts(url);
@@ -196,10 +230,86 @@ export class FacebookFormComponent {
     }
   }
 
+  async fetchAllAdsets(url: string, adsets: any[] = [], filter: string = ''): Promise<any[]> {
+    try {
+      const fullUrl = filter ? `${url}&filtering=[{"field":"campaign.id","operator":"IN","value":[${filter}]}]` : url;
+      const response = await firstValueFrom(this.http.get<any>(fullUrl));
+      const fetchedAdsets = response.data;
+      adsets = adsets.concat(fetchedAdsets);
+  
+      if (response.paging && response.paging.next) {
+        return this.fetchAllAdsets(response.paging.next, adsets, filter);
+      } else {
+        return adsets;
+      }
+    } catch (error) {
+      console.error('Error fetching Facebook Adsets:', error);
+      this.toaster.error('Error fetching Facebook Adsets', 'Error');
+      throw error;
+    }
+  }
+
+  async getAdsets() {
+    const fields = 'id,name,campaign_id';
+    const adAccountId = this.formGroup.get('facebookAdAccount')!.value.id;
+    const campaignIds = this.formGroup.get('facebookCampaign')!.value.map((campaign: any) => campaign.id).join(',');
+  
+    const url = `https://graph.facebook.com/v19.0/${adAccountId}/adsets?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+  
+    try {
+      const allAdsets = await this.fetchAllAdsets(url, [], campaignIds);
+      const sortedAdsets = allAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+      this.originalAdsets$ = of(sortedAdsets);
+      await this.filterAdsetsByCampaigns();
+      if (this.isEditMode) {
+        this.updateAdsetSelectionInEditMode();
+      }
+      this.isLoading = false;
+    } catch (error) {
+      console.error('Error fetching all Facebook Adsets:', error);
+      this.isLoading = false;
+    }
+  }  
+
+  updateAdsetSelectionInEditMode(): void {
+    this.adsets$.subscribe(adsets => {
+      const uniqueAdsets = new Set();
+      const selectedAdsets = this.data?.facebookAdset || [];
+      this.adsets = adsets.filter((adset: any) => {
+        if (!uniqueAdsets.has(adset.id) && selectedAdsets.some((selectedAdset: any) => selectedAdset.id === adset.id)) {
+          uniqueAdsets.add(adset.id);
+          adset.selected = true;
+          this.selectionAdset.select(adset);
+          return true;
+        }
+        return false;
+      });
+    });
+  }
+  
+  async filterAdsetsByCampaigns() {
+    const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.id);
+    if (this.originalAdsets$) {
+      this.originalAdsets$.subscribe(originalAdsets => {
+        const filteredAdsets = originalAdsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
+        const sortedAdsets = filteredAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+        this.adsets$ = of(sortedAdsets);
+    
+        this.adsets.forEach((adset: any) => {
+          if (!selectedCampaignIds.includes(adset.campaign_id)) {
+            this.selectionAdset.deselect(adset);
+            adset.selected = false;
+          }
+        });
+        this.adsets = this.adsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
+      });
+    }
+  }
+
   async getAdAccountCampaigns(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     this.isLoading = true;
     const fields = 'id,name,status';
-    let adAccount: any = null
+    let adAccount: any = null;
     if (event) {
       adAccount = event.option.value;
     } else {
@@ -209,33 +319,55 @@ export class FacebookFormComponent {
       this.isLoading = false;
       return;
     }
-
+  
     if (!edit) {
       this.formGroup.patchValue({
         facebookCampaign: [],
+        facebookAdset: [],
         facebookStartDate: null,
         facebookEndDate: null,
         facebookBudget: null,
-      })
-      this.campaigns = []
+      });
+      this.campaigns = [];
+      this.adsets = [];
     } else {
+      this.formGroup.patchValue({
+        facebookCampaign: this.data?.facebookCampaign,
+        facebookAdset: this.data?.facebookAdset,
+        facebookStartDate: this.data?.facebookStartDate ? new Date(this.data.facebookStartDate) : null,
+        facebookEndDate: this.data?.facebookEndDate ? new Date(this.data.facebookEndDate) : null,
+        facebookBudget: this.data?.facebookBudget,
+      });
       this.campaigns = this.data?.facebookCampaign;
+      this.adsets = this.data?.facebookAdset;
     }
-
-    const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&access_token=${localStorage.getItem('facebookAccessToken')}`;
+  
+    const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
     
     try {
       const allCampaigns = await this.fetchAllCampaigns(url);
       const sortedCampaigns = allCampaigns.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
-      this.campaigns$ = of(sortedCampaigns);
-      this.originalCampaigns$ = of(sortedCampaigns);
-      this.campaigns$ = this.platformsCommon.setupFiltering(this.formGroup, 'facebookCampaign', this.originalCampaigns$, 'name');
+      if (edit) {
+        const campaigns = sortedCampaigns.map((campaign: any) => {
+          const isSelected = this.campaigns.some((selectedCampaign: any) => selectedCampaign.id === campaign.id);
+          return {
+            ...campaign,
+            selected: isSelected,
+          };
+        });
+        this.campaigns$ = of(campaigns);
+        this.originalCampaigns$ = of(campaigns);
+      } else {
+        this.campaigns$ = of(sortedCampaigns);
+        this.originalCampaigns$ = of(sortedCampaigns);
+        this.campaigns$ = this.platformsCommon.setupFiltering(this.formGroup, 'facebookCampaign', this.originalCampaigns$, 'name');
+      }
       this.isLoading = false;
     } catch (error) {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
     }
-  }
+  }  
 
   get form() { 
     return this.formGroup ? this.formGroup.controls : {};
@@ -258,11 +390,15 @@ export class FacebookFormComponent {
       facebookEndDate: null,
       facebookBudget: null,
       facebookCampaign: [],
+      facebookAdset: [],
     });
     this.originalCampaigns$ = of([]);
     this.campaigns$ = of([]);
     this.campaigns = [];
+    this.adsets = [];
+    this.adsets$ = of([]);
     this.selection.clear();
+    this.selectionAdset.clear();
   }
 
   public getFormData(): any {

@@ -4,7 +4,6 @@ import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
 import { ComponentType } from '@angular/cdk/overlay';
 
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { documentId } from 'firebase/firestore';
 
@@ -26,6 +25,7 @@ import { BusinessComponent } from '../form/business/business.component';
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 import { AccountComponent } from '../form/account/account.component';
+import { user } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-header',
@@ -46,7 +46,6 @@ import { AccountComponent } from '../form/account/account.component';
 export class HeaderComponent {
   toaster = inject(ToastrService);
   isDialogOpen: boolean = false;
-  isAdmin: boolean = false;
   private destroy$ = new Subject<void>();
   collapsed = signal(true);
   sidenavWidth = computed(() => this.collapsed() ? '80px' : '230px');
@@ -64,7 +63,6 @@ export class HeaderComponent {
     public commonService: CommonService,
     public router: Router,
     private db: AngularFirestore,
-    private afAuth: AngularFireAuth,
     private matDialog: MatDialog
   ) {}
 
@@ -157,8 +155,8 @@ export class HeaderComponent {
         return this.db.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges();
       }),
       switchMap(userRoles => {
-        const businessIds = userRoles.flatMap((roles: any) => roles.businessRoles.map((br: any) => br.businessId));
-        const accountIds = userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : []);
+        const businessIds = Array.from(new Set(userRoles.flatMap((roles: any) => roles.businessRoles ? roles.businessRoles.map((br: any) => br.businessId) : [])));
+        const accountIds = Array.from(new Set(userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : [])));
   
         const businesses$ = businessIds.map(id => 
           this.db.collection('business').doc(id).snapshotChanges().pipe(
@@ -167,12 +165,16 @@ export class HeaderComponent {
         );
   
         const businessesFromAccounts$ = accountIds.length ? this.db.collection('account', ref => ref.where(documentId(), 'in', accountIds))
-          .valueChanges().pipe(
-            switchMap(accounts => {
-              const indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
-              return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).valueChanges();
-            })
-          ) : of([]);
+        .valueChanges().pipe(
+          switchMap(accounts => {
+            let indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
+            indirectBusinessIds = indirectBusinessIds.filter((id: any) => !businessIds.includes(id));
+            if (indirectBusinessIds.length === 0) return of([]);
+            return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).snapshotChanges().pipe(
+              map(actions => actions.map(action => ({ id: action.payload.doc.id, ...action.payload.doc.data() as any })))
+            );
+          })
+        ) : of([]);
   
         return combineLatest([
           businesses$.length ? combineLatest(businesses$) : of([]),
@@ -184,6 +186,14 @@ export class HeaderComponent {
       }),
       take(1)
     ).subscribe(businesses => {
+      this.db.doc(`user/${userId}`).valueChanges().pipe(
+        take(1)
+      ).subscribe((user: any) => {
+        if (user && !user.selectedBusiness && businesses.length > 0) {
+          const userDoc = this.db.doc(`user/${userId}`);
+          userDoc.update({ selectedBusiness: businesses[0].id });
+        }
+      });
       this.businesses = businesses;
       this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
       if (!this.commonService.selectedBusinessId && this.businesses.length > 0) {
@@ -257,7 +267,7 @@ export class HeaderComponent {
         if (account) {
           await this.loadAccounts(user.uid);
         }
-        await this.getIsAdmin();
+        await this.commonService.getIsAdmin();
         return of([]);
       })
     ).subscribe();
@@ -277,7 +287,7 @@ export class HeaderComponent {
             const dialogRef = this.matDialog.open(componentType as ComponentType<any>, {
               width: '70%',
               height: '90vh',
-              data: {...data as any, id, isAdmin: this.isAdmin}
+              data: {...data as any, id}
             });
   
             dialogRef.afterClosed().subscribe(() => {
@@ -291,30 +301,5 @@ export class HeaderComponent {
           }
         });
     }
-  }
-
-  async getIsAdmin(): Promise<any> {
-    return this.afAuth.currentUser.then(user => {
-      if (user) {
-        return this.db.collection('userRoles', ref => ref.where('userId', '==', user.uid))
-          .get()
-          .pipe(
-            map(querySnapshot => {
-              this.isAdmin = false;
-              querySnapshot.forEach(doc => {
-                const data: any = doc.data();
-                data.businessRoles?.forEach((role: any) => {
-                  if (role.businessId === this.commonService.selectedBusinessId && role.role === 'ADMIN') {
-                    this.isAdmin = true;
-                  }
-                });
-              });
-              return this.isAdmin;
-            })
-          ).toPromise();
-      } else {
-        return false;
-      }
-    });
   }
 }

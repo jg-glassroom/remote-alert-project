@@ -11,6 +11,7 @@
                 <mat-option value="facebook">Facebook</mat-option>
                 <mat-option value="googleAds">Google Ads</mat-option>
                 <mat-option value="bing" disabled>Bing</mat-option>
+                <mat-option value="apple">Apple Search Ads</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['bingPlatform'].touched) && form['bingPlatform'].invalid">
             The field is required
@@ -55,7 +56,7 @@
             <mat-label>Campaign*</mat-label>
 
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
-            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, selection, announcer)">
+            <mat-chip-row *ngFor="let campaign of campaigns" (removed)="platformsCommon.remove(campaign, campaigns, campaigns$, 'id', selection, announcer)">
                 <span>{{ combineAndTruncateName(campaign, 25) }}</span>
                 <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
                 <mat-icon>cancel</mat-icon>
