@@ -204,7 +204,7 @@ export class HeaderComponent {
       this.businesses = businesses;
       this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
       if (!this.commonService.selectedBusiness && this.businesses.length > 0) {
-        this.commonService.selectedAccount = this.businesses[0];
+        this.commonService.selectedBusiness = this.businesses[0];
       }
     }, error => console.error('Error loading businesses:', error));
   }
