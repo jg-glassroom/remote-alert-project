@@ -63,7 +63,7 @@ export class SubaccountComponent {
       const newName = this.formGroup.get('name')?.value;
       const newSubaccountData = {
         name: newName,
-        accountId: this.commonService.selectedAccountId
+        accountId: this.commonService.selectedAccount.id
       };
       
       const db = this.db.firestore;

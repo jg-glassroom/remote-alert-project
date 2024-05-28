@@ -43,7 +43,7 @@
         <mat-error *ngIf="!formGroup.get('password')?.errors?.['required'] && registration && !formGroup.get('password')?.errors?.['minlength'] && formGroup.get('password')?.errors?.['passwordStrength'] && !formGroup.get('password')?.errors?.['passwordStrength']['hasSpecialChar']">
             Password must contain at least one special character.
         </mat-error>
-        <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+        <button mat-icon-button matSuffix type="button" (click)="hide = !hide" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
             <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
     </mat-form-field>
@@ -57,7 +57,7 @@
         <mat-error *ngIf="formGroup.hasError('confirmedValidator')">
             Passwords do not match.
         </mat-error>
-        <button mat-icon-button matSuffix (click)="hideConfirm = !hideConfirm" [attr.aria-label]="'Hide confirm password'" [attr.aria-pressed]="hideConfirm">
+        <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm" [attr.aria-label]="'Hide confirm password'" [attr.aria-pressed]="hideConfirm">
             <mat-icon>{{hideConfirm ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
     </mat-form-field>
@@ -71,7 +71,7 @@
     <span><a (click)="forgotPassword()" *ngIf="showForgotPassword === false && registration === false">Forgot your password?</a></span>
 
 
-    <button mat-raised-button color="primary" (click)="onSubmit()" class="continue-button">
+    <button mat-raised-button color="primary" type="submit" (click)="onSubmit()" class="continue-button">
         <span class="signin-label">{{ registration ? "Sign up" : showForgotPassword ? "Send email" : "Log in" }}</span>
     </button>
 

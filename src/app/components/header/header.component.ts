@@ -26,6 +26,7 @@ import { BusinessComponent } from '../form/business/business.component';
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 import { AccountComponent } from '../form/account/account.component';
+import { user } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-header',
@@ -111,25 +112,25 @@ export class HeaderComponent {
         }
 
         if (user.selectedAccount) {
-          this.commonService.selectedAccountId = user.selectedAccount;
+          this.commonService.selectedAccount = user.selectedAccount;
         }
   
-        const selectedBusinessId = user.selectedBusiness;
+        const selectedBusiness = user.selectedBusiness;
   
         return this.db.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges().pipe(
           switchMap((userRoles: any[]) => {
             if (!userRoles.length) return of([]);
   
             const hasRoleOnSelectedBusiness = userRoles.some(role =>
-              role.businessRoles?.some((br: any) => br.businessId === selectedBusinessId)
+              role.businessRoles?.some((br: any) => br.businessId === selectedBusiness.id)
             );
   
             if (hasRoleOnSelectedBusiness) {
-              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusinessId))
+              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusiness.id))
                 .snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as any) }))));
             } else {
               const accountIds = userRoles.flatMap(ur => ur.accountRoles ? ur.accountRoles.map((ar: any) => ar.accountId) : []);
-              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusinessId)
+              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusiness.id)
                 .where(documentId(), 'in', accountIds))
                 .snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as any) }))));
             }
@@ -154,15 +155,15 @@ export class HeaderComponent {
     this.db.doc(`user/${userId}`).valueChanges().pipe(
       tap((user: any) => {
         if (user.selectedBusiness) {
-          this.commonService.selectedBusinessId = user.selectedBusiness;
+          this.commonService.selectedBusiness = user.selectedBusiness;
         }
       }),
       switchMap(() => {
         return this.db.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges();
       }),
       switchMap(userRoles => {
-        const businessIds = userRoles.flatMap((roles: any) => roles.businessRoles.map((br: any) => br.businessId));
-        const accountIds = userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : []);
+        const businessIds = Array.from(new Set(userRoles.flatMap((roles: any) => roles.businessRoles ? roles.businessRoles.map((br: any) => br.businessId) : [])));
+        const accountIds = Array.from(new Set(userRoles.flatMap((roles: any) => roles.accountRoles ? roles.accountRoles.map((ar: any) => ar.accountId) : [])));
   
         const businesses$ = businessIds.map(id => 
           this.db.collection('business').doc(id).snapshotChanges().pipe(
@@ -171,12 +172,16 @@ export class HeaderComponent {
         );
   
         const businessesFromAccounts$ = accountIds.length ? this.db.collection('account', ref => ref.where(documentId(), 'in', accountIds))
-          .valueChanges().pipe(
-            switchMap(accounts => {
-              const indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
-              return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).valueChanges();
-            })
-          ) : of([]);
+        .valueChanges().pipe(
+          switchMap(accounts => {
+            let indirectBusinessIds = accounts.map((acc: any) => acc.businessId);
+            indirectBusinessIds = indirectBusinessIds.filter((id: any) => !businessIds.includes(id));
+            if (indirectBusinessIds.length === 0) return of([]);
+            return this.db.collection('business', ref => ref.where(documentId(), 'in', indirectBusinessIds)).snapshotChanges().pipe(
+              map(actions => actions.map(action => ({ id: action.payload.doc.id, ...action.payload.doc.data() as any })))
+            );
+          })
+        ) : of([]);
   
         return combineLatest([
           businesses$.length ? combineLatest(businesses$) : of([]),
@@ -188,10 +193,18 @@ export class HeaderComponent {
       }),
       take(1)
     ).subscribe(businesses => {
+      this.db.doc(`user/${userId}`).valueChanges().pipe(
+        take(1)
+      ).subscribe((user: any) => {
+        if (user && !user.selectedBusiness && businesses.length > 0) {
+          const userDoc = this.db.doc(`user/${userId}`);
+          userDoc.update({ selectedBusiness: businesses[0].id });
+        }
+      });
       this.businesses = businesses;
       this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
-      if (!this.commonService.selectedBusinessId && this.businesses.length > 0) {
-        this.commonService.selectedAccountId = this.businesses[0].id;
+      if (!this.commonService.selectedBusiness && this.businesses.length > 0) {
+        this.commonService.selectedAccount = this.businesses[0];
       }
     }, error => console.error('Error loading businesses:', error));
   }
@@ -201,18 +214,18 @@ export class HeaderComponent {
       tap(user => {
         if (user) {
           const userDoc = this.db.doc(`user/${user.uid}`);
-          if (this.commonService.selectedBusinessId !== business.id) {
-            userDoc.update({ selectedBusiness: business.id, selectedAccount: null })
+          if (this.commonService.selectedBusiness.id !== business.id) {
+            userDoc.update({ selectedBusiness: business, selectedAccount: null })
             .then(() => {
               this.router.navigate(['/accounts']);
-              this.commonService.selectedBusinessId = business.id;
-              this.commonService.selectedAccountId = null;
+              this.commonService.selectedBusiness = business;
+              this.commonService.selectedAccount = null;
             })
             .catch(() => this.toaster.error('Failed to update business selection'));
           } else {
             userDoc.update({ selectedAccount: null })
             .then(() => {
-              this.commonService.selectedAccountId = null;
+              this.commonService.selectedAccount = null;
               this.router.navigate(['/accounts']);
             })
           }
@@ -227,11 +240,11 @@ export class HeaderComponent {
       tap(user => {
         if (user) {
           const userDoc = this.db.doc(`user/${user.uid}`);
-          if (this.commonService.selectedAccountId !== account.id) {
-            userDoc.update({ selectedAccount: account.id })
+          if (this.commonService.selectedAccount !== account.id) {
+            userDoc.update({ selectedAccount: account })
             .then(() => {
               this.router.navigate(['/alerts', account.id]);
-              this.commonService.selectedAccountId = account.id;
+              this.commonService.selectedAccount = account;
             })
             .catch(() => this.toaster.error('Failed to update account selection'));
           } else {
@@ -269,11 +282,11 @@ export class HeaderComponent {
 
   editElement(event: any): void {
     event.stopPropagation();
-    const id = this.commonService.selectedAccountId ? this.commonService.selectedAccountId : this.commonService.selectedBusinessId;
-    const componentType = this.commonService.selectedAccountId ? AccountComponent : BusinessComponent;
+    const id = this.commonService.selectedAccount ? this.commonService.selectedAccount.id : this.commonService.selectedBusiness.id;
+    const componentType = this.commonService.selectedAccount ? AccountComponent : BusinessComponent;
     
     if (id) {
-      this.db.collection(this.commonService.selectedAccountId ? 'account' : 'business').doc(id)
+      this.db.collection(this.commonService.selectedAccount ? 'account' : 'business').doc(id)
         .valueChanges().pipe(takeUntil(this.destroy$))
         .subscribe(data => {
           if (!this.isDialogOpen) {
@@ -286,7 +299,7 @@ export class HeaderComponent {
   
             dialogRef.afterClosed().subscribe(() => {
               this.isDialogOpen = false;
-              if (this.commonService.selectedAccountId) {
+              if (this.commonService.selectedAccount) {
                 this.getElements(false, true);
               } else {
                 this.getElements(true, false)

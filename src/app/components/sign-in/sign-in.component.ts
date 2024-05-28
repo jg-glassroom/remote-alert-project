@@ -165,8 +165,8 @@ export class SignInComponent {
         } else {
           this.auth.emailPasswordSignIn(value.email, value.password)
           .then(() => {
-            if (this.commonService.selectedAccountId) {
-              this.router.navigate(['/alerts', this.commonService.selectedAccountId]);
+            if (this.commonService.selectedAccount) {
+              this.router.navigate(['/alerts', this.commonService.selectedAccount.id]);
             } else {
               this.router.navigate(['/accounts']);
             }

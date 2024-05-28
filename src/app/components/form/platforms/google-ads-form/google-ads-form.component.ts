@@ -226,6 +226,12 @@ export class GoogleAdsFormComponent {
       })
       this.campaigns = []
     } else {
+      this.formGroup.patchValue({
+        googleAdsCampaign: this.data?.googleAdsCampaign,
+        googleAdsStartDate: this.data?.googleAdsStartDate ? new Date(this.data.googleAdsStartDate) : null,
+        googleAdsEndDate: this.data?.googleAdsEndDate ? new Date(this.data.googleAdsEndDate) : null,
+        googleAdsBudget: this.data?.googleAdsBudget,
+      });
       this.campaigns = this.data?.googleAdsCampaign;
     }
 

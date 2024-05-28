@@ -161,7 +161,7 @@ export class DialogComponent {
   }
 
   addSubaccount() {
-    const newSubaccount: any = { name: this.formGroup.get('subaccount')!.value, accountId: this.commonService.selectedAccountId };
+    const newSubaccount: any = { name: this.formGroup.get('subaccount')!.value, accountId: this.commonService.selectedAccount.id };
     if (newSubaccount && !this.subaccounts.some((sub: any) => sub.name === newSubaccount.name)) {
       this.db.collection('subaccount').add(newSubaccount).then((docRef) => {
         this.subaccounts.push({ id: docRef.id, ...newSubaccount });
@@ -175,7 +175,7 @@ export class DialogComponent {
   async getSubaccounts() {
     return new Promise<void>((resolve, reject) => {
       this.subaccounts = [];
-      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.commonService.selectedAccountId)).get().subscribe(querySnapshot => {
+      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.commonService.selectedAccount.id)).get().subscribe(querySnapshot => {
         querySnapshot.forEach(doc => {
           const subaccount = {
             id: doc.id,
@@ -199,7 +199,7 @@ export class DialogComponent {
     let allFormData: any = {
       campaignName: this.formGroup.get('campaignName')!.value,
       subaccount: this.formGroup.get('subaccount')!.value,
-      accountId: this.commonService.selectedAccountId,
+      accountId: this.commonService.selectedAccount!.id,
     };
     this.authService.user$.subscribe(user => {
       if (user) {

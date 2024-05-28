@@ -12,6 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -44,6 +45,7 @@ interface DV360Response {
     MatIconModule,
     MatCheckboxModule,
     MatChipsModule,
+    MatButtonModule,
     FormsModule,
     ReactiveFormsModule
   ],
@@ -166,8 +168,9 @@ export class Dv360FormComponent {
     }
     if (this.isEditMode) {
       await this.getDV360Partner();
-      this.getDV360Advertiser(undefined, true);
-      this.getDV360Campaign(undefined, true);
+      await this.getDV360Advertiser(undefined, true);
+      await this.getDV360Campaign(undefined, true);
+      await this.getDV360IO();
     }
   }
 
@@ -231,6 +234,15 @@ export class Dv360FormComponent {
       })
       this.campaigns = []
       this.IOs = []
+    } else {
+      this.formGroup.patchValue({
+        dv360CampaignId: this.data?.dv360CampaignId,
+        dv360IO: this.data?.dv360IO,
+        dv360Advertiser: this.data?.dv360Advertiser,
+        dv360StartDate: this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null,
+        dv360EndDate: this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null,
+        dv360Budget: this.data?.dv360Budget,
+      });
     }
   
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
@@ -269,22 +281,32 @@ export class Dv360FormComponent {
     }
   }
 
-  async getDV360IO(advertiserId: number): Promise<void> {
+  async getDV360IO(): Promise<void> {
+    this.isLoading = true;
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
     try {
-        const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${advertiserId}/insertionOrders`, { headers });
-        const data: any = await firstValueFrom(response$);
-        this.originalIOs$ = of(data.insertionOrders);
-        await this.filterIOsByCampaigns();
-        if (this.isEditMode) {
-          this.updateIOSelectionInEditMode();
-        }
-        this.isLoading = false;
+      const advertiserId = this.formGroup.get('dv360Advertiser')!.value.advertiserId;
+      const campaignIds = this.formGroup.get('dv360CampaignId')!.value.map((campaign: any) => campaign.campaignId);
+  
+      const filter = campaignIds.map((id: any) => `campaignId="${id}"`).join(' OR ');
+      const url = `https://displayvideo.googleapis.com/v3/advertisers/${advertiserId}/insertionOrders?filter=${encodeURIComponent(filter)}`;
+  
+      const response = await firstValueFrom(this.http.get(url, { headers }));
+      const allIOs = (response as any).insertionOrders || [];
+  
+      this.originalIOs$ = of(allIOs);
+      await this.filterIOsByCampaigns();
+      if (this.isEditMode) {
+        this.updateIOSelectionInEditMode();
+      }
+
+      this.isLoading = false;
     } catch (error: any) {
+      console.error('Error fetching IOs:', error);
       this.isLoading = false;
       throw new Error(error);
     }
-  }
+  }  
 
   updateIOSelectionInEditMode(): void {
     this.IOs$.subscribe(IOs => {
@@ -304,19 +326,21 @@ export class Dv360FormComponent {
   
   async filterIOsByCampaigns() {
     const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.campaignId);
-    this.originalIOs$.subscribe(originalIOs => {
-      const filteredIOs = originalIOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
-      const sortedIOs = filteredIOs.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
-      this.IOs$ = of(sortedIOs);
-  
-      this.IOs.forEach((io: any) => {
-        if (!selectedCampaignIds.includes(io.campaignId)) {
-          this.selectionIO.deselect(io);
-          io.selected = false;
-        }
+    if (this.originalIOs$) {
+      this.originalIOs$.subscribe(originalIOs => {
+        const filteredIOs = originalIOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
+        const sortedIOs = filteredIOs.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
+        this.IOs$ = of(sortedIOs);
+    
+        this.IOs.forEach((io: any) => {
+          if (!selectedCampaignIds.includes(io.campaignId)) {
+            this.selectionIO.deselect(io);
+            io.selected = false;
+          }
+        });
+        this.IOs = this.IOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
       });
-      this.IOs = this.IOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
-    });
+    }
   }
 
   async getDV360Campaign(event?: MatAutocompleteSelectedEvent, edit?: boolean, retryCount = 2): Promise<void> {
@@ -344,6 +368,13 @@ export class Dv360FormComponent {
       this.campaigns = []
       this.IOs = []
     } else {
+      this.formGroup.patchValue({
+        dv360CampaignId: this.data?.dv360CampaignId,
+        dv360IO: this.data?.dv360IO,
+        dv360StartDate: this.data?.dv360StartDate ? new Date(this.data.dv360StartDate) : null,
+        dv360EndDate: this.data?.dv360EndDate ? new Date(this.data.dv360EndDate) : null,
+        dv360Budget: this.data?.dv360Budget,
+      });
       this.campaigns = this.data?.dv360CampaignId;
       this.IOs = this.data?.dv360IO;
     }
@@ -381,7 +412,7 @@ export class Dv360FormComponent {
         this.campaigns$ = of(campaigns);
         this.originalCampaigns$ = of(campaigns);
       }
-      await this.getDV360IO(selectedAdvertiser.advertiserId);
+      this.isLoading = false;
     } catch (error: any) {
       if (retryCount > 0) {
         await this.externalPlatforms.handleGoogleError(error, 'dv360');

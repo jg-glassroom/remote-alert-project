@@ -289,6 +289,12 @@ export class BingFormComponent {
       })
       this.campaigns = []
     } else {
+      this.formGroup.patchValue({
+        bingCampaign: this.data?.bingCampaign,
+        bingStartDate: this.data?.bingStartDate ? new Date(this.data.bingStartDate) : null,
+        bingEndDate: this.data?.bingEndDate ? new Date(this.data.bingEndDate) : null,
+        bingBudget: this.data?.bingBudget,
+      });
       this.campaigns = this.data?.bingCampaign;
     }
     

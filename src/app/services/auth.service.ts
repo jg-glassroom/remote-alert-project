@@ -72,6 +72,9 @@ export class AuthService {
         if (user.microsoftAccessToken) {
           localStorage.setItem('microsoftAccessToken', user.microsoftAccessToken);
         }
+        if (user.linkedinAccessToken) {
+          localStorage.setItem('linkedinAccessToken', user.linkedinAccessToken);
+        }
       });
     } catch (error) {
       console.error("An error occurred: ", error);

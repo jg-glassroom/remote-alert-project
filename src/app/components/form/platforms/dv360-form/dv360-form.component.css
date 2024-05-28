@@ -11,15 +11,24 @@ form {
     gap: 20px;
 }
 
+.io {
+    display: flex;
+    flex-direction: column;
+}
+
+.io-button {
+    width: auto;
+    height: auto;
+    font-size: 10px;
+    align-self: flex-start;
+    margin-top: 0;
+}
+
 .form-element {
     flex: 1; 
 }
 
-.budget-row {
-    display: flex;
-}
-
-.budget-row .form-element {
+.form-element {
     flex: 0 1 49%; 
 }
 

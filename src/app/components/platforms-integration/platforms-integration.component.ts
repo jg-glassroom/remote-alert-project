@@ -15,6 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
 import { BingService } from '../../services/platforms/bing/bing.service';
+import { LinkedinService } from '../../services/platforms/linkedin/linkedin.service';
 import { CommonService } from '../../services/common/common.service';
 
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -49,6 +50,7 @@ export class PlatformsIntegrationComponent {
     public googleService: GoogleService,
     public facebookService: FacebookService,
     public bingService: BingService,
+    public linkedinService: LinkedinService,
     public commonService: CommonService,
   ) {}
 
@@ -107,6 +109,9 @@ export class PlatformsIntegrationComponent {
           .catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'microsoft') {
           this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+        } else if (source === 'linkedin') {
+          console.log('LinkedIn auth code:', authCode);
+          console.log('TEST:', params);
         }
       }
     });

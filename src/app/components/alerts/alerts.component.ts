@@ -1,15 +1,18 @@
-import { Component, inject } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 
 import { MatDialog } from '@angular/material/dialog';
+import { MatSelect } from '@angular/material/select';
 
 import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { SubaccountComponent } from '../form/subaccount/subaccount.component';
+
+import { LineChartComponent } from '../line-chart/line-chart.component';
 
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
@@ -20,7 +23,8 @@ import { CommonService } from '../../services/common/common.service';
 
 import { ToastrService } from 'ngx-toastr';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,6 +36,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-alerts',
@@ -39,6 +44,7 @@ import { MatInputModule } from '@angular/material/input';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatIconModule,
     MatButtonModule,
     MatExpansionModule,
@@ -48,12 +54,19 @@ import { MatInputModule } from '@angular/material/input';
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatInputModule
+    MatInputModule,
+    MatAutocompleteModule,
+    LineChartComponent
   ],
   templateUrl: './alerts.component.html',
-  styleUrl: './alerts.component.css'
+  styleUrls: ['./alerts.component.css']
 })
 export class AlertsComponent {
+  @ViewChild('subaccountSelect') subaccountSelect!: MatSelect;
+  @ViewChild('platformSelect') platformSelect!: MatSelect;
+  @ViewChild('userSelect') userSelect!: MatSelect;
+  @ViewChild('alertSelect') alertSelect!: MatSelect;
+
   toaster = inject(ToastrService);
   private selectedAccountId: any = '';
   users: any = [];
@@ -71,7 +84,7 @@ export class AlertsComponent {
     'yesterdaySpent'
   ];
   headerColumns = [{
-    name:'Campaign Name', startDate:'Start Date', endDate:'End Date', platforms:'Platforms', budget:'Budget'
+    name: 'Campaign Name', startDate: 'Start Date', endDate: 'End Date', platforms: 'Platforms', budget: 'Budget'
   }];
   platforms: any = {
     'facebook': 'Facebook',
@@ -84,9 +97,21 @@ export class AlertsComponent {
   selectedSubaccounts: string[] = [];
   selectedPlatforms: string[] = [];
   selectedUsers: string[] = [];
-  filterName: string = '';
+  selectedAlerts: string[] = [];
 
-  constructor (
+  subaccountFilter = new FormControl('');
+  platformFilter = new FormControl('');
+  userFilter = new FormControl('');
+  alertFilter = new FormControl('');
+
+  filteredSubaccountOptions!: Observable<any[]>;
+  filteredPlatformOptions!: Observable<any[]>;
+  filteredUserOptions!: Observable<any[]>;
+  filteredAlertOptions!: Observable<any[]>;
+
+  openPanels: Set<string> = new Set<string>();
+
+  constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
     private matDialog: MatDialog,
@@ -109,9 +134,63 @@ export class AlertsComponent {
     });
   }
 
+  togglePanel(panelId: string) {
+    if (this.openPanels.has(panelId)) {
+      this.openPanels.delete(panelId);
+    } else {
+      this.openPanels.add(panelId);
+    }
+  }
+
+  hasOverallDeltaValue(pacingAlert: any): boolean {
+    return pacingAlert.platforms &&
+        pacingAlert.platforms.some((platform: any) => platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'));
+  }
+
+  private _filter(value: any, options: any[], field: string): any[] {
+    const filterValue = value.toLowerCase();
+    const selectedOptions = options.filter(option => 
+      this.selectedSubaccounts.includes(option.id) || 
+      this.selectedPlatforms.includes(option.key) || 
+      this.selectedUsers.includes(option.id) || 
+      this.selectedAlerts.includes(option.id)
+    );
+    const filteredOptions = options.filter(option => option && option[field] && option[field].toLowerCase().includes(filterValue));
+  
+    const combinedOptions = [...selectedOptions, ...filteredOptions];
+    const uniqueOptions = Array.from(new Set(combinedOptions.map(option => JSON.stringify(option))))
+                                .map(option => JSON.parse(option));
+  
+    return uniqueOptions;
+  }
+
+  private getFilters(): any {
+    this.filteredSubaccountOptions = this.subaccountFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.alertsService.subaccounts, 'name'))
+    );
+
+    this.filteredPlatformOptions = this.platformFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.platformKeys().map(key => ({ key, name: this.platforms[key] })), 'name'))
+    );
+
+    this.filteredUserOptions = this.userFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.users, 'email'))
+    );
+
+    this.filteredAlertOptions = this.alertFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.alertsService.pacingAlerts.sort((a: any, b: any) => a.campaignName.localeCompare(b.campaignName)), 'campaignName'))
+    );
+  }
+
   async getData() {
     await this.getAlerts();
     await this.getSubaccounts();
+    await this.getUsers();
+    this.getFilters();
     this.applyFilters();
   }
 
@@ -121,7 +200,7 @@ export class AlertsComponent {
         if (this.selectedSubaccounts.length > 0 && subaccountId !== null && !this.selectedSubaccounts.includes(subaccountId)) {
           return false;
         }
-        if (this.filterName && !alert.campaignName.toLowerCase().includes(this.filterName.toLowerCase())) {
+        if (this.selectedAlerts.length > 0 && !this.selectedAlerts.includes(alert.id)) {
           return false;
         }
         if (this.selectedUsers.length > 0 && !alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId))) {
@@ -139,7 +218,7 @@ export class AlertsComponent {
       })
       .filter(alert => alert.platforms.length > 0 && (subaccountId ? alert.subaccount && alert.subaccount.id === subaccountId : !alert.subaccount))
       .sort((a, b) => a.campaignName.localeCompare(b.campaignName));
-  }  
+  }
 
   filteredSubaccounts(): any[] {
     if (this.selectedSubaccounts.length > 0) {
@@ -152,21 +231,35 @@ export class AlertsComponent {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.pacingAlerts = [];
       this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(async querySnapshot => {
+        let alerts: any = [];
         querySnapshot.forEach((doc: any) => {
           const pacingAlert = {
             id: doc.id,
             ...doc.data() as any,
             originalPlatforms: doc.data().platforms
           };
-          this.alertsService.pacingAlerts.push(pacingAlert);
+          alerts.push(pacingAlert);
         });
-        await this.getUsers();
+  
+        for (const alert of alerts) {
+          for (const [index, platform] of alert.platforms.entries()) {
+            const collectionName = `${platform.platform}Report`;
+            const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
+            const report = result.docs.map((doc: any) => doc.data());
+            if (report.length > 0) {
+              alert.platforms[index].report = report[0];
+              alert.originalPlatforms[index].report = report[0];
+            }
+          }
+        }
+  
+        this.alertsService.pacingAlerts = alerts;
         resolve();
       }, error => {
         reject(error);
       });
     });
-  }
+  }  
 
   async getUsers() {
     this.users = [];
@@ -360,6 +453,33 @@ export class AlertsComponent {
         return alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId));
       }
       return true;
+    }).filter(alert => {
+      if (this.selectedSubaccounts.length > 0) {
+        return this.selectedSubaccounts.includes(alert.subaccount?.id);
+      }
+      return true;
+    }).filter(alert => {
+      if (this.selectedAlerts.length > 0) {
+        return this.selectedAlerts.includes(alert.id);
+      }
+      return true;
     });
-  }  
+  }
+
+  openSelect(selectName: string) {
+    switch (selectName) {
+      case 'subaccountSelect':
+        this.subaccountSelect.open();
+        break;
+      case 'platformSelect':
+        this.platformSelect.open();
+        break;
+      case 'userSelect':
+        this.userSelect.open();
+        break;
+      case 'alertSelect':
+        this.alertSelect.open();
+        break;
+    }
+  }
 }
