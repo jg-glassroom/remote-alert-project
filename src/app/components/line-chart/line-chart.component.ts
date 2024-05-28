@@ -187,37 +187,106 @@ export class LineChartComponent {
       renderer: am5xy.AxisRendererY.new(root, {})
     }));
 
+    let cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
+      xAxis: xAxis,
+      behavior: "none"
+    }));
+    cursor.lineY.set("visible", false);
+
+    chart.set("scrollbarX", am5.Scrollbar.new(root, {
+      orientation: "horizontal"
+    }));
+    chart.appear(1000, 100);
+
     let seriesReal = chart.series.push(am5xy.LineSeries.new(root, {
+      minBulletDistance: 10,
+      connect: false,
       name: "Spend",
       xAxis: xAxis,
       yAxis: yAxis,
       valueYField: "campaignCost",
       valueXField: "date",
-      tooltip: am5.Tooltip.new(root, { labelText: "{valueY}" }),
-      stroke: am5.color(0xFF0000),
+      tooltip: am5.Tooltip.new(root, {
+        pointerOrientation: "horizontal",
+        labelText: "Spent {valueY}$",
+        labelHTML: `<div class="tooltipam" style="font-size:12px;"><strong>Spent</strong> {valueY}$</div>`
+      })
     }));
+
+    seriesReal.fills.template.setAll({
+      fillOpacity: 0.2,
+      visible: true
+    });
+
     seriesReal.strokes.template.setAll({
-      strokeWidth: 2,
+      strokeWidth: 1
+    });
+
+    seriesReal.data.processor = am5.DataProcessor.new(root, {
+      dateFormat: "yyyy-MM-dd",
+      dateFields: ["date"]
     });
     seriesReal.data.setAll(data);
 
+    seriesReal.bullets.push(function() {
+      let circle = am5.Circle.new(root, {
+        radius: 3,
+        fill: root.interfaceColors.get("background"),
+        stroke: seriesReal.get("fill"),
+        strokeWidth: 1
+      })
+
+      return am5.Bullet.new(root, {
+        sprite: circle
+      })
+    });
+
     let seriesEstimated = chart.series.push(am5xy.LineSeries.new(root, {
+      minBulletDistance: 10,
+      connect: false,
       name: "Estimated spend",
       xAxis: xAxis,
       yAxis: yAxis,
       valueYField: "estimatedCost",
       valueXField: "date",
-      tooltip: am5.Tooltip.new(root, { labelText: "{valueY}" }),
-      stroke: am5.color(0x0000FF),
+      tooltip: am5.Tooltip.new(root, {
+        pointerOrientation: "horizontal",
+        labelText: "Estimated spent {valueY}$",
+        labelHTML: `<div class="tooltipam" style="font-size:12px;"><strong>Estimated spent</strong> {valueY}$</div>`
+      })
     }));
+
+    seriesEstimated.fills.template.setAll({
+      fillOpacity: 0.2,
+      visible: true
+    });
+
     seriesEstimated.strokes.template.setAll({
-      strokeWidth: 2,
+      strokeWidth: 1
+    });
+
+    seriesEstimated.data.processor = am5.DataProcessor.new(root, {
+      dateFormat: "yyyy-MM-dd",
+      dateFields: ["date"]
     });
     seriesEstimated.data.setAll(data);
 
+    seriesEstimated.bullets.push(function() {
+      let circle = am5.Circle.new(root, {
+        radius: 3,
+        fill: root.interfaceColors.get("background"),
+        stroke: seriesReal.get("fill"),
+        strokeWidth: 1
+      })
+
+      return am5.Bullet.new(root, {
+        sprite: circle
+      })
+    });
+
     let legend = chart.children.push(am5.Legend.new(root, {
-      x: am5.percent(22),
-      y: am5.p0,
+      x: am5.percent(5),
+      y: am5.percent(15),
       layout: root.verticalLayout
     }));
 
