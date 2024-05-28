@@ -3673,7 +3673,7 @@ var _DV360ReportService = class _DV360ReportService {
         campaignId: campaign.id,
         userId
       };
-      this.db.collection("DV360Report").add(reportToSave);
+      this.db.collection("dv360Report").add(reportToSave);
     });
   }
   processReport(campaign, index) {
@@ -7468,7 +7468,7 @@ var _PacingAlertsComponent = class _PacingAlertsComponent {
         const data = a.payload.doc.data();
         return __spreadValues({ id: a.payload.doc.id }, data);
       })));
-      const dv360Reports$ = this.db.collection("DV360Report", (ref) => ref.where("userId", "==", user.uid)).snapshotChanges().pipe(take2(1), map3((actions) => actions.map((a) => {
+      const dv360Reports$ = this.db.collection("dv360Report", (ref) => ref.where("userId", "==", user.uid)).snapshotChanges().pipe(take2(1), map3((actions) => actions.map((a) => {
         const data = a.payload.doc.data();
         return __spreadValues({ id: a.payload.doc.id }, data);
       })));

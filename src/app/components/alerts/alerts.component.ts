@@ -12,6 +12,8 @@ import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { SubaccountComponent } from '../form/subaccount/subaccount.component';
 
+import { LineChartComponent } from '../line-chart/line-chart.component';
+
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
@@ -52,7 +54,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    LineChartComponent
   ],
   templateUrl: './alerts.component.html',
   styleUrls: ['./alerts.component.css']
@@ -125,6 +128,11 @@ export class AlertsComponent {
         await this.getData();
       }
     });
+  }
+
+  hasOverallDeltaValue(pacingAlert: any): boolean {
+    return pacingAlert.platforms &&
+        pacingAlert.platforms.some((platform: any) => platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'));
   }
 
   private _filter(value: any, options: any[], field: string): any[] {
@@ -211,20 +219,35 @@ export class AlertsComponent {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.pacingAlerts = [];
       this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(async querySnapshot => {
+        let alerts: any = [];
         querySnapshot.forEach((doc: any) => {
           const pacingAlert = {
             id: doc.id,
             ...doc.data() as any,
             originalPlatforms: doc.data().platforms
           };
-          this.alertsService.pacingAlerts.push(pacingAlert);
+          alerts.push(pacingAlert);
         });
+  
+        for (const alert of alerts) {
+          for (const [index, platform] of alert.platforms.entries()) {
+            const collectionName = `${platform.platform}Report`;
+            const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
+            const report = result.docs.map((doc: any) => doc.data());
+            if (report.length > 0) {
+              alert.platforms[index].report = report[0];
+              alert.originalPlatforms[index].report = report[0];
+            }
+          }
+        }
+  
+        this.alertsService.pacingAlerts = alerts;
         resolve();
       }, error => {
         reject(error);
       });
     });
-  }
+  }  
 
   async getUsers() {
     this.users = [];

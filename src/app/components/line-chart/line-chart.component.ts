@@ -18,10 +18,26 @@ import { v4 as uuidv4 } from 'uuid';
 })
 export class LineChartComponent {
   @Input() chartData: any = [];
-  @Input() platform: any = '';
-  @Input() platformRevenue: any = '';
   @Input() uniqueId!: string;
   private root!: am5.Root;
+  private platformDetails: any = {
+    'bing': {
+      dateField: 'TimePeriod',
+      revenueField: 'Spend',
+    },
+    'googleAds': {
+      dateField: 'Date',
+      revenueField: 'cost',
+    },
+    'facebook': {
+      dateField: 'date_stop',
+      revenueField: 'spend',
+    },
+    'dv360': {
+      dateField: 'Date',
+      revenueField: 'Revenue (Adv Currency)',
+    }
+  };
 
   constructor(private zone: NgZone) {}
 
@@ -32,7 +48,28 @@ export class LineChartComponent {
   }
 
   createChart() {
-    let sortedDates = Object.keys(this.chartData[this.platform + 'Report']).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    let aggregatedData: any = [];
+    this.chartData.platforms.forEach((platform: any) => {
+      if (platform.report && platform.report.report) {
+        const reports = platform.report.report;
+  
+        Object.keys(reports).forEach(date => {
+          const report = reports[date];
+          const existingReport = aggregatedData.find((item: any) => item[this.platformDetails[platform.platform].dateField] === date);
+  
+          if (existingReport) {
+            existingReport.cost += parseFloat(report[this.platformDetails[platform.platform].revenueField]) || 0;
+          } else {
+            aggregatedData.push({
+              date: date,
+              cost: parseFloat(report[this.platformDetails[platform.platform].revenueField]) || 0,
+            });
+          }
+        });
+      }
+    });
+    aggregatedData = aggregatedData.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    let sortedDates = Object.keys(aggregatedData);
     const currentDate = moment.tz("America/Montreal").startOf("day").toDate();
     const yesterday = moment.tz("America/Montreal").subtract(1, "days").startOf("day").toDate();
     const twoDaysAgo = moment.tz("America/Montreal").subtract(2, "days").startOf("day").toDate();
@@ -40,37 +77,56 @@ export class LineChartComponent {
     let estimatedCumulativeCost = 0;
     let yesterdayCampaignCost = 0;
     let data: any = [];
-    
-    sortedDates.forEach((date: any, index) => {
-      const revenue = parseFloat(this.chartData[this.platform + 'Report'][date][this.platformRevenue]);
+    sortedDates.forEach((date: any) => {
+      const revenue = parseFloat(aggregatedData[date].cost);
 
-      const startDate = moment.tz(this.chartData[this.platform + 'StartDate'], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
-      const endDate = moment.tz(this.chartData[this.platform + 'EndDate'], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
-      const daysLeft = ((endDate.getTime() - moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate().getTime()) / (1000 * 60 * 60 * 24)) + 2;
+      let startDates = this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'StartDate']);
+      startDates = startDates.sort((a: any, b: any) => {
+        return Date.parse(a) > Date.parse(b);
+      });
+      if (startDates.length === 0) {
+        return;
+      }
+      let startDate = moment.tz(startDates[0], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
+
+      let endDates = this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'EndDate']);
+      endDates = endDates.sort((a: any, b: any) => {
+        return Date.parse(a) > Date.parse(b);
+      });
+      if (endDates.length === 0) {
+        return;
+      }
+      let endDate = moment.tz(endDates[-1], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
+      const daysLeft = ((endDate.getTime() - moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate().getTime()) / (1000 * 60 * 60 * 24)) + 2;
 
       if (
-        moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
-        moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= yesterday && !isNaN(revenue)
+        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
+        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= yesterday && !isNaN(revenue)
       ) {
         cumulativeCost += revenue;
       }
 
       if (
-        moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
-        moment.tz(date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= twoDaysAgo && !isNaN(revenue)
+        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
+        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= twoDaysAgo && !isNaN(revenue)
       ) {
-        yesterdayCampaignCost += revenue;
+        yesterdayCampaignCost = revenue;
       }
 
       let startDateFormatted = moment(startDate).format("YYYY/MM/DD");
-      let currentDateFormatted = moment(currentDate).format("YYYY/MM/DD");
+      let currentDateFormatted = moment(aggregatedData[date].date).format("YYYY/MM/DD");
+      
+      let budget = 0;
+      this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'Budget']).forEach((platformBudget: any) => {
+        budget += parseFloat(platformBudget) || 0;
+      });
       
       estimatedCumulativeCost += startDateFormatted === currentDateFormatted ? 0 :
-      (this.chartData[this.platform + 'Budget'] - yesterdayCampaignCost) /
-      (daysLeft > 0 ? daysLeft : 1);
+      (budget - yesterdayCampaignCost) /
+      (daysLeft > 0 ? daysLeft : 1) + yesterdayCampaignCost;
 
       data.push({
-        date: new Date(date).getTime(),
+        date: new Date(aggregatedData[date].date).getTime(),
         campaignCost: Math.round(cumulativeCost * 100) / 100,
         estimatedCost: Math.round(estimatedCumulativeCost * 100) / 100
       });
@@ -88,20 +144,47 @@ export class LineChartComponent {
 
     root.setThemes([am5themes_Animated.new(root)]);
 
+    root.dateFormatter.setAll({
+      dateFormat: "yyyy",
+      dateFields: ["valueX"]
+    });
+
+    // Create chart
     let chart = root.container.children.push(am5xy.XYChart.new(root, {
-      panY: false,
+      focusable: true,
+      panX: true,
+      panY: true,
+      wheelX: "panX",
       wheelY: "zoomX",
-      layout: root.verticalLayout
+      pinchZoomX:true,
+      paddingLeft: 0
     }));
+   
+    let easing = am5.ease.linear;
 
     // Axes
+    let xRenderer = am5xy.AxisRendererX.new(root, {
+      minorGridEnabled: true,
+      minGridDistance: 70
+    });
+
+    xRenderer.labels.template.setAll({
+      fontSize: '10px'
+    });
+
     let xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
-      baseInterval: { timeUnit: "day", count: 1 },
-      renderer: am5xy.AxisRendererX.new(root, {}),
+      maxDeviation: 0.1,
+      groupData: false,
+      baseInterval: {
+        timeUnit: "day",
+        count: 1
+      },
+      renderer: xRenderer,
       tooltip: am5.Tooltip.new(root, {})
     }));
 
     let yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+      maxDeviation: 0.2,
       renderer: am5xy.AxisRendererY.new(root, {})
     }));
 

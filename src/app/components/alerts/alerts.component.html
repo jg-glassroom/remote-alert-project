@@ -223,7 +223,11 @@
                     </div>
                 </mat-expansion-panel-header>
                 <div>
-                    Détails de la campagne et plus...
+                    <app-line-chart 
+                        *ngIf="hasOverallDeltaValue(pacingAlert)"
+                        [chartData]="pacingAlert"
+                        [uniqueId]="'chartdiv_' + pacingAlert.id">
+                    </app-line-chart>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>
@@ -391,7 +395,11 @@
                 </div>
             </mat-expansion-panel-header>
             <div>
-                Détails de la campagne et plus...
+                <app-line-chart
+                    *ngIf="hasOverallDeltaValue(pacingAlert)"
+                    [chartData]="pacingAlert"
+                    [uniqueId]="'chartdiv_' + pacingAlert.id">
+                </app-line-chart>
             </div>
         </mat-expansion-panel>
     </mat-accordion>

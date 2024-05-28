@@ -93,34 +93,32 @@ export class GoogleAdsReportService {
     const aggregatedData: any = {};
 
     data.forEach((item: any) => {
-        const date = item.segments.date;
+      let date = item.segments.date;
 
-        if (!moment(date, "YYYY-MM-DD", true).isValid()) {
-            return;
-        }
+      if (!moment(date, "YYYY-MM-DD", true).isValid()) {
+        return;
+      }
 
-        if (!aggregatedData[date]) {
-            aggregatedData[date] = {
-                "Date": date,
-                "Campaign IDs": new Set(),
-                "Campaign Names": new Set(),
-                "Clicks": 0,
-                "Cost": 0,
-                "Impressions": 0
-            };
-        }
+      date = moment(date).format("YYYY/MM/DD");
 
-        const entry = aggregatedData[date];
-        entry["Campaign IDs"].add(item.campaign.id);
-        entry["Campaign Names"].add(item.campaign.name);
-        entry.Clicks += parseInt(item.metrics.clicks) || 0;
-        entry.Cost += parseFloat(item.metrics.costMicros) / 1000000 || 0;
-        entry.Impressions += parseInt(item.metrics.impressions) || 0;
-    });
-
-    Object.values(aggregatedData).forEach((item: any) => {
-      item["Campaign IDs"] = Array.from(item["Campaign IDs"]);
-      item["Campaign Names"] = Array.from(item["Campaign Names"]);
+      if (!aggregatedData[date]) {
+        aggregatedData[date] = {
+          "account_id": item.campaign.id,
+          "Date": date,
+          "impressions": 0,
+          "clicks": 0,
+          "cost": 0,
+          "outbound_clicks": []
+        };
+      }
+      const entry = aggregatedData[date];
+      entry.impressions += parseInt(item.metrics.impressions) || 0;
+      entry.clicks += parseInt(item.metrics.clicks) || 0;
+      entry.cost += parseFloat(item.metrics.costMicros) / 1000000 || 0;
+      entry.outbound_clicks.push({
+        action_type: "click",
+        value: item.metrics.clicks
+      });
     });
 
     return Object.values(aggregatedData);
@@ -130,17 +128,58 @@ export class GoogleAdsReportService {
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
-
       await this.getReport(campaign.platforms[index].formData);
+
+      let dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+      let resultatAgregat: any = {};
+
+      this.reportJson.forEach((line: any) => {
+        if (!resultatAgregat[line.date_stop]) {
+          resultatAgregat[line.date_stop] = {...line, Nombre: 1};
+        } else {
+          Object.keys(line).forEach(cle => {
+            if (typeof line[cle] === 'number') {
+              resultatAgregat[line.date_stop][cle] += line[cle];
+            }
+          });
+          resultatAgregat[line.date_stop].Nombre += 1;
+        }
+      });
+      let filteredObj = Object.entries(resultatAgregat)
+        .filter(([key, _]) => dateRegex.test(key))
+        .reduce((acc: any, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        }, {});
       let reportToSave = {
-        report: this.reportJson,
+        report: filteredObj,
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
         campaignId: campaign.id,
+        userSearchId: userSearchId + '_' + index,
         userId: userId,
         platform: "googleAds"
       };
-      this.db.collection('googleAdsReport').add(reportToSave);
+
+      this.db.collection('googleAdsReport', ref => ref.where('userSearchId', '==', userSearchId + '_' + index))
+        .get()
+        .subscribe(querySnapshot => {
+          if (!querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              this.db.collection('googleAdsReport').doc(doc.id).set(reportToSave)
+                .catch(error => {
+                  console.error('Error updating report: ', error);
+                });
+            });
+          } else {
+            this.db.collection('googleAdsReport').add(reportToSave)
+              .catch(error => {
+                console.error('Error adding report: ', error);
+              });
+          }
+        }, error => {
+          console.error('Error checking for existing report: ', error);
+        });
 
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
