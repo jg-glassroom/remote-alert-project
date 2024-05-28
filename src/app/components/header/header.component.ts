@@ -26,7 +26,7 @@ import { BusinessComponent } from '../form/business/business.component';
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 import { AccountComponent } from '../form/account/account.component';
-import { user } from '@angular/fire/auth';
+
 
 @Component({
   selector: 'app-header',
@@ -101,6 +101,10 @@ export class HeaderComponent {
       width: '70%',
       height: '90vh'
     });
+  }
+
+  accountSelected(accountId: string) {
+    return this.commonService.selectedAccount && accountId === this.commonService.selectedAccount.id;
   }
   
   async loadAccounts(userId: string) {
@@ -248,6 +252,7 @@ export class HeaderComponent {
             })
             .catch(() => this.toaster.error('Failed to update account selection'));
           } else {
+            userDoc.update({ selectedAccount: account });
             this.router.navigate(['/alerts', account.id]);
           }
         }

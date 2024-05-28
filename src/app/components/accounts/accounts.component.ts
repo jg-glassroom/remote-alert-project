@@ -235,7 +235,7 @@ export class AccountsComponent {
       tap(user => {
         if (user) {
           const userDoc = this.afs.doc(`user/${user.uid}`);
-          userDoc.update({ selectedAccount: account.id })
+          userDoc.update({ selectedAccount: account })
           .then(() => {
             this.router.navigate(['/alerts', account.id]);
           })
