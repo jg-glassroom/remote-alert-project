@@ -240,7 +240,7 @@ export class HeaderComponent {
       tap(user => {
         if (user) {
           const userDoc = this.db.doc(`user/${user.uid}`);
-          if (this.commonService.selectedAccount !== account.id) {
+          if (this.commonService.selectedAccount.id !== account.id) {
             userDoc.update({ selectedAccount: account })
             .then(() => {
               this.router.navigate(['/alerts', account.id]);
