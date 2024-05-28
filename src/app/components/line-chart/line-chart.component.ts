@@ -70,9 +70,7 @@ export class LineChartComponent {
     });
     aggregatedData = aggregatedData.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     let sortedDates = Object.keys(aggregatedData);
-    const currentDate = moment.tz("America/Montreal").startOf("day").toDate();
     const yesterday = moment.tz("America/Montreal").subtract(1, "days").startOf("day").toDate();
-    const twoDaysAgo = moment.tz("America/Montreal").subtract(2, "days").startOf("day").toDate();
     let cumulativeCost = 0;
     let estimatedCumulativeCost = 0;
     let yesterdayCampaignCost = 0;
@@ -91,12 +89,12 @@ export class LineChartComponent {
 
       let endDates = this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'EndDate']);
       endDates = endDates.sort((a: any, b: any) => {
-        return Date.parse(a) > Date.parse(b);
+        return Date.parse(a) < Date.parse(b);
       });
       if (endDates.length === 0) {
         return;
       }
-      let endDate = moment.tz(endDates[-1], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
+      let endDate = moment.tz(endDates[0], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
       const daysLeft = ((endDate.getTime() - moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate().getTime()) / (1000 * 60 * 60 * 24)) + 2;
 
       if (
@@ -106,15 +104,16 @@ export class LineChartComponent {
         cumulativeCost += revenue;
       }
 
+      const twoDaysAgo = moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").subtract(2, "days").startOf("day").toDate();
       if (
         moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
         moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= twoDaysAgo && !isNaN(revenue)
       ) {
-        yesterdayCampaignCost = revenue;
+        yesterdayCampaignCost += revenue;
       }
 
       let startDateFormatted = moment(startDate).format("YYYY/MM/DD");
-      let currentDateFormatted = moment(aggregatedData[date].date).format("YYYY/MM/DD");
+      let currentDateFormatted = moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").format("YYYY/MM/DD");
       
       let budget = 0;
       this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'Budget']).forEach((platformBudget: any) => {
