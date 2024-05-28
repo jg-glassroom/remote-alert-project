@@ -16,6 +16,7 @@ import { FacebookReportService } from '../../services/reports/facebook/facebook-
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
 import { AlertsService } from '../../services/alerts/alerts.service';
+import { CommonService } from '../../services/common/common.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -94,7 +95,8 @@ export class AlertsComponent {
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
-    public alertsService: AlertsService
+    public alertsService: AlertsService,
+    public commonService: CommonService
   ) {}
 
   ngOnInit() {

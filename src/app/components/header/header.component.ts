@@ -49,7 +49,7 @@ export class HeaderComponent {
   isDialogOpen: boolean = false;
   private destroy$ = new Subject<void>();
   collapsed = signal(false);
-  sidenavWidth = computed(() => this.collapsed() ? '92px' : '250px');
+  sidenavWidth = computed(() => this.collapsed() ? '80px' : '250px');
 
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;

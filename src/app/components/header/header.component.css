@@ -105,8 +105,8 @@ mat-icon {
 
 .menu-label-manager {
   margin-left: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 300;
 }
 
 .menu-label {
@@ -134,13 +134,12 @@ mat-icon {
 
 .account-menu .menu-label{
   font-size: 12px;
-  padding-left: 30px;
   font-weight: 300;
 }
 
 mat-expansion-panel{
   box-shadow: none !important;
-  border-bottom: 1px solid #cccccc;
+  border-bottom: 1px solid #f9f9f9;
 }
 
 .manager-list-item{
@@ -151,4 +150,21 @@ mat-expansion-panel{
 .manager-list-item .menu-label-manager{
   font-weight: 300;
   font-size: 12px;
+}
+
+.sidebar-title{
+  font-size: 11px;
+  margin: 15px 0px 5px 30px;
+  font-weight: 700;
+}
+
+.sidebar-title-icon{
+  font-size: 18px;
+  margin-left: 5px;
+  margin-right: 7px;
+  color: #505068;
+}
+
+.mat-expansion-panel-header{
+  padding: 0px 0px 0px 15px;
 }

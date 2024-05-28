@@ -37,27 +37,30 @@
                     </div>
                 </mat-expansion-panel>
             </mat-accordion>
-            <mat-list-item 
-                *ngFor="let account of accounts" 
-                (click)="selectAccount(account)"
-                class="account-menu">
-                <span class="list-item">
-                    <span class="menu-label" *ngIf="!collapsed()">{{account.name}}</span>
-                </span>
-            </mat-list-item>
-            <mat-list-item 
-                *ngIf="!isRouteAccounts() && accounts.length > 0" 
-                (mouseenter)="openMenu(accountTrigger)" 
-                #accountTrigger="matMenuTrigger" 
-                [matMenuTriggerFor]="account">
-                <span class="list-item">
-                    <mat-icon class="menu-icon">account_balance</mat-icon>
-                    <span class="menu-label" *ngIf="!collapsed()">Accounts</span>
-                </span>
-            </mat-list-item>
+
+            <mat-accordion>
+                <mat-expansion-panel hideToggle>
+                    <mat-expansion-panel-header>
+                        <span class="list-item">
+                            <span class="material-symbols-outlined sidebar-title-icon">
+                                enterprise
+                            </span>
+                            <span class="menu-label-manager" *ngIf="!collapsed()">Accounts</span>
+                        </span>
+                    </mat-expansion-panel-header>
+                    <div class="managers_list" style="padding: 0px;">
+                        <div class="manager-list-item" *ngFor="let account of accounts" (click)="selectAccount(account)">
+                            <mat-list-item>
+                                <span class="list-item">
+                                    <span class="menu-label" *ngIf="!collapsed()">{{account.name}}</span>
+                                </span>
+                            </mat-list-item>
+                        </div>
+                    </div>
+                </mat-expansion-panel>
+            </mat-accordion>
         </mat-nav-list>
         <div class="bottom-list" [style.width]="sidenavWidth()">
-            <hr>
             <mat-nav-list>
                 <mat-list-item (click)="navigate('integrations')">
                     <span class="list-item">

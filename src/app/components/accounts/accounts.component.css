@@ -5,8 +5,9 @@
     margin-right: 20px;
 }
 
-.create {
-    text-align: center;
+.accent-btn{
+    background-color: #8b2ee5 !important;
+    color: #ffffff !important;
 }
 
 mat-icon {
