@@ -19,6 +19,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 import { BusinessComponent } from '../form/business/business.component';
 
@@ -37,7 +38,8 @@ import { AccountComponent } from '../form/account/account.component';
     MatSidenavModule,
     MatMenuModule,
     CommonModule, 
-    RouterOutlet
+    RouterOutlet,
+    MatExpansionModule
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
@@ -46,14 +48,15 @@ export class HeaderComponent {
   toaster = inject(ToastrService);
   isDialogOpen: boolean = false;
   private destroy$ = new Subject<void>();
-  collapsed = signal(true);
-  sidenavWidth = computed(() => this.collapsed() ? '80px' : '230px');
+  collapsed = signal(false);
+  sidenavWidth = computed(() => this.collapsed() ? '92px' : '250px');
 
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
 
   businesses: any = [];
+  selectedBusiness: any;
   accounts: any = [];
   userSubscription: Subscription = new Subscription();
 
@@ -86,6 +89,10 @@ export class HeaderComponent {
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 300);
+  }
+
+  public getShortName(fullName: string) { 
+    return fullName.split(' ').map(n => n[0]).join('');
   }
 
   openBusinessDialog() {

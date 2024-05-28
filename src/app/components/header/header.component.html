@@ -1,7 +1,5 @@
-<mat-toolbar>
-    <button *ngIf="auth.user$ | async as user" mat-icon-button class="menu-button" (click)="toggleSidemenu()"><mat-icon>menu</mat-icon></button>
-    <img class="link-home logo" src="../../assets/glassroom-logo.png"/>
-    <span class="link-home">Alert project</span>
+<mat-toolbar id="main_header">
+    <span class="link-home">VAKAD</span>
     <span class="spacer"></span>
     <button *ngIf="auth.user$ | async as user" mat-icon-button class="profile-icon" aria-label="Profile button" (click)="router.navigate(['/profile'])">
         <mat-icon>account_circle</mat-icon>
@@ -12,14 +10,39 @@
 </mat-toolbar>
 <mat-drawer-container autosize>
     <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side" [style.width]="sidenavWidth()">
+
         <mat-nav-list>
-            <mat-list-item
-                (mouseenter)="openMenu(businessTrigger)" 
-                #businessTrigger="matMenuTrigger" 
-                [matMenuTriggerFor]="business">
+            <mat-accordion>
+                <mat-expansion-panel hideToggle>
+                    <mat-expansion-panel-header>
+                        <span class="list-item">
+                            <div class="circle-icon">GR</div>
+                            <span class="menu-label-manager" *ngIf="!collapsed()">Glassroom</span>
+                        </span>
+                    </mat-expansion-panel-header>
+                    <div class="managers_list">
+                        <div class="manager-list-item" *ngFor="let business of businesses" (click)="selectBusiness(business)">
+                            <mat-list-item>
+                                <span class="list-item">
+                                    <div class="circle-icon">{{getShortName(business.name)}}</div>
+                                    <span class="menu-label-manager" *ngIf="!collapsed()">{{business.name}}</span>
+                                </span>
+                            </mat-list-item>
+                                
+                        
+                        </div>
+                        <button mat-menu-item (click)="openBusinessDialog()">
+                            <mat-icon class="add">add</mat-icon>Manager
+                        </button>
+                    </div>
+                </mat-expansion-panel>
+            </mat-accordion>
+            <mat-list-item 
+                *ngFor="let account of accounts" 
+                (click)="selectAccount(account)"
+                class="account-menu">
                 <span class="list-item">
-                    <mat-icon class="menu-icon">business</mat-icon>
-                    <span class="menu-label" *ngIf="!collapsed()">Businesses</span>
+                    <span class="menu-label" *ngIf="!collapsed()">{{account.name}}</span>
                 </span>
             </mat-list-item>
             <mat-list-item 
@@ -39,7 +62,7 @@
                 <mat-list-item (click)="navigate('integrations')">
                     <span class="list-item">
                         <mat-icon class="menu-icon">integration_instructions</mat-icon>
-                        <span class="menu-label" *ngIf="!collapsed()">Integrations</span>
+                        <span class="menu-label" *ngIf="!collapsed()">Platform Credentials</span>
                     </span>
                 </mat-list-item>
                 <mat-list-item (click)="navigate('user_management')" *ngIf="commonService.isAdmin">
@@ -51,7 +74,13 @@
                 <mat-list-item (click)="editElement($event)">
                     <span class="list-item">
                         <mat-icon class="menu-icon">settings</mat-icon>
-                        <span class="menu-label" *ngIf="!collapsed()">Settings</span>
+                        <span class="menu-label" *ngIf="!collapsed()">Manager Settings</span>
+                    </span>
+                </mat-list-item>
+                <mat-list-item (click)="toggleSidemenu()">
+                    <span class="list-item">
+                        <mat-icon class="menu-icon">arrow_back_ios</mat-icon>
+                        <span class="menu-label" *ngIf="!collapsed()">Collapse Menu</span>
                     </span>
                 </mat-list-item>
             </mat-nav-list>
