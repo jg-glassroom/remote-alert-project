@@ -219,7 +219,7 @@ export class BingReportService {
           userId: userId,
           platform: "bing",
           platformIndex: index,
-          accountId: this.commonService.selectedAccountId
+          accountId: this.commonService.selectedAccount.id
         });
 
         try {

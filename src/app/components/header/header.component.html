@@ -68,7 +68,7 @@
     <button 
     mat-menu-item 
     *ngFor="let business of businesses" 
-    [class.selected]="business.id === commonService.selectedBusinessId"
+    [class.selected]="business.id === commonService.selectedBusiness.id"
     (click)="selectBusiness(business)" 
     class="list">
         {{business.name}}
@@ -82,7 +82,7 @@
     <button 
     mat-menu-item 
     *ngFor="let account of accounts" 
-    [class.selected]="account.id === commonService.selectedAccountId"
+    [class.selected]="account.id === commonService.selectedAccount.id"
     (click)="selectAccount(account)"
     class="list">
         {{account.name}}

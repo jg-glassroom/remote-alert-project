@@ -190,7 +190,7 @@ export class GoogleAdsReportService {
           userId: userId,
           platformIndex: index,
           platform: "googleAds",
-          accountId: this.commonService.selectedAccountId
+          accountId: this.commonService.selectedAccount.id
         });
 
         try {

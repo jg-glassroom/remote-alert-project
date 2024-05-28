@@ -70,12 +70,12 @@ export class UserManagementComponent {
   
     const promises = querySnapshot!.docs.map(async (doc: any) => {
       const userRole: any = doc.data();
-      if (userRole.businessRoles && userRole.businessRoles.find((br: any) => br.businessId === this.commonService.selectedBusinessId)) {
+      if (userRole.businessRoles && userRole.businessRoles.find((br: any) => br.businessId === this.commonService.selectedBusiness.id)) {
         userIds.push(userRole.userId);
       } else if (userRole.accountRoles) {
         const accountRolePromises = userRole.accountRoles.map(async (ar: any) => {
           const account: any = await this.db.doc(`account/${ar.accountId}`).get().toPromise();
-          if (account.data().businessId === this.commonService.selectedBusinessId) {
+          if (account.data().businessId === this.commonService.selectedBusiness.id) {
             userIds.push(userRole.userId);
           }
         });
@@ -110,11 +110,11 @@ export class UserManagementComponent {
         const userRole = userRoleSnapshot.docs[0].data();
         let businessRole = null;
         if (userRole.businessRoles) {
-          businessRole = userRole.businessRoles.find((br: any) => br.businessId === this.commonService.selectedBusinessId);
+          businessRole = userRole.businessRoles.find((br: any) => br.businessId === this.commonService.selectedBusiness.id);
         }
         if (businessRole) {
           role = businessRole.role;
-          const accountSnapshot: any = await this.db.collection('account', ref => ref.where('businessId', '==', this.commonService.selectedBusinessId)).get().toPromise();
+          const accountSnapshot: any = await this.db.collection('account', ref => ref.where('business.businessId', '==', this.commonService.selectedBusiness.id)).get().toPromise();
           accounts = accountSnapshot.docs.map((doc: any) => doc.data());
         } else {
           let accountRoleIds: string[] = [];
@@ -124,7 +124,7 @@ export class UserManagementComponent {
           if (accountRoleIds.length > 0) {
             const accountSnapshot: any = await this.db.collection('account', ref => 
               ref.where(documentId(), 'in', accountRoleIds)
-                 .where('businessId', '==', this.commonService.selectedBusinessId)).get().toPromise();
+                 .where('business.businessId', '==', this.commonService.selectedBusiness.id)).get().toPromise();
             accounts = accountSnapshot.docs.map((doc: any) => doc.data());
           }
         }

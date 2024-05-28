@@ -56,8 +56,8 @@ export class UserManagementFormComponent implements OnInit {
   }
 
   getOptions() {
-    const businessId = this.commonService.selectedBusinessId!;
-    this.db.collection('account', ref => ref.where('businessId', '==', businessId)).snapshotChanges().subscribe(accountSnapshots => {
+    const business = this.commonService.selectedBusiness!;
+    this.db.collection('account', ref => ref.where('business.businessId', '==', business.businessId)).snapshotChanges().subscribe(accountSnapshots => {
       this.options = accountSnapshots.map(accountSnapshot => {
         const accountData: any = accountSnapshot.payload.doc.data();
         return { ...accountData, id: accountSnapshot.payload.doc.id, selected: false };
@@ -89,14 +89,14 @@ export class UserManagementFormComponent implements OnInit {
       }
 
       const userId = userRecord.uid;
-      const businessId = this.commonService.selectedBusinessId!;
+      const business = this.commonService.selectedBusiness!;
       const userRoleDocRef = this.db.collection('userRoles').doc(userId);
 
       if (user.rattachment.includes('all')) {
         await userRoleDocRef.set(
           {
             userId: userId,
-            businessRoles: [{ businessId: businessId, role: user.role }]
+            businessRoles: [{ businessId: business.businessId, role: user.role }]
           },
           { merge: true }
         );
@@ -119,7 +119,7 @@ export class UserManagementFormComponent implements OnInit {
         let accountNames: string[] = [];
 
         if (user.rattachment.includes('all')) {
-          const businessDoc: any = await this.db.collection('business').doc(businessId).get().toPromise();
+          const businessDoc: any = await this.db.collection('business').doc(business.businessId).get().toPromise();
           businessName = businessDoc.exists ? businessDoc.data().name : '';
         } else {
           const accountPromises = user.rattachment.map((accountId: string) => 

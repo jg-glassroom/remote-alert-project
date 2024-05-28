@@ -87,8 +87,8 @@ export class AccountComponent {
         }
       }),
       switchMap((userData: any) => {
-        const selectedBusinessId = userData?.selectedBusiness;
-        if (!selectedBusinessId) {
+        const selectedBusiness = userData?.selectedBusiness;
+        if (!selectedBusiness) {
           this.toaster.error('No selected business ID available', 'Error');
           return of(null);
         }
@@ -101,10 +101,10 @@ export class AccountComponent {
         } else {
           const newAccountData = {
             ...this.formGroup.value,
-            businessId: selectedBusinessId
+            business: selectedBusiness
           };
           return this.db.collection('account').add(newAccountData).then((docRef: any) => {
-            return this.updateBusinessAccount(selectedBusinessId, docRef.id).then(() => {
+            return this.updateBusinessAccount(selectedBusiness, docRef.id).then(() => {
               this.dialogRef.close();
               return of(null);
             });
@@ -119,8 +119,8 @@ export class AccountComponent {
     ).subscribe();
   }
   
-  async updateBusinessAccount(businessId: string, accountId: string) {
-    return this.db.collection('business').doc(businessId).update({
+  async updateBusinessAccount(business: any, accountId: string) {
+    return this.db.collection('business').doc(business.businessId).update({
       accounts: arrayUnion(accountId)
     }).then(() => {
       return of(null);

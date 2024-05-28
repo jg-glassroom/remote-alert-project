@@ -147,7 +147,7 @@ export class FacebookReportService {
         userId: userId,
         platform: "facebook",
         platformIndex: index,
-        accountId: this.commonService.selectedAccountId
+        accountId: this.commonService.selectedAccount.id
       });
 
       try {

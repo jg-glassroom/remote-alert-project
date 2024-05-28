@@ -337,7 +337,7 @@ export class DV360ReportService {
           userId: userId,
           platform: "dv360",
           platformIndex: index,
-          accountId: this.commonService.selectedAccountId
+          accountId: this.commonService.selectedAccount.id
         });
 
         try {
