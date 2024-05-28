@@ -108,6 +108,8 @@ export class AlertsComponent {
   filteredUserOptions!: Observable<any[]>;
   filteredAlertOptions!: Observable<any[]>;
 
+  openPanels: Set<string> = new Set<string>();
+
   constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
@@ -128,6 +130,14 @@ export class AlertsComponent {
         await this.getData();
       }
     });
+  }
+
+  togglePanel(panelId: string) {
+    if (this.openPanels.has(panelId)) {
+      this.openPanels.delete(panelId);
+    } else {
+      this.openPanels.add(panelId);
+    }
   }
 
   hasOverallDeltaValue(pacingAlert: any): boolean {
