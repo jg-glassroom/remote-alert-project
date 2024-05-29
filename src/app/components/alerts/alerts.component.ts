@@ -110,6 +110,7 @@ export class AlertsComponent {
   filteredAlertOptions!: Observable<any[]>;
 
   openPanels: Set<string> = new Set<string>();
+  loadingGraphs: Set<string> = new Set();
 
   constructor(
     private db: AngularFirestore,
@@ -134,11 +135,15 @@ export class AlertsComponent {
     });
   }
 
-  togglePanel(panelId: string) {
-    if (this.openPanels.has(panelId)) {
-      this.openPanels.delete(panelId);
+  togglePanel(alertId: string) {
+    if (this.openPanels.has(alertId)) {
+      this.openPanels.delete(alertId);
     } else {
-      this.openPanels.add(panelId);
+      this.openPanels.add(alertId);
+      this.loadingGraphs.add(alertId);
+      setTimeout(() => {
+        this.loadingGraphs.delete(alertId);
+      }, 2000);
     }
   }
 

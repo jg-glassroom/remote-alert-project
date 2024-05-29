@@ -112,7 +112,7 @@
         </mat-expansion-panel>
 
         <mat-accordion *ngFor="let pacingAlert of getFilteredAlerts(subaccount.id)" hideToggle>
-            <mat-expansion-panel (opened)="togglePanel(pacingAlert.id)" (closed)="togglePanel(pacingAlert.id)">
+            <mat-expansion-panel (opened)="togglePanel(pacingAlert.id)" (closed)="togglePanel(pacingAlert.id)" [disabled]="!hasOverallDeltaValue(pacingAlert)">
                 <mat-expansion-panel-header class="panel-header">
                     <table>
                         <tr>
@@ -226,11 +226,18 @@
                     </div>
                 </mat-expansion-panel-header>
                 <div *ngIf="openPanels.has(pacingAlert.id)">
-                    <app-line-chart 
-                        *ngIf="hasOverallDeltaValue(pacingAlert)"
-                        [chartData]="pacingAlert"
-                        [uniqueId]="'chartdiv_' + pacingAlert.id">
-                    </app-line-chart>
+                    <ng-container *ngIf="loadingGraphs.has(pacingAlert.id); else showChart">
+                        <div class="loader-overlay">
+                            <mat-spinner [diameter]="50"></mat-spinner>
+                        </div>
+                    </ng-container>
+                    <ng-template #showChart>
+                        <app-line-chart
+                            *ngIf="hasOverallDeltaValue(pacingAlert)"
+                            [chartData]="pacingAlert"
+                            [uniqueId]="'chartdiv_' + pacingAlert.id">
+                        </app-line-chart>
+                    </ng-template>
                 </div>
             </mat-expansion-panel>
         </mat-accordion>
@@ -290,7 +297,7 @@
     </mat-expansion-panel>
 
     <mat-accordion *ngFor="let pacingAlert of alertsService.pacingAlerts" hideToggle>
-        <mat-expansion-panel (opened)="togglePanel(pacingAlert.id)" (closed)="togglePanel(pacingAlert.id)">
+        <mat-expansion-panel (opened)="togglePanel(pacingAlert.id)" (closed)="togglePanel(pacingAlert.id)" [disabled]="!hasOverallDeltaValue(pacingAlert)">
             <mat-expansion-panel-header class="panel-header">
                 <table>
                     <tr>
@@ -398,11 +405,18 @@
                 </div>
             </mat-expansion-panel-header>
             <div *ngIf="openPanels.has(pacingAlert.id)">
-                <app-line-chart
-                    *ngIf="hasOverallDeltaValue(pacingAlert)"
-                    [chartData]="pacingAlert"
-                    [uniqueId]="'chartdiv_' + pacingAlert.id">
-                </app-line-chart>
+                <ng-container *ngIf="loadingGraphs.has(pacingAlert.id); else showChartBis">
+                    <div class="loader-overlay">
+                        <mat-spinner [diameter]="50"></mat-spinner>
+                    </div>
+                </ng-container>
+                <ng-template #showChartBis>
+                    <app-line-chart
+                        *ngIf="hasOverallDeltaValue(pacingAlert)"
+                        [chartData]="pacingAlert"
+                        [uniqueId]="'chartdiv_' + pacingAlert.id">
+                    </app-line-chart>
+                </ng-template>
             </div>
         </mat-expansion-panel>
     </mat-accordion>
