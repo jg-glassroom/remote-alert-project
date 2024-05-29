@@ -123,14 +123,14 @@ export class BingReportService {
               Impressions: parseInt(cur.Impressions),
               Clicks: parseInt(cur.Clicks),
               Conversions: parseInt(cur.Conversions),
-              Spend: parseInt(cur.Spend)
+              Spend: parseFloat(cur.Spend)
             };
           } else {
             acc[key].CampaignIds.push(cur.CampaignId);
             acc[key].Impressions += parseInt(cur.Impressions);
             acc[key].Clicks += parseInt(cur.Clicks);
             acc[key].Conversions += parseInt(cur.Conversions);
-            acc[key].Spend += parseInt(cur.Spend);
+            acc[key].Spend += parseFloat(cur.Spend);
           }
         }
         if (acc[key]) {
@@ -180,7 +180,7 @@ export class BingReportService {
           acc[key] = value;
           return acc;
         }, {});
-        console.log(filteredObj);
+
       let reportToSave = {
         report: filteredObj,
         userSearchId: userSearchId + '_' + index,
