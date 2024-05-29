@@ -5,7 +5,7 @@
         <mat-form-field appearance="fill" *ngIf="alertsService.subaccounts.length > 0">
             <mat-label>Subaccounts</mat-label>
             <input type="text" matInput [formControl]="subaccountFilter" (focus)="openSelect('subaccountSelect')" placeholder="Search subaccounts">
-            <mat-select #subaccountSelect [(value)]="selectedSubaccounts" multiple>
+            <mat-select #subaccountSelect [(value)]="selectedSubaccounts" (selectionChange)="onSelectionChange($event, 'subaccount')" multiple>
                 <mat-option *ngFor="let subaccount of (filteredSubaccountOptions | async)" [value]="subaccount.id">
                     {{ subaccount.name }}
                 </mat-option>
@@ -15,7 +15,7 @@
         <mat-form-field appearance="fill" class="filter">
             <mat-label>Platforms</mat-label>
             <input type="text" matInput [formControl]="platformFilter" (focus)="openSelect('platformSelect')" placeholder="Search platforms">
-            <mat-select #platformSelect [(value)]="selectedPlatforms" multiple>
+            <mat-select #platformSelect [(value)]="selectedPlatforms" (selectionChange)="onSelectionChange($event, 'platform')" multiple>
                 <mat-option *ngFor="let platform of (filteredPlatformOptions | async)" [value]="platform.key">
                     {{ platform.name }}
                 </mat-option>
@@ -25,7 +25,7 @@
         <mat-form-field appearance="fill" class="filter">
             <mat-label>Users</mat-label>
             <input type="text" matInput [formControl]="userFilter" (focus)="openSelect('userSelect')" placeholder="Search users">
-            <mat-select #userSelect [(value)]="selectedUsers" multiple>
+            <mat-select #userSelect [(value)]="selectedUsers" (selectionChange)="onSelectionChange($event, 'user')" multiple>
                 <mat-option *ngFor="let user of (filteredUserOptions | async)" [value]="user.id">
                     {{ user.email }}
                 </mat-option>
@@ -35,7 +35,7 @@
         <mat-form-field appearance="fill" class="filter">
             <mat-label>Alert Name</mat-label>
             <input type="text" matInput [formControl]="alertFilter" (focus)="openSelect('alertSelect')" placeholder="Search alerts">
-            <mat-select #alertSelect [(value)]="selectedAlerts" multiple>
+            <mat-select #alertSelect [(value)]="selectedAlerts" (selectionChange)="onSelectionChange($event, 'alert')" multiple>
                 <mat-option *ngFor="let alert of (filteredAlertOptions | async)" [value]="alert.id">
                     {{ alert.campaignName }}
                 </mat-option>
@@ -296,7 +296,7 @@
         </mat-expansion-panel-header>
     </mat-expansion-panel>
 
-    <mat-accordion *ngFor="let pacingAlert of alertsService.pacingAlerts" hideToggle>
+    <mat-accordion *ngFor="let pacingAlert of getFilteredAlerts(null)" hideToggle>
         <mat-expansion-panel (opened)="togglePanel(pacingAlert.id)" (closed)="togglePanel(pacingAlert.id)" [disabled]="!hasOverallDeltaValue(pacingAlert)">
             <mat-expansion-panel-header class="panel-header">
                 <table>

@@ -120,7 +120,7 @@ export class AccountComponent {
   }
   
   async updateBusinessAccount(business: any, accountId: string) {
-    return this.db.collection('business').doc(business.businessId).update({
+    return this.db.collection('business').doc(business.id).update({
       accounts: arrayUnion(accountId)
     }).then(() => {
       return of(null);

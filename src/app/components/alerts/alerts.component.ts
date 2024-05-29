@@ -131,8 +131,14 @@ export class AlertsComponent {
       if (accountId !== this.selectedAccountId) {
         this.selectedAccountId = accountId;
         await this.getData();
+        this.applyFilters();
       }
     });
+
+    this.filteredUserOptions = this.userFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.users, 'email'))
+    );
   }
 
   togglePanel(alertId: string) {
@@ -145,6 +151,24 @@ export class AlertsComponent {
         this.loadingGraphs.delete(alertId);
       }, 2000);
     }
+  }
+
+  onSelectionChange(event: any, type: string) {
+    switch (type) {
+      case 'subaccount':
+        this.selectedSubaccounts = event.value;
+        break;
+      case 'platform':
+        this.selectedPlatforms = event.value;
+        break;
+      case 'user':
+        this.selectedUsers = event.value;
+        break;
+      case 'alert':
+        this.selectedAlerts = event.value;
+        break;
+    }
+    this.applyFilters();
   }
 
   hasOverallDeltaValue(pacingAlert: any): boolean {
@@ -183,11 +207,6 @@ export class AlertsComponent {
     this.filteredUserOptions = this.userFilter.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, this.users, 'email'))
-    );
-
-    this.filteredAlertOptions = this.alertFilter.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value, this.alertsService.pacingAlerts.sort((a: any, b: any) => a.campaignName.localeCompare(b.campaignName)), 'campaignName'))
     );
   }
 
@@ -245,7 +264,7 @@ export class AlertsComponent {
           };
           alerts.push(pacingAlert);
         });
-  
+
         for (const alert of alerts) {
           for (const [index, platform] of alert.platforms.entries()) {
             const collectionName = `${platform.platform}Report`;
@@ -257,14 +276,14 @@ export class AlertsComponent {
             }
           }
         }
-  
+
         this.alertsService.pacingAlerts = alerts;
         resolve();
       }, error => {
         reject(error);
       });
     });
-  }  
+  }
 
   async getUsers() {
     this.users = [];
@@ -445,30 +464,70 @@ export class AlertsComponent {
     return Object.keys(this.platforms).sort();
   }
 
+  private filterUsers(): any[] {
+    const filteredAlerts = this.alertsService.pacingAlerts
+      .filter(alert => {
+        if (this.selectedSubaccounts.length > 0 && alert.subaccount) {
+          return this.selectedSubaccounts.includes(alert.subaccount.id);
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedPlatforms.length > 0) {
+          return alert.platforms.some((platform: any) => this.selectedPlatforms.includes(platform.platform));
+        }
+        return true;
+      });
+
+    const userIds = Array.from(new Set(filteredAlerts.flatMap(alert => alert.platforms.map((platform: any) => platform.formData.userId))));
+    return this.users.filter((user: any) => userIds.includes(user.id));
+  }
+
   applyFilters() {
-    this.alertsService.pacingAlerts = this.alertsService.pacingAlerts.map(alert => {
-      if (this.selectedPlatforms.length > 0) {
-        alert.platforms = alert.originalPlatforms.filter((p: any) => this.selectedPlatforms.includes(p.platform));
-      } else {
-        alert.platforms = alert.originalPlatforms;
-      }
-      return alert;
-    }).filter(alert => {
-      if (this.selectedUsers.length > 0) {
-        return alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId));
-      }
-      return true;
-    }).filter(alert => {
-      if (this.selectedSubaccounts.length > 0) {
-        return this.selectedSubaccounts.includes(alert.subaccount?.id);
-      }
-      return true;
-    }).filter(alert => {
-      if (this.selectedAlerts.length > 0) {
-        return this.selectedAlerts.includes(alert.id);
-      }
-      return true;
-    });
+    const filteredAlerts = this.alertsService.pacingAlerts
+      .filter(alert => {
+        if (this.selectedSubaccounts.length > 0 && alert.subaccount) {
+          return this.selectedSubaccounts.includes(alert.subaccount.id);
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedPlatforms.length > 0) {
+          return alert.platforms.some((platform: any) => this.selectedPlatforms.includes(platform.platform));
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedUsers.length > 0) {
+          return alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId));
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedAlerts.length > 0) {
+          return this.selectedAlerts.includes(alert.id);
+        }
+        return true;
+      });
+
+    this.alertsService.filteredPacingAlerts = filteredAlerts;
+
+    this.filteredAlertOptions = this.alertFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.alertsService.pacingAlerts.filter(alert =>
+        this.selectedSubaccounts.length === 0 || this.selectedSubaccounts.includes(alert.subaccount?.id)
+      ).filter(alert =>
+        this.selectedPlatforms.length === 0 || alert.platforms.some((platform: any) => this.selectedPlatforms.includes(platform.platform))
+      ).sort((a: any, b: any) => a.campaignName.localeCompare(b.campaignName)), 'campaignName'))
+    );
+
+    const userIds = Array.from(new Set(filteredAlerts.flatMap(alert => alert.platforms.map((platform: any) => platform.formData.userId))));
+    
+    const filteredUsers = this.filterUsers();
+    this.filteredUserOptions = this.userFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, filteredUsers, 'email'))
+    );
   }
 
   openSelect(selectName: string) {

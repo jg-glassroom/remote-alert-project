@@ -110,7 +110,7 @@ export class AccountsComponent {
             );
   
             if (hasRoleOnSelectedBusiness) {
-              return this.afs.collection('account', ref => ref.where('business.businessId', '==', selectedBusiness.id))
+              return this.afs.collection('account', ref => ref.where('business.id', '==', selectedBusiness.id))
                 .snapshotChanges()
                 .pipe(
                   map(changes => changes.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as Account) })))

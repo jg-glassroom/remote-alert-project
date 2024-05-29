@@ -206,7 +206,9 @@ export class HeaderComponent {
         }
       });
       this.businesses = businesses;
-      this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      if (!this.businesses.some((b: any) => b.name)) {
+        this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      }
       if (!this.commonService.selectedBusiness && this.businesses.length > 0) {
         this.commonService.selectedBusiness = this.businesses[0];
       }

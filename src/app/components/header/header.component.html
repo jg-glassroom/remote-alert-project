@@ -23,7 +23,7 @@
                     <div class="managers_list">
                         <div class="manager-list-item" *ngFor="let business of businesses" (click)="selectBusiness(business)">
                             <mat-list-item>
-                                <span class="list-item">
+                                <span class="list-item" *ngIf="business.name">
                                     <div class="circle-icon">{{getShortName(business.name)}}</div>
                                     <span class="menu-label-manager" *ngIf="!collapsed()">{{business.name}}</span>
                                 </span>
