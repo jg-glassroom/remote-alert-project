@@ -70,12 +70,16 @@ export class FacebookReportService {
     }
 
     const timeRange = `{"since":"${startDate}","until":"${endDate}"}`;
-    const url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(JSON.stringify(filtering))}&time_increment=1`;
+    let url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(JSON.stringify(filtering))}&time_increment=1`;
+    this.reportJson = [];
 
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      this.reportJson = data.data;
+      while (url) {
+        const response = await fetch(url);
+        const data = await response.json();
+        this.reportJson.push(...data.data);
+        url = data.paging?.next || null;
+      }
     } catch (error) {
       console.error('Error fetching campaign metrics:', error);
     }
