@@ -220,9 +220,6 @@
                         <button mat-icon-button class="icon" (click)="deleteAlert(pacingAlert, $event)">
                             <mat-icon>delete</mat-icon>
                         </button>
-                        <button mat-icon-button class="icon" (click)="processReport(pacingAlert, $event)">
-                            <mat-icon>play_arrow</mat-icon>
-                        </button>
                     </div>
                 </mat-expansion-panel-header>
                 <div *ngIf="openPanels.has(pacingAlert.id)">
@@ -401,7 +398,6 @@
                 <div class="icons">
                     <button mat-icon-button (click)="editAlert(pacingAlert, $event)"><mat-icon>edit</mat-icon></button>
                     <button mat-icon-button (click)="deleteAlert(pacingAlert, $event)"><mat-icon>delete</mat-icon></button>
-                    <button mat-icon-button (click)="processReport(pacingAlert, $event)"><mat-icon>play_arrow</mat-icon></button>
                 </div>
             </mat-expansion-panel-header>
             <div *ngIf="openPanels.has(pacingAlert.id)">

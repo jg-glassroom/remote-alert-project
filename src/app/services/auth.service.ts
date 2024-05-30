@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/compat/firestore';
 
+import { MatDialog } from '@angular/material/dialog';
+
 import { getAuth } from 'firebase/auth';
 
 import { Observable, of } from 'rxjs';
@@ -11,6 +13,8 @@ import { switchMap, first } from 'rxjs/operators';
 
 import { User } from './user.model';
 import moment from 'moment';
+
+import { ConfirmDialogComponent } from '../components/confirm-dialog/confirm-dialog.component';
 
 
 @Injectable({
@@ -22,7 +26,8 @@ export class AuthService {
   constructor(
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
-    private router: Router
+    private router: Router,
+    private matDialog: MatDialog,
   ) { 
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
@@ -74,6 +79,13 @@ export class AuthService {
         }
         if (user.linkedinAccessToken) {
           localStorage.setItem('linkedinAccessToken', user.linkedinAccessToken);
+        }
+        if (user.hadLinkedin) {
+          this.matDialog.open(ConfirmDialogComponent, {
+            width: '70%',
+            height: '90vh',
+            data: { showActions: false }
+          })
         }
       });
     } catch (error) {

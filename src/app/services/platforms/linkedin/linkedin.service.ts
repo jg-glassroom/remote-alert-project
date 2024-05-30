@@ -50,7 +50,6 @@ export class LinkedinService {
       const db = getFirestore();
       await updateDoc(doc(db, 'user', user.uid), {
         linkedinAccessToken: deleteField(),
-        linkedinIdToken: deleteField()
       });
 
       localStorage.removeItem('linkedinAccessToken');

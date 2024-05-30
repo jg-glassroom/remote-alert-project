@@ -70,7 +70,7 @@ export class AccountsComponent {
   deleteAccount(account: any): void {
     const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
       width: '20%',
-      data: { message: "Are you sure to delete " + account.name + "?" }
+      data: { message: "Are you sure to delete " + account.name + "?", showActions: true }
     });
 
     dialogRef.afterClosed().subscribe(result => {
