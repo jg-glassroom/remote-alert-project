@@ -11,12 +11,14 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-report.service';
 import { AlertsService } from '../../services/alerts/alerts.service';
 
 import { Dv360FormComponent } from '../form/platforms/dv360-form/dv360-form.component';
 import { FacebookFormComponent } from '../form/platforms/facebook-form/facebook-form.component';
 import { GoogleAdsFormComponent } from '../form/platforms/google-ads-form/google-ads-form.component';
 import { BingFormComponent } from '../form/platforms/bing-form/bing-form.component';
+import { LinkedinFormComponent } from '../form/platforms/linkedin-form/linkedin-form.component';
 import { SubaccountComponent } from '../form/subaccount/subaccount.component';
 
 import { ToastrService } from 'ngx-toastr';
@@ -51,7 +53,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     Dv360FormComponent,
     FacebookFormComponent,
     GoogleAdsFormComponent,
-    BingFormComponent
+    BingFormComponent,
+    LinkedinFormComponent,
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -61,6 +64,7 @@ export class DialogComponent {
   @ViewChildren(FacebookFormComponent) facebookForms!: QueryList<FacebookFormComponent>;
   @ViewChildren(GoogleAdsFormComponent) googleAdsForms!: QueryList<GoogleAdsFormComponent>;
   @ViewChildren(BingFormComponent) bingForms!: QueryList<BingFormComponent>;
+  @ViewChildren(LinkedinFormComponent) linkedinForms!: QueryList<LinkedinFormComponent>;
 
   formGroup = new FormGroup({
     campaignName: new FormControl('', Validators.required),
@@ -90,6 +94,7 @@ export class DialogComponent {
     private facebookReportService: FacebookReportService,
     private googleAdsReportService: GoogleAdsReportService,
     private bingReportService: BingReportService,
+    private linkedinReportService: LinkedinReportService,
     public commonService: CommonService,
     private cdRef: ChangeDetectorRef,
     private alertsService: AlertsService
@@ -115,6 +120,8 @@ export class DialogComponent {
           this.tabs.push({ name: 'Google Ads', value: platform.platform, index: platform.index });
         } else if (platform.platform === 'bing') {
           this.tabs.push({ name: 'Bing', value: platform.platform, index: platform.index });
+        } else if (platform.platform === 'linkedin') {
+          this.tabs.push({ name: 'LinkedIn', value: platform.platform, index: platform.index });
         }
       });
     }
@@ -219,7 +226,8 @@ export class DialogComponent {
       this.dv360Forms.length === 0 &&
       this.facebookForms.length === 0 &&
       this.googleAdsForms.length === 0 &&
-      this.bingForms.length === 0
+      this.bingForms.length === 0 &&
+      this.linkedinForms.length === 0
     ) {
       doSubmit = false;
       this.toaster.error('Please select a platform');
@@ -252,6 +260,16 @@ export class DialogComponent {
       } else {
         doSubmit = false;
         this.toaster.error('A Google Ads form is not valid');
+      }
+    });
+
+    this.linkedinForms.forEach(form => {
+      const formData = form.getFormData();
+      if (formData) {
+        platforms.push({ platform: 'linkedin', formData: formData, loading: execute });
+      } else {
+        doSubmit = false;
+        this.toaster.error('A LinkedIn form is not valid');
       }
     });
 
@@ -323,6 +341,16 @@ export class DialogComponent {
             dataToUpdate.bingStartDate = deleteField();
           }
           break;
+        case 'linkedin':
+          if (!platforms.includes(platform)) {
+            dataToUpdate.linkedinAccount = deleteField();
+            dataToUpdate.linkedinBudget = deleteField();
+            dataToUpdate.linkedinCampaign = deleteField();
+            dataToUpdate.linkedinEndDate = deleteField();
+            dataToUpdate.linkedinPlatform = deleteField();
+            dataToUpdate.linkedinStartDate = deleteField();
+          }
+          break;
       }
     });
     return dataToUpdate;
@@ -360,6 +388,10 @@ export class DialogComponent {
                 if (success) {
                   this.alertsService.updateData(this.documentId, index);
                 }
+              });
+            } else if (platform === 'linkedin') {
+              this.linkedinReportService.processReport({ id: this.documentId, ...updateData }, index).then(success => {
+                this.alertsService.updateData(this.documentId, index);
               });
             }
           });
@@ -404,6 +436,10 @@ export class DialogComponent {
                     this.alertsService.updateData(data.id, index);
                   }
                 });
+              } else if (platform === 'linkedin') {
+                this.linkedinReportService.processReport(allFormData, index).then(success => {
+                  this.alertsService.updateData(data.id, index);
+                });
               }
             });
           } else {
@@ -446,7 +482,8 @@ export class DialogComponent {
       'dv360': 'Display & Video 360',
       'facebook': 'Facebook',
       'googleAds': 'Google Ads',
-      'bing': 'Bing'
+      'bing': 'Bing',
+      'linkedin': 'LinkedIn'
     };
     this.selectPlatforms.push(platform);
     this.tabs[index] = ({ name: platforms[platform], value: platform });
@@ -465,6 +502,8 @@ export class DialogComponent {
       return this.googleAdsForms.toArray()[index].formGroup.invalid;
     } else if (this.tabs[index].value === 'bing' && this.bingForms && this.bingForms.toArray().length > index) {
       return this.bingForms.toArray()[index].formGroup.invalid;
+    } else if (this.tabs[index].value === 'linkedin' && this.linkedinForms && this.linkedinForms.toArray().length > index) {
+      return this.linkedinForms.toArray()[index].formGroup.invalid;
     }
     return false;
   }
