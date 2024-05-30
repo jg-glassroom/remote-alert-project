@@ -109,12 +109,10 @@
   </mat-tab-group>
 
   <div class="form-element footer">
-    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">{{ isEditMode ? 'Edit' : 'Save' }}</button>
+    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">Save</button>
     &nbsp;
-    <ng-container *ngIf="!isEditMode">
-        <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)" type="button">Save & execute</button>
-        &nbsp;
-    </ng-container>
+    <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)" type="button">Save & execute</button>
+    &nbsp;
     <button mat-raised-button class="button" (click)="onCancel()" type="button">Cancel</button>
   </div>
 </form>

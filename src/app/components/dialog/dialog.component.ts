@@ -337,28 +337,26 @@ export class DialogComponent {
         if (execute) {
           platforms.forEach((platformData, index) => {
             const platform = platformData.platform;
-            const data = updateData[platform];
-            console.log(data);
             if (platform === 'dv360') {
-              this.DV360ReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+              this.DV360ReportService.processReport({ id: this.documentId, ...updateData }, index).then(success => {
                 if (success) {
                   this.alertsService.updateData(this.documentId, index);
                 }
               });
             } else if (platform === 'facebook') {
-              this.facebookReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+              this.facebookReportService.processReport({ id: this.documentId, ...updateData }, index).then(success => {
                 if (success) {
                   this.alertsService.updateData(this.documentId, index);
                 }
               });
             } else if (platform === 'googleAds') {
-              this.googleAdsReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+              this.googleAdsReportService.processReport({ id: this.documentId, ...updateData }, index).then(success => {
                 if (success) {
                   this.alertsService.updateData(this.documentId, index);
                 }
               });
             } else if (platform === 'bing') {
-              this.bingReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+              this.bingReportService.processReport({ id: this.documentId, ...updateData }, index).then(success => {
                 if (success) {
                   this.alertsService.updateData(this.documentId, index);
                 }
