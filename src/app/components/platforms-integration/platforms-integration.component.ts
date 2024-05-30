@@ -110,7 +110,7 @@ export class PlatformsIntegrationComponent {
         } else if (source === 'microsoft') {
           this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'linkedin') {
-          this.exchangeLinkedinTokens(authCode)
+          this.exchangeLinkedinToken(authCode)
           .catch(error => console.error('Error calling cloud function', error));
         }
       }
@@ -136,8 +136,8 @@ export class PlatformsIntegrationComponent {
     }
   }
 
-  private async exchangeLinkedinTokens(authCode: string): Promise<void> {
-    const callable = this.fns.httpsCallable('exchangeLinkedinTokens');
+  private async exchangeLinkedinToken(authCode: string): Promise<void> {
+    const callable = this.fns.httpsCallable('exchangeLinkedinToken');
     try {
       const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
       'https://localhost:4200/integrations/linkedin' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/linkedin' }));

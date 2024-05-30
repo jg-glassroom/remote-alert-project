@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 
 
 @Injectable({
@@ -9,13 +9,13 @@ export class LinkedinService {
   private clientId: string = '773p5crl5ty3pg';
   private authUrl: string = 'https://www.linkedin.com/oauth/v2/authorization';
 
-  constructor(private http: HttpClient) { }
+  constructor() { }
 
   linkedinConnect() {
     const hostname = window.location.hostname;
     const redirectUri = hostname === "localhost" ? 
       'https://localhost:4200/integrations/linkedin' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/linkedin';
-    const scope = 'r_liteprofile';
+    const scope = 'profile email openid';
     const state = 'DCEEFWF45453sdffef424';
 
     const params = new HttpParams()
