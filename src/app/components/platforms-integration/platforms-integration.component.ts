@@ -146,6 +146,7 @@ export class PlatformsIntegrationComponent {
       console.log('result', result);
       this.db.collection('user').doc(currentUser.uid).update({
         linkedinAccessToken: result.access_token,
+        linkedinIdToken: result.id_token,
       });
       localStorage.setItem('linkedinAccessToken', result.access_token);
       history.replaceState(null, '', window.location.pathname);
