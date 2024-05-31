@@ -23,7 +23,7 @@ export class LinkedinService {
     const hostname = window.location.hostname;
     const redirectUri = hostname === "localhost" ? 
       'https://localhost:4200/integrations/linkedin' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/linkedin';
-    const scope = 'profile email openid';
+    const scope = 'profile email openid r_ads r_ads_reporting';
     const state = 'DCEEFWF45453sdffef424';
 
     const params = new HttpParams()

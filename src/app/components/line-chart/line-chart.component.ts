@@ -36,6 +36,10 @@ export class LineChartComponent {
     'dv360': {
       dateField: 'Date',
       revenueField: 'Revenue (Adv Currency)',
+    },
+    'linkedin': {
+      dateField: 'date',
+      revenueField: 'spend',
     }
   };
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 
@@ -40,6 +40,8 @@ import moment from 'moment';
   styleUrls: ['./user-management-form.component.css']
 })
 export class UserManagementFormComponent implements OnInit {
+  @Input() accountId: string = '';
+
   users: any[] = [{ rattachment: [] }];
   options: any = [];
   isLoading: boolean = false;

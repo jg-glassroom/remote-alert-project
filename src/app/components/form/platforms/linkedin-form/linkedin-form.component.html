@@ -30,19 +30,34 @@
             <mat-error *ngIf="(submitted || form['linkedinAdAccount'].touched) && form['linkedinAdAccount'].invalid">
                 The field is required
             </mat-error>
-            <mat-autocomplete #adAccountsAuto="matAutocomplete" (optionSelected)="getAdAccountCampaigns($event)" [displayWith]="displayFn">
+            <mat-autocomplete #adAccountsAuto="matAutocomplete" (optionSelected)="getCampaignGroups($event)" [displayWith]="displayFn">
             <mat-option *ngFor="let adAccount of adAccounts$ | async" [value]="adAccount">
-                <span>{{ adAccount.name }}</span>
+                <span>{{ adAccount.name }} | {{ adAccount.id }}</span>
             </mat-option>
             </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field>
+        <mat-form-field class="form-element">
+            <mat-label>Campaign Group</mat-label>
+            <input type="text" placeholder="Select your campaign group" formControlName="linkedinCampaignGroup" aria-label="campaign group" matInput [matAutocomplete]="campaignGroupsAuto">
+            <mat-error *ngIf="(submitted || form['linkedinCampaignGroup'].touched) && form['linkedinCampaignGroup'].invalid">
+                The field is required
+            </mat-error>
+            <mat-autocomplete #campaignGroupsAuto="matAutocomplete" (optionSelected)="getAdAccountCampaigns($event)" [displayWith]="displayFn">
+            <mat-option *ngFor="let campaignGroup of campaignGroups$ | async" [value]="campaignGroup">
+                <span>{{ campaignGroup.name }} | {{ campaignGroup.id }}</span>
+            </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+    </div>
+
+    <div class="form-row">
+        <mat-form-field class="form-element">
             <mat-label>Campaign*</mat-label>
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
                 <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
                     <span>{{ combineAndTruncateName(campaign, 25) }}</span>
-                    <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.displayName">
+                    <button matChipRemove class="mat-chip-remove" [attr.aria-label]="'remove ' + campaign.name">
                         <mat-icon>cancel</mat-icon>
                     </button>
                 </mat-chip-row>
@@ -54,7 +69,7 @@
             <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
                 <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
                     <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
-                        {{ campaign.displayName }} | {{ campaign.campaignId }}
+                        {{ campaign.name }} | {{ campaign.id }}
                     </mat-checkbox>
                 </mat-option>
             </mat-autocomplete>
@@ -62,9 +77,7 @@
                 <span class="mat-error">At least one campaign must be selected</span>
             </mat-hint>
         </mat-form-field>
-    </div>
 
-    <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Start Date</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="linkedinStartDate">
@@ -78,7 +91,9 @@
                 Please enter a valid date.
             </mat-error>
         </mat-form-field>
+    </div>
 
+    <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>End Date*</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="linkedinEndDate">
@@ -95,9 +110,7 @@
                 End date must be after or equal to start date.
             </mat-error>
         </mat-form-field>
-    </div>
 
-    <div class="form-row">
         <mat-form-field class="form-element">
             <mat-label>Budget</mat-label>
             <input matInput formControlName="linkedinBudget">
@@ -108,7 +121,6 @@
                 Please enter a valid number
             </mat-error>
         </mat-form-field>
-        <div class="form-element"></div>
     </div>
 
 </form>

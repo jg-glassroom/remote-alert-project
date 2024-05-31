@@ -1,6 +1,5 @@
 import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -25,7 +24,10 @@ import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../services/auth.service';
 import { ExternalPlatformsService } from '../../../../services/external-platforms.service';
 import { CommonService } from '../../../../services/common/common.service';
+
 import { getAuth } from '@angular/fire/auth';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
+
 
 @Component({
   selector: 'app-linkedin-form',
@@ -67,6 +69,10 @@ export class LinkedinFormComponent {
   campaigns$!: Observable<any[]>;
   campaigns: any = [];
 
+  originalCampaignGroups$!: Observable<any[]>;
+  campaignGroups$!: Observable<any[]>;
+  campaignGroups: any = [];
+
   separatorKeysCodes: number[] = [ENTER, COMMA];
   selection = new SelectionModel<any>(true, []);
   selectionIO = new SelectionModel<any>(true, []);
@@ -80,8 +86,8 @@ export class LinkedinFormComponent {
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient,
-    public platformsCommon: CommonService
+    public platformsCommon: CommonService,
+    private fns: AngularFireFunctions
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -94,17 +100,17 @@ export class LinkedinFormComponent {
   };
 
   combineAndTruncateName(campaign: any, num: number): string {
-    const combinedName = `${campaign.displayName} | ${campaign.campaignId}`;
+    const combinedName = `${campaign.name} | ${campaign.id}`;
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
   selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
     event.stopPropagation();
-    this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'linkedinCampaign', 'id', formGroup, selection, campaignInput);
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
-    this.platformsCommon.remove(campaign, campaigns, this.campaigns$, 'campaignId', selection, announcer);
+    this.platformsCommon.remove(campaign, campaigns, this.campaigns$, 'id', selection, announcer);
   }
 
   async ngOnInit() {
@@ -115,14 +121,15 @@ export class LinkedinFormComponent {
     await this.getAdAccounts();
   }
 
-  displayFn(dv360Partner: any): string {
-    return dv360Partner && dv360Partner.displayName ? dv360Partner.displayName : '';
+  displayFn(element: any): string {
+    return element && element.name ? element.name : '';
   }
 
   async createForm() {
     this.formGroup = this.formBuilder.group({
       linkedinLabel: [this.data?.linkedinLabel || null],
       linkedinAdAccount: [this.data?.linkedinAdAccount || null, [Validators.required]],
+      linkedinCampaignGroup: [this.data?.linkedinCampaignGroup || null, [Validators.required]],
       linkedinPlatform: ['linkedin', [Validators.required]],
       linkedinCampaign: [this.data?.linkedinCampaign || [], [Validators.required, this.platformsCommon.campaignSelectionValidator()]],
       linkedinStartDate: [this.data?.linkedinStartDate ? new Date(this.data.linkedinStartDate) : null, [Validators.required, this.platformsCommon.isValidDate()]],
@@ -146,11 +153,11 @@ export class LinkedinFormComponent {
   }
 
   async fetchAllAdAccounts(url: string, adAccounts: any[] = []): Promise<any[]> {
+    const callable = this.fns.httpsCallable('getLinkedinAdAccounts');
     try {
-      const response = await firstValueFrom(this.http.get<any>(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('linkedinAccessToken')}` } }));
-      const fetchedAdAccounts = response.elements;
-      adAccounts = adAccounts.concat(fetchedAdAccounts);
-  
+      const response = await firstValueFrom(callable({ url: url, accessToken: localStorage.getItem('linkedinAccessToken') }));
+      adAccounts = adAccounts.concat(response.elements);
+
       if (response.paging && response.paging.next) {
         return this.fetchAllAdAccounts(response.paging.next, adAccounts);
       } else {
@@ -176,6 +183,7 @@ export class LinkedinFormComponent {
 
     if (!edit) {
       this.formGroup.patchValue({
+        linkedinCampaignGroup: null,
         linkedinCampaign: [],
         linkedinStartDate: null,
         linkedinEndDate: null,
@@ -185,9 +193,9 @@ export class LinkedinFormComponent {
     }
   
     const url = `https://api.linkedin.com/v2/adAccountsV2?q=search&search.status.values[0]=ACTIVE`;
-  
+
     try {
-      const allAdAccounts = await this.fetchAllAdAccounts(url);
+      const allAdAccounts = await this.fetchAllAdAccounts(url, []);
       const sortedAdAccounts = allAdAccounts.sort((a: any, b: any) => a.name.localeCompare(b.name));
       this.adAccounts = sortedAdAccounts;
       this.adAccountsSubject.next(sortedAdAccounts);
@@ -201,15 +209,73 @@ export class LinkedinFormComponent {
     }
   }
 
-  async fetchAllCampaigns(url: string, campaigns: any[] = []): Promise<any[]> {
+  async fetchAllCampaignGroups(url: string, adAccounts: any[] = []): Promise<any[]> {
+    const callable = this.fns.httpsCallable('getLinkedinCampaignGroups');
     try {
-      const response = await firstValueFrom(this.http.get<any>(url));
+      const response = await firstValueFrom(callable({ url: url, accessToken: localStorage.getItem('linkedinAccessToken') }));
+      adAccounts = adAccounts.concat(response.elements);
+
+      if (response.paging && response.paging.next) {
+        return this.fetchAllCampaignGroups(response.paging.next, adAccounts);
+      } else {
+        return adAccounts;
+      }
+    } catch (error) {
+      console.error('Error fetching LinkedIn Campaign groups:', error);
+      this.toaster.error('Error fetching LinkedIn Campaign groups', 'Error');
+      throw error;
+    }
+  }
+
+  async getCampaignGroups(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
+    this.isLoading = true;
+    let adAccount: any = null;
+    if (event) {
+      adAccount = event.option.value;
+    } else {
+      adAccount = this.data?.linkedinAdAccount;
+    }
+    if (!adAccount) {
+      this.isLoading = false;
+      return;
+    }
+
+    if (!edit) {
+      this.formGroup.patchValue({
+        linkedinCampaign: [],
+        linkedinStartDate: null,
+        linkedinEndDate: null,
+        linkedinBudget: null,
+      });
+      this.campaigns = [];
+    }
+  
+    const url = `https://api.linkedin.com/rest/adAccounts/${adAccount.id}/adCampaignGroups?q=search&sortOrder=DESCENDING`;
+
+    try {
+      const allCampaignGroups = await this.fetchAllCampaignGroups(url, []);
+      const sortedCampaignGroups = allCampaignGroups.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      this.campaignGroups$ = of(sortedCampaignGroups);
+      this.originalCampaignGroups$ = of(sortedCampaignGroups);
+      this.campaignGroups$ = this.platformsCommon.setupFiltering(this.formGroup, 'linkedinCampaignGroup', this.originalCampaignGroups$, 'name');
+      this.isLoading = false;
+    } catch (error: any) {
+      console.error(error);
+      this.toaster.error('An error occurred while fetching campaign groups', 'Error');
+      this.isLoading = false;
+    }
+  }
+
+  async fetchAllCampaigns(url: string, campaigns: any[] = []): Promise<any[]> {
+    const callable = this.fns.httpsCallable('getLinkedinCampaigns');
+    try {
+      const response = await firstValueFrom(callable({ url: url, accessToken: localStorage.getItem('linkedinAccessToken') }));
       const fetchedCampaigns = response.elements;
       campaigns = campaigns.concat(fetchedCampaigns);
   
       if (response.metadata && response.metadata.nextPageToken) {
-        const nextPageUrl = `${url}&pageToken=${response.metadata.nextPageToken}`;
-        return this.fetchAllCampaigns(nextPageUrl, campaigns);
+        const nextUrl = `${url}&pageToken=${response.metadata.nextPageToken}`;
+        return this.fetchAllCampaigns(nextUrl, campaigns);
       } else {
         return campaigns;
       }
@@ -222,18 +288,17 @@ export class LinkedinFormComponent {
 
   async getAdAccountCampaigns(event?: MatAutocompleteSelectedEvent, edit?: boolean) {
     this.isLoading = true;
-    const fields = 'id,name,status';
-    let adAccount: any = null;
+    let campaignGroup: any = null;
     if (event) {
-      adAccount = event.option.value;
+      campaignGroup = event.option.value;
     } else {
-      adAccount = this.data?.linkedinAdAccount;
+      campaignGroup = this.data?.linkedinAdAccount;
     }
-    if (!adAccount) {
+    if (!campaignGroup) {
       this.isLoading = false;
       return;
     }
-  
+
     if (!edit) {
       this.formGroup.patchValue({
         linkedinCampaign: [],
@@ -251,11 +316,11 @@ export class LinkedinFormComponent {
       });
       this.campaigns = this.data?.linkedinCampaign;
     }
-  
-    const url = `https://api.linkedin.com/rest/adAccounts/${adAccount.id}/adCampaigns?q=search&search.status.values=ACTIVE&search.type.values=SPONSORED_UPDATES&fields=${fields}`;
-  
+
+    const url = `https://api.linkedin.com/rest/adAccounts/${this.formGroup.get('linkedinAdAccount')?.value.id}/adCampaigns?q=search&sortOrder=DESCENDING&search.campaignGroup.values[0]=urn:li:sponsoredCampaignGroup:${campaignGroup.id}`;
+
     try {
-      const allCampaigns = await this.fetchAllCampaigns(url);
+      const allCampaigns = await this.fetchAllCampaigns(url, []);
       const sortedCampaigns = allCampaigns.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
       if (edit) {
         const campaigns = sortedCampaigns.map((campaign: any) => {
@@ -285,8 +350,8 @@ export class LinkedinFormComponent {
       if (user)  {
         const formData = {
           ...this.formGroup.value,
-          linkedinStartDate: this.platformsCommon.formatDate(this.formGroup.value.dv360StartDate),
-          linkedinEndDate: this.platformsCommon.formatDate(this.formGroup.value.dv360EndDate),
+          linkedinStartDate: this.platformsCommon.formatDate(this.formGroup.value.linkedinStartDate),
+          linkedinEndDate: this.platformsCommon.formatDate(this.formGroup.value.linkedinEndDate),
           userId: user.uid
         };
         return formData;
@@ -311,6 +376,8 @@ export class LinkedinFormComponent {
     this.adAccounts$ = of([]);
     this.originalAdAccounts$ = of([]);
     this.originalCampaigns$ = of([]);
+    this.originalCampaignGroups$ = of([]);
+    this.campaignGroups$ = of([]);
     this.campaigns$ = of([]);
     this.campaigns = [];
     this.selection.clear();

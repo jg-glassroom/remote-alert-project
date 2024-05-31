@@ -8,6 +8,7 @@ import { documentId } from 'firebase/firestore';
 import { AccountComponent } from '../form/account/account.component';
 import { BusinessComponent } from '../form/business/business.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { UserManagementFormComponent } from '../form/user-management-form/user-management-form.component';
 
 import { AuthService } from '../../services/auth.service'; 
 
@@ -37,6 +38,7 @@ interface Account {
     CommonModule,
     BusinessComponent,
     AccountComponent,
+    UserManagementFormComponent,
     MatButtonModule,
     MatIconModule,
     MatCardModule
@@ -65,7 +67,12 @@ export class AccountsComponent {
     });
   }
 
-  addUsers(accountId: any) {}
+  addUsers(accountId: any) {
+    this.matDialog.open(UserManagementFormComponent, {
+      width: '50%',
+      data: { accountId }
+    });
+  }
 
   deleteAccount(account: any): void {
     const dialogRef = this.matDialog.open(ConfirmDialogComponent, {

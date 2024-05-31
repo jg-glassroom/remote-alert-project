@@ -106,7 +106,7 @@ export class FacebookReportService {
     });
   
     return transformedData;
-  }  
+  }
 
   async processReport(campaign: any, index: number) {
     try {
@@ -171,5 +171,5 @@ export class FacebookReportService {
   
   resetReportVariables() {
     this.reportJson = [];
-  }  
+  }
 }

@@ -18,6 +18,7 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-report.service';
 import { AlertsService } from '../../services/alerts/alerts.service';
 import { CommonService } from '../../services/common/common.service';
 
@@ -91,6 +92,7 @@ export class AlertsComponent {
     'googleAds': 'Google Ads',
     'bing': 'Bing',
     'dv360': 'Display & Video 360',
+    'linkedin': 'LinkedIn'
   };
   panelOpenState = false;
 
@@ -118,6 +120,7 @@ export class AlertsComponent {
     private matDialog: MatDialog,
     private route: ActivatedRoute,
     private DV360ReportService: DV360ReportService,
+    private linkedinReportService: LinkedinReportService,
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
@@ -430,6 +433,13 @@ export class AlertsComponent {
       this.db.collection(`userSearch`).doc(campaign.id).update(data).then(() => {
         if (platform.platform === 'dv360') {
           this.DV360ReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.alertsService.updateData(campaign.id, index);
+            }
+          });
+        }
+        if (platform.platform === 'linkedin') {
+          this.linkedinReportService.processReport(campaign, index).then(success => {
             if (success) {
               this.alertsService.updateData(campaign.id, index);
             }

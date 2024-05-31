@@ -390,8 +390,10 @@ export class DialogComponent {
                 }
               });
             } else if (platform === 'linkedin') {
-              this.linkedinReportService.processReport({ id: this.documentId, ...updateData }, index).then((success: any) => {
-                this.alertsService.updateData(this.documentId, index);
+              this.linkedinReportService.processReport({ id: this.documentId, ...updateData }, index).then(success => {
+                if (success) {
+                  this.alertsService.updateData(this.documentId, index);
+                }
               });
             }
           });
@@ -437,8 +439,10 @@ export class DialogComponent {
                   }
                 });
               } else if (platform === 'linkedin') {
-                this.linkedinReportService.processReport(allFormData, index).then((success: any) => {
-                  this.alertsService.updateData(data.id, index);
+                this.linkedinReportService.processReport(allFormData, index).then(success => {
+                  if (success) {
+                    this.alertsService.updateData(this.documentId, index);
+                  }
                 });
               }
             });
