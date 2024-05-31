@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 
@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -40,8 +40,6 @@ import moment from 'moment';
   styleUrls: ['./user-management-form.component.css']
 })
 export class UserManagementFormComponent implements OnInit {
-  @Input() accountId: string = '';
-
   users: any[] = [{ rattachment: [] }];
   options: any = [];
   isLoading: boolean = false;
@@ -50,16 +48,20 @@ export class UserManagementFormComponent implements OnInit {
     private dialogRef: MatDialogRef<UserManagementFormComponent>,
     private db: AngularFirestore,
     private commonService: CommonService,
-    private functions: AngularFireFunctions
+    private functions: AngularFireFunctions,
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
-  ngOnInit() {
-    this.getOptions();
+  async ngOnInit() {
+    await this.getOptions();
+    if (this.data && this.data.accountId) {
+      this.users = [{ rattachment: [this.data.accountId] }];
+    }
   }
 
-  getOptions() {
+  async getOptions() {
     const business = this.commonService.selectedBusiness!;
-    this.db.collection('account', ref => ref.where('business.businessId', '==', business.businessId)).snapshotChanges().subscribe(accountSnapshots => {
+    this.db.collection('account', ref => ref.where('business.id', '==', business.id)).snapshotChanges().subscribe(accountSnapshots => {
       this.options = accountSnapshots.map(accountSnapshot => {
         const accountData: any = accountSnapshot.payload.doc.data();
         return { ...accountData, id: accountSnapshot.payload.doc.id, selected: false };
@@ -159,7 +161,11 @@ export class UserManagementFormComponent implements OnInit {
   }
 
   addUser() {
-    this.users.push({ rattachment: [] });
+    if (this.data && this.data.accountId) {
+      this.users.push({ rattachment: [this.data.accountId] });
+    } else {
+      this.users.push({ rattachment: [] });
+    }
   }
 
   removeUser(user: any) {
