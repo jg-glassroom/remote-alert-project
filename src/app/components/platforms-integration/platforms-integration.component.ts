@@ -15,6 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
 import { BingService } from '../../services/platforms/bing/bing.service';
+import { AppleService } from '../../services/platforms/apple/apple.service';
 import { LinkedinService } from '../../services/platforms/linkedin/linkedin.service';
 import { CommonService } from '../../services/common/common.service';
 
@@ -50,6 +51,7 @@ export class PlatformsIntegrationComponent {
     public googleService: GoogleService,
     public facebookService: FacebookService,
     public bingService: BingService,
+    public appleService: AppleService,
     public linkedinService: LinkedinService,
     public commonService: CommonService,
   ) {}
@@ -75,7 +77,7 @@ export class PlatformsIntegrationComponent {
         googlePlatforms = googlePlatforms.filter(p => p !== platform);
         googlePlatforms.forEach(async p => {
           localStorage.removeItem(`${p}AccessToken`);
-  
+
           if (user) {
             try {
               await updateDoc(doc(db, "user", user.uid), {
@@ -120,7 +122,7 @@ export class PlatformsIntegrationComponent {
   private async exchangeMicrosoftTokens(authCode: string): Promise<void> {
     const callable = this.fns.httpsCallable('exchangeMicrosoftTokens');
     try {
-      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
+      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ?
       'https://localhost:4200/integrations/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/microsoft' }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
@@ -158,7 +160,7 @@ export class PlatformsIntegrationComponent {
   private async exchangeGoogleTokens(authCode: string, platform: string): Promise<void> {
     const callable = this.fns.httpsCallable('exchangeGoogleTokens');
     try {
-      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
+      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ?
       'https://localhost:4200/integrations/' + platform : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/' + platform, platform: platform }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');

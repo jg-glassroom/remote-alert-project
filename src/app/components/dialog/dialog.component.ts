@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { deleteField } from "firebase/firestore";
- 
+
 import { AuthService } from '../../services/auth.service';
 import { ExternalPlatformsService } from '../../services/external-platforms.service';
 import { CommonService } from '../../services/common/common.service';
@@ -11,6 +11,7 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AppleReportService } from '../../services/reports/apple/apple-report.service';
 import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-report.service';
 import { AlertsService } from '../../services/alerts/alerts.service';
 
@@ -18,6 +19,7 @@ import { Dv360FormComponent } from '../form/platforms/dv360-form/dv360-form.comp
 import { FacebookFormComponent } from '../form/platforms/facebook-form/facebook-form.component';
 import { GoogleAdsFormComponent } from '../form/platforms/google-ads-form/google-ads-form.component';
 import { BingFormComponent } from '../form/platforms/bing-form/bing-form.component';
+import { AppleFormComponent } from '../form/platforms/apple-form/apple-form.component';
 import { LinkedinFormComponent } from '../form/platforms/linkedin-form/linkedin-form.component';
 import { SubaccountComponent } from '../form/subaccount/subaccount.component';
 
@@ -42,7 +44,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    CommonModule, 
+    CommonModule,
     MatButtonModule,
     MatInputModule,
     MatSelectModule,
@@ -54,7 +56,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     FacebookFormComponent,
     GoogleAdsFormComponent,
     BingFormComponent,
-    LinkedinFormComponent,
+    AppleFormComponent,
+    LinkedinFormComponent
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
@@ -64,6 +67,7 @@ export class DialogComponent {
   @ViewChildren(FacebookFormComponent) facebookForms!: QueryList<FacebookFormComponent>;
   @ViewChildren(GoogleAdsFormComponent) googleAdsForms!: QueryList<GoogleAdsFormComponent>;
   @ViewChildren(BingFormComponent) bingForms!: QueryList<BingFormComponent>;
+  @ViewChildren(AppleFormComponent) appleForms!: QueryList<AppleFormComponent>;
   @ViewChildren(LinkedinFormComponent) linkedinForms!: QueryList<LinkedinFormComponent>;
 
   formGroup = new FormGroup({
@@ -94,6 +98,7 @@ export class DialogComponent {
     private facebookReportService: FacebookReportService,
     private googleAdsReportService: GoogleAdsReportService,
     private bingReportService: BingReportService,
+    private appleReportService: AppleReportService,
     private linkedinReportService: LinkedinReportService,
     public commonService: CommonService,
     private cdRef: ChangeDetectorRef,
@@ -120,6 +125,8 @@ export class DialogComponent {
           this.tabs.push({ name: 'Google Ads', value: platform.platform, index: platform.index });
         } else if (platform.platform === 'bing') {
           this.tabs.push({ name: 'Bing', value: platform.platform, index: platform.index });
+        } else if (platform.platform === 'apple') {
+          this.tabs.push({ name: 'Apple', value: platform.platform, index: platform.index });
         } else if (platform.platform === 'linkedin') {
           this.tabs.push({ name: 'LinkedIn', value: platform.platform, index: platform.index });
         }
@@ -157,7 +164,7 @@ export class DialogComponent {
       const dialogRef = this.matDialog.open(SubaccountComponent, {
         width: '40%'
       });
-  
+
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           this.subaccounts.push(result);
@@ -196,9 +203,9 @@ export class DialogComponent {
         reject(error);
       });
     });
-  }  
+  }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 
@@ -227,6 +234,7 @@ export class DialogComponent {
       this.facebookForms.length === 0 &&
       this.googleAdsForms.length === 0 &&
       this.bingForms.length === 0 &&
+      this.appleForms.length === 0 &&
       this.linkedinForms.length === 0
     ) {
       doSubmit = false;
@@ -283,6 +291,16 @@ export class DialogComponent {
       }
     });
 
+    this.appleForms.forEach(form => {
+      const formData = form.getFormData();
+      if (formData) {
+        platforms.push({ platform: 'apple', formData: formData, loading: execute });
+      } else {
+        doSubmit = false;
+        this.toaster.error('An Apple form is not valid');
+      }
+    });
+
     allFormData.platforms = platforms;
 
     this.updateValidity();
@@ -298,7 +316,7 @@ export class DialogComponent {
 
     platforms.forEach(platformData => {
       const platform = platformData.platform;
-      
+
       switch(platform) {
         case 'googleAds':
           if (!platforms.includes(platform)) {
@@ -341,6 +359,14 @@ export class DialogComponent {
             dataToUpdate.bingStartDate = deleteField();
           }
           break;
+        case 'apple':
+          if (!platforms.includes(platform)) {
+            dataToUpdate.appleAdAccount = deleteField();
+            dataToUpdate.appleBudget = deleteField();
+            dataToUpdate.appleCampaign = deleteField();
+            dataToUpdate.appleEndDate = deleteField();
+            dataToUpdate.applePlatform = deleteField();
+            dataToUpdate.appleStartDate = deleteField();
         case 'linkedin':
           if (!platforms.includes(platform)) {
             dataToUpdate.linkedinAccount = deleteField();
@@ -395,6 +421,12 @@ export class DialogComponent {
                   this.alertsService.updateData(this.documentId, index);
                 }
               });
+            } else if (platform === 'apple') {
+              this.appleReportService.processReport({ id: this.documentId, ...data }, index).then(success => {
+                if (success) {
+                  this.alertsService.updateData(this.documentId, index);
+                }
+              });
             }
           });
         }
@@ -438,6 +470,10 @@ export class DialogComponent {
                     this.alertsService.updateData(data.id, index);
                   }
                 });
+              } else if (platform === 'apple') {
+                this.appleReportService.processReport(allFormData, index).then(success => {
+                  if (success) {
+                    this.alertsService.updateData(data.id, index);
               } else if (platform === 'linkedin') {
                 this.linkedinReportService.processReport(allFormData, index).then(success => {
                   if (success) {
@@ -487,6 +523,7 @@ export class DialogComponent {
       'facebook': 'Facebook',
       'googleAds': 'Google Ads',
       'bing': 'Bing',
+      'apple': 'Apple Search Ads',
       'linkedin': 'LinkedIn'
     };
     this.selectPlatforms.push(platform);
@@ -506,6 +543,8 @@ export class DialogComponent {
       return this.googleAdsForms.toArray()[index].formGroup.invalid;
     } else if (this.tabs[index].value === 'bing' && this.bingForms && this.bingForms.toArray().length > index) {
       return this.bingForms.toArray()[index].formGroup.invalid;
+    } else if (this.tabs[index].value === 'apple' && this.appleForms && this.appleForms.toArray().length > index) {
+      return this.appleForms.toArray()[index].formGroup.invalid;
     } else if (this.tabs[index].value === 'linkedin' && this.linkedinForms && this.linkedinForms.toArray().length > index) {
       return this.linkedinForms.toArray()[index].formGroup.invalid;
     }

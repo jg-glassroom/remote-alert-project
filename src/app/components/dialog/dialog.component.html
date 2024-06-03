@@ -79,7 +79,19 @@
             </span>
           </div>
         </ng-template>
-        <app-bing-form #googleAdsForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-bing-form>
+        <app-bing-form #bingForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-bing-form>
+      </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'apple'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-apple-form #appleForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-apple-form>
       </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'linkedin'">
         <ng-template mat-tab-label>
@@ -111,6 +123,7 @@
                 <mat-option value="facebook" [disabled]="!commonService.isConnected('facebook')">Facebook</mat-option>
                 <mat-option value="googleAds" [disabled]="!commonService.isConnected('googleAds')">Google Ads</mat-option>
                 <mat-option value="bing" [disabled]="!commonService.isConnected('bing')">Bing</mat-option>
+                <mat-option value="apple" [disabled]="!commonService.isConnected('apple')">Apple Search Ads</mat-option>
                 <mat-option value="linkedin" [disabled]="!commonService.isConnected('linkedin')">LinkedIn</mat-option>
               </mat-select>
           </mat-form-field>

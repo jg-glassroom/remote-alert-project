@@ -27,7 +27,7 @@ interface TransformedData {
 @Injectable({
   providedIn: 'root'
 })
-export class FacebookReportService {
+export class AppleReportService {
   reportJson: any = [];
 
   constructor(
@@ -43,12 +43,13 @@ export class FacebookReportService {
   }
 
   async getReport(campaign: any) {
+    return null;
+    /*
     const fields = [
       'date_start',
       'date_stop',
       'account_id',
       'campaign_id',
-      'adset_id',
       'outbound_clicks',
       'impressions',
       'spend',
@@ -56,36 +57,28 @@ export class FacebookReportService {
 
     const adAccount = campaign.facebookAdAccount.id;
     const campaignIds = campaign.facebookCampaign.map((c: any) => c.id);
-    const adsetIds = campaign.facebookAdset ? campaign.facebookAdset.map((a: any) => a.id) : [];
     const accessToken = localStorage.getItem('facebookAccessToken');
     const startDate = this.convertDateFormat(campaign.facebookStartDate);
     const endDate = this.convertDateFormat(campaign.facebookEndDate);
 
-    const filtering = [];
-    if (campaignIds.length) {
-      filtering.push({ field: 'campaign.id', operator: 'IN', value: campaignIds });
-    }
-    if (adsetIds.length) {
-      filtering.push({ field: 'adset.id', operator: 'IN', value: adsetIds });
-    }
+    const filtering = `[{'field':'campaign.id','operator':'IN','value':[${campaignIds.join(',')}] }]`;
 
     const timeRange = `{"since":"${startDate}","until":"${endDate}"}`;
-    let url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(JSON.stringify(filtering))}&time_increment=1`;
-    this.reportJson = [];
+    const url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(filtering)}&time_increment=1`;
 
     try {
-      while (url) {
-        const response = await fetch(url);
-        const data = await response.json();
-        this.reportJson.push(...data.data);
-        url = data.paging?.next || null;
-      }
+      const response = await fetch(url);
+      const data = await response.json();
+      this.reportJson = data.data;
     } catch (error) {
       console.error('Error fetching campaign metrics:', error);
     }
+    */
   }
 
   private transformReport(dataArray: any): TransformedData | null {
+    return null;
+    /*
     if (!dataArray) return null;
     let transformedData: TransformedData = {};
 
@@ -106,9 +99,12 @@ export class FacebookReportService {
     });
 
     return transformedData;
+    */
   }
 
   async processReport(campaign: any, index: number) {
+    return null;
+    /*
     try {
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
@@ -119,29 +115,9 @@ export class FacebookReportService {
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
         campaignId: campaign.id,
-        userId: userId,
-        userSearchId: userSearchId + '_' + index,
+        userId: userId
       };
-
-      this.db.collection('facebookReport', ref => ref.where('userSearchId', '==', userSearchId + '_' + index))
-        .get()
-        .subscribe(querySnapshot => {
-          if (!querySnapshot.empty) {
-            querySnapshot.forEach(doc => {
-              this.db.collection('facebookReport').doc(doc.id).set(reportToSave)
-                .catch(error => {
-                  console.error('Error updating report: ', error);
-                });
-            });
-          } else {
-            this.db.collection('facebookReport').add(reportToSave)
-              .catch(error => {
-                console.error('Error adding report: ', error);
-              });
-          }
-        }, error => {
-          console.error('Error checking for existing report: ', error);
-        });
+      this.db.collection('facebookReport').add(reportToSave);
 
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
@@ -151,7 +127,7 @@ export class FacebookReportService {
         userId: userId,
         platform: "facebook",
         platformIndex: index,
-        accountId: this.commonService.selectedAccount.id
+        accountId: this.commonService.selectedAccountId
       });
 
       try {
@@ -167,6 +143,7 @@ export class FacebookReportService {
       console.error('Error processing Facebook report: ', error);
       return false;
     }
+    */
   }
 
   resetReportVariables() {

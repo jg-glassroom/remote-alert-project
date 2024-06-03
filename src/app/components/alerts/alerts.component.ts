@@ -18,7 +18,9 @@ import { DV360ReportService } from '../../services/reports/dv360/dv360-report.se
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
+import { AppleReportService } from '../../services/reports/apple/apple-report.service';
 import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-report.service';
+
 import { AlertsService } from '../../services/alerts/alerts.service';
 import { CommonService } from '../../services/common/common.service';
 
@@ -92,6 +94,7 @@ export class AlertsComponent {
     'googleAds': 'Google Ads',
     'bing': 'Bing',
     'dv360': 'Display & Video 360',
+    'apple': 'Apple Search Ads'
     'linkedin': 'LinkedIn'
   };
   panelOpenState = false;
@@ -124,6 +127,7 @@ export class AlertsComponent {
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
+    private appleReportService: AppleReportService,
     public alertsService: AlertsService,
     public commonService: CommonService
   ) {}
@@ -181,18 +185,18 @@ export class AlertsComponent {
 
   private _filter(value: any, options: any[], field: string): any[] {
     const filterValue = value.toLowerCase();
-    const selectedOptions = options.filter(option => 
-      this.selectedSubaccounts.includes(option.id) || 
-      this.selectedPlatforms.includes(option.key) || 
-      this.selectedUsers.includes(option.id) || 
+    const selectedOptions = options.filter(option =>
+      this.selectedSubaccounts.includes(option.id) ||
+      this.selectedPlatforms.includes(option.key) ||
+      this.selectedUsers.includes(option.id) ||
       this.selectedAlerts.includes(option.id)
     );
     const filteredOptions = options.filter(option => option && option[field] && option[field].toLowerCase().includes(filterValue));
-  
+
     const combinedOptions = [...selectedOptions, ...filteredOptions];
     const uniqueOptions = Array.from(new Set(combinedOptions.map(option => JSON.stringify(option))))
                                 .map(option => JSON.parse(option));
-  
+
     return uniqueOptions;
   }
 
@@ -461,6 +465,13 @@ export class AlertsComponent {
         }
         if (platform.platform === 'googleAds') {
           this.googleAdsReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.alertsService.updateData(campaign.id, index);
+            }
+          });
+        }
+        if (platform.platform === 'apple') {
+          this.appleReportService.processReport(campaign, index).then(success => {
             if (success) {
               this.alertsService.updateData(campaign.id, index);
             }

@@ -21,6 +21,7 @@ import { FacebookReportService } from './reports/facebook/facebook-report.servic
 import { GoogleAdsReportService } from './reports/google-ads/google-ads-report.service';
 import { LinkedinReportService } from './reports/linkedin/linkedin-report.service';
 import { BingReportService } from './reports/bing/bing-report.service';
+import { AppleReportService } from './reports/apple/apple-report.service';
 
 import { CommonService } from './common/common.service';
 
@@ -41,6 +42,7 @@ export class AuthService {
     private googleAdsReportService: GoogleAdsReportService,
     private linkedinReportService: LinkedinReportService,
     private bingReportService: BingReportService,
+    private appleReportService: AppleReportService,
     private commonService: CommonService
   ) { 
     this.user$ = this.afAuth.authState.pipe(
@@ -76,7 +78,7 @@ export class AuthService {
 
       const userRef = this.afs.collection('user').doc(currentUser.uid);
       await userRef.update({ last_login: moment().format('MM/DD/YYYY HH:mm:ss') });
-      
+
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
       userDoc.pipe(first()).subscribe(async (user: any) => {
         if (user.googleAdsAccessToken) {
@@ -90,6 +92,9 @@ export class AuthService {
         }
         if (user.microsoftAccessToken) {
           localStorage.setItem('microsoftAccessToken', user.microsoftAccessToken);
+        }
+        if (user.appleAccessToken) {
+          localStorage.setItem('appleAccessToken', user.appleAccessToken);
         }
         if (user.linkedinAccessToken) {
           localStorage.setItem('linkedinAccessToken', user.linkedinAccessToken);
@@ -125,6 +130,8 @@ export class AuthService {
                   await this.googleAdsReportService.processReport(alert, index);
                 } else if (platform === 'bing') {
                   await this.bingReportService.processReport(alert, index);
+                } else if (platform === 'apple') {
+                  await this.appleReportService.processReport(alert, index);         
                 } else if (platform === 'linkedin') {
                   await this.linkedinReportService.processReport(alert, index);
                 }
