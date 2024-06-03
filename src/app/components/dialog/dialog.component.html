@@ -93,6 +93,18 @@
         </ng-template>
         <app-apple-form #appleForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-apple-form>
       </mat-tab>
+      <mat-tab [label]="tab.name" *ngIf="tab.value === 'linkedin'">
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ tab.name }}&nbsp;</span>
+            <span class="icon-container">
+              <mat-icon *ngIf="tabErrors[index]" class="error-icon">warning</mat-icon>
+              <mat-icon (click)="removeTab(index)" *ngIf="tabs.length > 1" class="close-icon">close</mat-icon>
+            </span>
+          </div>
+        </ng-template>
+        <app-linkedin-form #linkedinForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-linkedin-form>
+      </mat-tab>
       <mat-tab [label]="tab.name" *ngIf="tab.value === 'new'">
         <ng-template mat-tab-label>
           <div class="tab-label">
@@ -112,6 +124,7 @@
                 <mat-option value="googleAds" [disabled]="!commonService.isConnected('googleAds')">Google Ads</mat-option>
                 <mat-option value="bing" [disabled]="!commonService.isConnected('bing')">Bing</mat-option>
                 <mat-option value="apple" [disabled]="!commonService.isConnected('apple')">Apple Search Ads</mat-option>
+                <mat-option value="linkedin" [disabled]="!commonService.isConnected('linkedin')">LinkedIn</mat-option>
               </mat-select>
           </mat-form-field>
           <div class="form-element">
@@ -122,12 +135,10 @@
   </mat-tab-group>
 
   <div class="form-element footer">
-    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">{{ isEditMode ? 'Edit' : 'Save' }}</button>
+    <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">Save</button>
     &nbsp;
-    <ng-container *ngIf="!isEditMode">
-        <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)" type="button">Save & execute</button>
-        &nbsp;
-    </ng-container>
+    <button mat-raised-button class="button" color="primary" (click)="onSubmit(true)" type="button">Save & execute</button>
+    &nbsp;
     <button mat-raised-button class="button" (click)="onCancel()" type="button">Cancel</button>
   </div>
 </form>

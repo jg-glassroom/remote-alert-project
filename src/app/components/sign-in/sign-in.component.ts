@@ -142,31 +142,21 @@ export class SignInComponent {
       } else {
         if (this.showForgotPassword) {
           const auth = getAuth()
-          fetchSignInMethodsForEmail(auth, value.email).then((signInMethods) => {
-            if (signInMethods.includes('password')) {
-              sendPasswordResetEmail(auth, value.email)
-              .then(() => {
-                this.toaster.info(`Please check the email address ${value.email} for instructions to reset your password.`, "Info");
-                this.showForgotPassword = false;
-                this.registration = false;
-                this.createForm();
-              })
-              .catch((error) => {
-                this.errorMessage = error.message || 'An unexpected error occurred.';
-              });
-            } else if (signInMethods.length > 0) {
-              this.toaster.info(`It seems you usually sign in with ${signInMethods[0]}. Please use that method to sign in.`, "Authentication method found");
-            }
+          sendPasswordResetEmail(auth, value.email)
+          .then(() => {
+            this.toaster.info(`Please check the email address ${value.email} for instructions to reset your password.`, "Info");
+            this.showForgotPassword = false;
+            this.registration = false;
+            this.createForm();
           })
-            .catch((error) => {
-              console.error("Error fetching sign in methods: ", error);
-              this.toaster.error("An error occurred while checking the sign in methods.", "Error");
-            });
+          .catch((error) => {
+            this.errorMessage = error.message || 'An unexpected error occurred.';
+          });
         } else {
           this.auth.emailPasswordSignIn(value.email, value.password)
           .then(() => {
-            if (this.commonService.selectedAccountId) {
-              this.router.navigate(['/alerts', this.commonService.selectedAccountId]);
+            if (this.commonService.selectedAccount) {
+              this.router.navigate(['/alerts', this.commonService.selectedAccount.id]);
             } else {
               this.router.navigate(['/accounts']);
             }

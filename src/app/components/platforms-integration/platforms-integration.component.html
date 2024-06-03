@@ -73,4 +73,18 @@
             </div>
         </mat-card-content>
     </mat-card>
+    <mat-card class="platform-card">
+        <mat-card-content class="mat-card-content">
+            <img src="../../../assets/linkedin-logo.png" alt="Linkedin logo" class="logo">
+            <div class="bottom">
+                <div class="status-group">
+                    <span class="status">Status:</span>
+                    <mat-icon style="color: green;" *ngIf="commonService.isConnected('linkedin')">check</mat-icon>
+                    <mat-icon style="color: red;" *ngIf="!commonService.isConnected('linkedin')">close</mat-icon>
+                </div>
+                <button mat-raised-button color="primary" class="reconnect" (click)="linkedinService.linkedinConnect()" *ngIf="!commonService.isConnected('linkedin')">Connect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="linkedinService.linkedinDisconnect()" *ngIf="commonService.isConnected('linkedin')">Disconnect</button>
+            </div>
+        </mat-card-content>
+    </mat-card>
 </div>

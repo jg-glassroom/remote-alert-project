@@ -111,25 +111,26 @@ export class BingReportService {
       const csvData = reportData.substring(csvStartIndex);
       const parsedData: any = Papa.parse(csvData, { header: true, skipEmptyLines: true });
       this.reportJson = parsedData.data.reduce((acc: any, cur: any) => {
-        const key = cur.TimePeriod;
+        let key = cur.TimePeriod;
         if (campaign.bingCampaign.map((c: any) => c.id).includes(cur.CampaignId)) {
+          key = moment(key).format("YYYY/MM/DD");
           if (!acc[key]) {
             acc[key] = {
-              TimePeriod: cur.TimePeriod,
+              TimePeriod: moment(cur.TimePeriod).format("YYYY/MM/DD"),
               AccountName: cur.AccountName,
               AccountId: cur.AccountId,
               CampaignIds: [cur.CampaignId],
               Impressions: parseInt(cur.Impressions),
               Clicks: parseInt(cur.Clicks),
               Conversions: parseInt(cur.Conversions),
-              Spend: parseInt(cur.Spend)
+              Spend: parseFloat(cur.Spend)
             };
           } else {
             acc[key].CampaignIds.push(cur.CampaignId);
             acc[key].Impressions += parseInt(cur.Impressions);
             acc[key].Clicks += parseInt(cur.Clicks);
             acc[key].Conversions += parseInt(cur.Conversions);
-            acc[key].Spend += parseInt(cur.Spend);
+            acc[key].Spend += parseFloat(cur.Spend);
           }
         }
         if (acc[key]) {
@@ -157,14 +158,57 @@ export class BingReportService {
       await this.generateReport(campaign.platforms[index].formData);
       await this.getReportStatus(campaign.platforms[index].formData);
       await this.getReport(campaign.platforms[index].formData);
+
+      let dateRegex = /^\d{4}\/\d{2}\/\d{2}$/;
+      let resultatAgregat: any = {};
+
+      this.reportJson.forEach((line: any) => {
+        if (!resultatAgregat[line.TimePeriod]) {
+          resultatAgregat[line.TimePeriod] = {...line, Nombre: 1};
+        } else {
+          Object.keys(line).forEach(cle => {
+            if (typeof line[cle] === 'number') {
+              resultatAgregat[line.TimePeriod][cle] += line[cle];
+            }
+          });
+          resultatAgregat[line.TimePeriod].Nombre += 1;
+        }
+      });
+      let filteredObj = Object.entries(resultatAgregat)
+        .filter(([key, _]) => dateRegex.test(key))
+        .reduce((acc: any, [key, value]) => {
+          acc[key] = value;
+          return acc;
+        }, {});
+
       let reportToSave = {
-        report: this.reportJson,
+        report: filteredObj,
+        userSearchId: userSearchId + '_' + index,
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
         campaignId: campaign.id,
         userId: userId
       };
-      this.db.collection('bingReport').add(reportToSave);
+
+      this.db.collection('bingReport', ref => ref.where('userSearchId', '==', userSearchId + '_' + index))
+        .get()
+        .subscribe(querySnapshot => {
+          if (!querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              this.db.collection('bingReport').doc(doc.id).set(reportToSave)
+                .catch(error => {
+                  console.error('Error updating report: ', error);
+                });
+            });
+          } else {
+            this.db.collection('bingReport').add(reportToSave)
+              .catch(error => {
+                console.error('Error adding report: ', error);
+              });
+          }
+        }, error => {
+          console.error('Error checking for existing report: ', error);
+        });
 
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
@@ -175,7 +219,7 @@ export class BingReportService {
           userId: userId,
           platform: "bing",
           platformIndex: index,
-          accountId: this.commonService.selectedAccountId
+          accountId: this.commonService.selectedAccount.id
         });
 
         try {

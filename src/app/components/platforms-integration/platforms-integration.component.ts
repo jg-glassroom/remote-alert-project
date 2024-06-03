@@ -16,6 +16,7 @@ import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
 import { BingService } from '../../services/platforms/bing/bing.service';
 import { AppleService } from '../../services/platforms/apple/apple.service';
+import { LinkedinService } from '../../services/platforms/linkedin/linkedin.service';
 import { CommonService } from '../../services/common/common.service';
 
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
@@ -51,6 +52,7 @@ export class PlatformsIntegrationComponent {
     public facebookService: FacebookService,
     public bingService: BingService,
     public appleService: AppleService,
+    public linkedinService: LinkedinService,
     public commonService: CommonService,
   ) {}
 
@@ -109,6 +111,9 @@ export class PlatformsIntegrationComponent {
           .catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'microsoft') {
           this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+        } else if (source === 'linkedin') {
+          this.exchangeLinkedinToken(authCode)
+          .catch(error => console.error('Error calling cloud function', error));
         }
       }
     });
@@ -128,6 +133,25 @@ export class PlatformsIntegrationComponent {
       localStorage.setItem('microsoftAccessToken', result.access_token);
       history.replaceState(null, '', window.location.pathname);
       this.toaster.success('Microsoft account connected successfully');
+    } catch (error) {
+      console.error('Error calling cloud function', error);
+    }
+  }
+
+  private async exchangeLinkedinToken(authCode: string): Promise<void> {
+    const callable = this.fns.httpsCallable('exchangeLinkedinToken');
+    try {
+      const result = await firstValueFrom(callable({ code: authCode, redirectUri: window.location.hostname === "localhost" ? 
+      'https://localhost:4200/integrations/linkedin' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/linkedin' }));
+      const currentUser = getAuth().currentUser;
+      if (!currentUser) throw new Error('User not logged in');
+      console.log('result', result);
+      this.db.collection('user').doc(currentUser.uid).update({
+        linkedinAccessToken: result.access_token,
+      });
+      localStorage.setItem('linkedinAccessToken', result.access_token);
+      history.replaceState(null, '', window.location.pathname);
+      this.toaster.success('Linkedin account connected successfully');
     } catch (error) {
       console.error('Error calling cloud function', error);
     }

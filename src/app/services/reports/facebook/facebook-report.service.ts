@@ -70,12 +70,16 @@ export class FacebookReportService {
     }
 
     const timeRange = `{"since":"${startDate}","until":"${endDate}"}`;
-    const url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(JSON.stringify(filtering))}&time_increment=1`;
+    let url = `https://graph.facebook.com/v19.0/${adAccount}/insights?fields=${fields}&time_range=${timeRange}&access_token=${accessToken}&filtering=${encodeURIComponent(JSON.stringify(filtering))}&time_increment=1`;
+    this.reportJson = [];
 
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      this.reportJson = data.data;
+      while (url) {
+        const response = await fetch(url);
+        const data = await response.json();
+        this.reportJson.push(...data.data);
+        url = data.paging?.next || null;
+      }
     } catch (error) {
       console.error('Error fetching campaign metrics:', error);
     }
@@ -115,9 +119,29 @@ export class FacebookReportService {
         date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
         campaignName: campaign.campaignName,
         campaignId: campaign.id,
-        userId: userId
+        userId: userId,
+        userSearchId: userSearchId + '_' + index,
       };
-      this.db.collection('facebookReport').add(reportToSave);
+
+      this.db.collection('facebookReport', ref => ref.where('userSearchId', '==', userSearchId + '_' + index))
+        .get()
+        .subscribe(querySnapshot => {
+          if (!querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              this.db.collection('facebookReport').doc(doc.id).set(reportToSave)
+                .catch(error => {
+                  console.error('Error updating report: ', error);
+                });
+            });
+          } else {
+            this.db.collection('facebookReport').add(reportToSave)
+              .catch(error => {
+                console.error('Error adding report: ', error);
+              });
+          }
+        }, error => {
+          console.error('Error checking for existing report: ', error);
+        });
 
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
@@ -127,7 +151,7 @@ export class FacebookReportService {
         userId: userId,
         platform: "facebook",
         platformIndex: index,
-        accountId: this.commonService.selectedAccountId
+        accountId: this.commonService.selectedAccount.id
       });
 
       try {

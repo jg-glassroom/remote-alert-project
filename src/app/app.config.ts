@@ -16,17 +16,26 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 
 import { provideToastr } from 'ngx-toastr';
 
+import { getAnalytics, isSupported } from 'firebase/analytics';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideToastr(),
     provideNativeDateAdapter(),
-    provideRouter(routes), 
+    provideRouter(routes),
     { provide: FIREBASE_OPTIONS, useValue: environment.firebaseConfig },
     { provide: REGION, useValue: 'northamerica-northeast1' },
     provideAnimationsAsync(),
     importProvidersFrom([
-      provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+      provideFirebaseApp(() => {
+        const app = initializeApp(environment.firebaseConfig);
+        isSupported().then(supported => {
+          if (supported) {
+            getAnalytics(app);
+          }
+        });
+        return app;
+      }),
       provideAuth(() => getAuth()),
       provideFirestore(() => getFirestore()),
       provideStorage(() => getStorage()),

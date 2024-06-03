@@ -14,6 +14,7 @@ import { CommonService } from '../../common/common.service';
 import { ToastrService } from 'ngx-toastr';
 
 import moment from 'moment-timezone';
+import { user } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -127,7 +128,7 @@ export class DV360ReportService {
     }
   }
 
-  async getReportLink() {
+  async getReportLink(retryCount = 10) {
     let status = null;
     while (status !== 'DONE') {
       try {
@@ -141,8 +142,12 @@ export class DV360ReportService {
         } else {
           console.log("Report link not found in response:", data);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(error);
+        if (retryCount > 0) {
+          await this.externalPlatforms.handleGoogleError(error, 'dv360');
+          this.getReportLink(retryCount - 1);
+        }
       }
     }
   }
@@ -261,7 +266,7 @@ export class DV360ReportService {
     });
   }
 
-  async saveReport(report: any, campaign: any, userId: any) {
+  async saveReport(report: any, campaign: any, userId: any, userSearchId: any, index: any) {
     let resultatAgregat: any = {};
 
     report.forEach((line: any) => {
@@ -285,14 +290,34 @@ export class DV360ReportService {
         acc[key] = value;
         return acc;
       }, {});
-    let reportToSave = {
-      report: filteredObj,
-      date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
-      campaignName: campaign.campaignName,
-      campaignId: campaign.id,
-      userId: userId
-    };
-    this.db.collection('DV360Report').add(reportToSave);
+      let reportToSave = {
+        report: filteredObj,
+        userSearchId: userSearchId + '_' + index,
+        date: moment.tz("America/Montreal").format("YYYY-MM-DD"),
+        campaignName: campaign.campaignName,
+        campaignId: campaign.id,
+        userId: userId
+      };
+
+      this.db.collection('dv360Report', ref => ref.where('userSearchId', '==', userSearchId + '_' + index))
+        .get()
+        .subscribe(querySnapshot => {
+          if (!querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              this.db.collection('dv360Report').doc(doc.id).set(reportToSave)
+                .catch(error => {
+                  console.error('Error updating report: ', error);
+                });
+            });
+          } else {
+            this.db.collection('dv360Report').add(reportToSave)
+              .catch(error => {
+                console.error('Error adding report: ', error);
+              });
+          }
+        }, error => {
+          console.error('Error checking for existing report: ', error);
+        });
   }
 
   async processReport(campaign: any, index: number) {
@@ -306,7 +331,7 @@ export class DV360ReportService {
 
       const userSearchId = campaign.id;
       const userId = getAuth().currentUser?.uid;
-      await this.saveReport(this.reportJson, campaign, userId);
+      await this.saveReport(this.reportJson, campaign, userId, userSearchId, index);
       const AllPacingAlerts = this.fns.httpsCallable('AllPacingAlerts');
 
       if (this.reportJson) {
@@ -316,7 +341,7 @@ export class DV360ReportService {
           userId: userId,
           platform: "dv360",
           platformIndex: index,
-          accountId: this.commonService.selectedAccountId
+          accountId: this.commonService.selectedAccount.id
         });
 
         try {

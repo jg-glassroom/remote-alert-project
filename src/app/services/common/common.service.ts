@@ -15,8 +15,8 @@ import { startWith, map, switchMap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class CommonService {
-  selectedAccountId: string | null = null;
-  selectedBusinessId: string | null = null;
+  selectedAccount: any = null;
+  selectedBusiness: any = null;
   isAdmin: boolean = false;
 
   constructor(
@@ -215,6 +215,8 @@ export class CommonService {
       return !!localStorage.getItem('microsoftAccessToken');
     } else if (platform === 'apple') {
       return !!localStorage.getItem('appleAccessToken');
+    } else if (platform === 'linkedin') {
+      return !!localStorage.getItem('linkedinAccessToken');
     } else {
       return false;
     }
@@ -231,7 +233,7 @@ export class CommonService {
               querySnapshot.forEach(doc => {
                 const data: any = doc.data();
                 data.businessRoles?.forEach((role: any) => {
-                  if (role.businessId === this.selectedBusinessId && role.role === 'ADMIN') {
+                  if (role.businessId === this.selectedBusiness.id && role.role === 'ADMIN') {
                     this.isAdmin = true;
                   }
                 });

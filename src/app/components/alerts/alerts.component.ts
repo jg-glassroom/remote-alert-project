@@ -12,12 +12,17 @@ import { DialogComponent } from '../dialog/dialog.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { SubaccountComponent } from '../form/subaccount/subaccount.component';
 
+import { LineChartComponent } from '../line-chart/line-chart.component';
+
 import { DV360ReportService } from '../../services/reports/dv360/dv360-report.service';
 import { FacebookReportService } from '../../services/reports/facebook/facebook-report.service';
 import { GoogleAdsReportService } from '../../services/reports/google-ads/google-ads-report.service';
 import { BingReportService } from '../../services/reports/bing/bing-report.service';
 import { AppleReportService } from '../../services/reports/apple/apple-report.service';
+import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-report.service';
+
 import { AlertsService } from '../../services/alerts/alerts.service';
+import { CommonService } from '../../services/common/common.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -53,7 +58,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    LineChartComponent
   ],
   templateUrl: './alerts.component.html',
   styleUrls: ['./alerts.component.css']
@@ -89,6 +95,7 @@ export class AlertsComponent {
     'bing': 'Bing',
     'dv360': 'Display & Video 360',
     'apple': 'Apple Search Ads'
+    'linkedin': 'LinkedIn'
   };
   panelOpenState = false;
 
@@ -107,17 +114,22 @@ export class AlertsComponent {
   filteredUserOptions!: Observable<any[]>;
   filteredAlertOptions!: Observable<any[]>;
 
+  openPanels: Set<string> = new Set<string>();
+  loadingGraphs: Set<string> = new Set();
+
   constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
     private matDialog: MatDialog,
     private route: ActivatedRoute,
     private DV360ReportService: DV360ReportService,
+    private linkedinReportService: LinkedinReportService,
     private facebookReportService: FacebookReportService,
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
     private appleReportService: AppleReportService,
-    public alertsService: AlertsService
+    public alertsService: AlertsService,
+    public commonService: CommonService
   ) {}
 
   ngOnInit() {
@@ -126,8 +138,49 @@ export class AlertsComponent {
       if (accountId !== this.selectedAccountId) {
         this.selectedAccountId = accountId;
         await this.getData();
+        this.applyFilters();
       }
     });
+
+    this.filteredUserOptions = this.userFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.users, 'email'))
+    );
+  }
+
+  togglePanel(alertId: string) {
+    if (this.openPanels.has(alertId)) {
+      this.openPanels.delete(alertId);
+    } else {
+      this.openPanels.add(alertId);
+      this.loadingGraphs.add(alertId);
+      setTimeout(() => {
+        this.loadingGraphs.delete(alertId);
+      }, 2000);
+    }
+  }
+
+  onSelectionChange(event: any, type: string) {
+    switch (type) {
+      case 'subaccount':
+        this.selectedSubaccounts = event.value;
+        break;
+      case 'platform':
+        this.selectedPlatforms = event.value;
+        break;
+      case 'user':
+        this.selectedUsers = event.value;
+        break;
+      case 'alert':
+        this.selectedAlerts = event.value;
+        break;
+    }
+    this.applyFilters();
+  }
+
+  hasOverallDeltaValue(pacingAlert: any): boolean {
+    return pacingAlert.platforms &&
+        pacingAlert.platforms.some((platform: any) => platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'));
   }
 
   private _filter(value: any, options: any[], field: string): any[] {
@@ -161,11 +214,6 @@ export class AlertsComponent {
     this.filteredUserOptions = this.userFilter.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, this.users, 'email'))
-    );
-
-    this.filteredAlertOptions = this.alertFilter.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value, this.alertsService.pacingAlerts.sort((a: any, b: any) => a.campaignName.localeCompare(b.campaignName)), 'campaignName'))
     );
   }
 
@@ -214,14 +262,29 @@ export class AlertsComponent {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.pacingAlerts = [];
       this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(async querySnapshot => {
+        let alerts: any = [];
         querySnapshot.forEach((doc: any) => {
           const pacingAlert = {
             id: doc.id,
             ...doc.data() as any,
             originalPlatforms: doc.data().platforms
           };
-          this.alertsService.pacingAlerts.push(pacingAlert);
+          alerts.push(pacingAlert);
         });
+
+        for (const alert of alerts) {
+          for (const [index, platform] of alert.platforms.entries()) {
+            const collectionName = `${platform.platform}Report`;
+            const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
+            const report = result.docs.map((doc: any) => doc.data());
+            if (report.length > 0) {
+              alert.platforms[index].report = report[0];
+              alert.originalPlatforms[index].report = report[0];
+            }
+          }
+        }
+
+        this.alertsService.pacingAlerts = alerts;
         resolve();
       }, error => {
         reject(error);
@@ -379,6 +442,13 @@ export class AlertsComponent {
             }
           });
         }
+        if (platform.platform === 'linkedin') {
+          this.linkedinReportService.processReport(campaign, index).then(success => {
+            if (success) {
+              this.alertsService.updateData(campaign.id, index);
+            }
+          });
+        }
         if (platform.platform === 'facebook') {
           this.facebookReportService.processReport(campaign, index).then(success => {
             if (success) {
@@ -415,30 +485,70 @@ export class AlertsComponent {
     return Object.keys(this.platforms).sort();
   }
 
+  private filterUsers(): any[] {
+    const filteredAlerts = this.alertsService.pacingAlerts
+      .filter(alert => {
+        if (this.selectedSubaccounts.length > 0 && alert.subaccount) {
+          return this.selectedSubaccounts.includes(alert.subaccount.id);
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedPlatforms.length > 0) {
+          return alert.platforms.some((platform: any) => this.selectedPlatforms.includes(platform.platform));
+        }
+        return true;
+      });
+
+    const userIds = Array.from(new Set(filteredAlerts.flatMap(alert => alert.platforms.map((platform: any) => platform.formData.userId))));
+    return this.users.filter((user: any) => userIds.includes(user.id));
+  }
+
   applyFilters() {
-    this.alertsService.pacingAlerts = this.alertsService.pacingAlerts.map(alert => {
-      if (this.selectedPlatforms.length > 0) {
-        alert.platforms = alert.originalPlatforms.filter((p: any) => this.selectedPlatforms.includes(p.platform));
-      } else {
-        alert.platforms = alert.originalPlatforms;
-      }
-      return alert;
-    }).filter(alert => {
-      if (this.selectedUsers.length > 0) {
-        return alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId));
-      }
-      return true;
-    }).filter(alert => {
-      if (this.selectedSubaccounts.length > 0) {
-        return this.selectedSubaccounts.includes(alert.subaccount?.id);
-      }
-      return true;
-    }).filter(alert => {
-      if (this.selectedAlerts.length > 0) {
-        return this.selectedAlerts.includes(alert.id);
-      }
-      return true;
-    });
+    const filteredAlerts = this.alertsService.pacingAlerts
+      .filter(alert => {
+        if (this.selectedSubaccounts.length > 0 && alert.subaccount) {
+          return this.selectedSubaccounts.includes(alert.subaccount.id);
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedPlatforms.length > 0) {
+          return alert.platforms.some((platform: any) => this.selectedPlatforms.includes(platform.platform));
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedUsers.length > 0) {
+          return alert.platforms.some((platform: any) => this.selectedUsers.includes(platform.formData.userId));
+        }
+        return true;
+      })
+      .filter(alert => {
+        if (this.selectedAlerts.length > 0) {
+          return this.selectedAlerts.includes(alert.id);
+        }
+        return true;
+      });
+
+    this.alertsService.filteredPacingAlerts = filteredAlerts;
+
+    this.filteredAlertOptions = this.alertFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, this.alertsService.pacingAlerts.filter(alert =>
+        this.selectedSubaccounts.length === 0 || this.selectedSubaccounts.includes(alert.subaccount?.id)
+      ).filter(alert =>
+        this.selectedPlatforms.length === 0 || alert.platforms.some((platform: any) => this.selectedPlatforms.includes(platform.platform))
+      ).sort((a: any, b: any) => a.campaignName.localeCompare(b.campaignName)), 'campaignName'))
+    );
+
+    const userIds = Array.from(new Set(filteredAlerts.flatMap(alert => alert.platforms.map((platform: any) => platform.formData.userId))));
+    
+    const filteredUsers = this.filterUsers();
+    this.filteredUserOptions = this.userFilter.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, filteredUsers, 'email'))
+    );
   }
 
   openSelect(selectName: string) {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 
@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -48,16 +48,20 @@ export class UserManagementFormComponent implements OnInit {
     private dialogRef: MatDialogRef<UserManagementFormComponent>,
     private db: AngularFirestore,
     private commonService: CommonService,
-    private functions: AngularFireFunctions
+    private functions: AngularFireFunctions,
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
-  ngOnInit() {
-    this.getOptions();
+  async ngOnInit() {
+    await this.getOptions();
+    if (this.data && this.data.accountId) {
+      this.users = [{ rattachment: [this.data.accountId] }];
+    }
   }
 
-  getOptions() {
-    const businessId = this.commonService.selectedBusinessId!;
-    this.db.collection('account', ref => ref.where('businessId', '==', businessId)).snapshotChanges().subscribe(accountSnapshots => {
+  async getOptions() {
+    const business = this.commonService.selectedBusiness!;
+    this.db.collection('account', ref => ref.where('business.id', '==', business.id)).snapshotChanges().subscribe(accountSnapshots => {
       this.options = accountSnapshots.map(accountSnapshot => {
         const accountData: any = accountSnapshot.payload.doc.data();
         return { ...accountData, id: accountSnapshot.payload.doc.id, selected: false };
@@ -89,14 +93,14 @@ export class UserManagementFormComponent implements OnInit {
       }
 
       const userId = userRecord.uid;
-      const businessId = this.commonService.selectedBusinessId!;
+      const business = this.commonService.selectedBusiness!;
       const userRoleDocRef = this.db.collection('userRoles').doc(userId);
 
       if (user.rattachment.includes('all')) {
         await userRoleDocRef.set(
           {
             userId: userId,
-            businessRoles: [{ businessId: businessId, role: user.role }]
+            businessRoles: [{ businessId: business.businessId, role: user.role }]
           },
           { merge: true }
         );
@@ -119,7 +123,7 @@ export class UserManagementFormComponent implements OnInit {
         let accountNames: string[] = [];
 
         if (user.rattachment.includes('all')) {
-          const businessDoc: any = await this.db.collection('business').doc(businessId).get().toPromise();
+          const businessDoc: any = await this.db.collection('business').doc(business.businessId).get().toPromise();
           businessName = businessDoc.exists ? businessDoc.data().name : '';
         } else {
           const accountPromises = user.rattachment.map((accountId: string) => 
@@ -157,7 +161,11 @@ export class UserManagementFormComponent implements OnInit {
   }
 
   addUser() {
-    this.users.push({ rattachment: [] });
+    if (this.data && this.data.accountId) {
+      this.users.push({ rattachment: [this.data.accountId] });
+    } else {
+      this.users.push({ rattachment: [] });
+    }
   }
 
   removeUser(user: any) {

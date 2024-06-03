@@ -98,7 +98,7 @@ export class PacingAlertsComponent {
           }))
         );
 
-        const dv360Reports$ = this.db.collection<Report>('DV360Report', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
+        const dv360Reports$ = this.db.collection<Report>('dv360Report', ref => ref.where('userId', '==', user.uid)).snapshotChanges().pipe(
           take(1),
           map(actions => actions.map(a => {
             const data = a.payload.doc.data() as object;

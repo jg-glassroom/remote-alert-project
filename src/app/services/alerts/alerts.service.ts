@@ -7,6 +7,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 })
 export class AlertsService {
   public pacingAlerts: any[] = [];
+  filteredPacingAlerts: any[] = [];
   public subaccounts: any[] = [];
 
   constructor(

@@ -8,6 +8,7 @@ import { documentId } from 'firebase/firestore';
 import { AccountComponent } from '../form/account/account.component';
 import { BusinessComponent } from '../form/business/business.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { UserManagementFormComponent } from '../form/user-management-form/user-management-form.component';
 
 import { AuthService } from '../../services/auth.service'; 
 
@@ -37,6 +38,7 @@ interface Account {
     CommonModule,
     BusinessComponent,
     AccountComponent,
+    UserManagementFormComponent,
     MatButtonModule,
     MatIconModule,
     MatCardModule
@@ -65,12 +67,17 @@ export class AccountsComponent {
     });
   }
 
-  addUsers(accountId: any) {}
+  addUsers(accountId: any) {
+    this.matDialog.open(UserManagementFormComponent, {
+      width: '50%',
+      data: { accountId }
+    });
+  }
 
   deleteAccount(account: any): void {
     const dialogRef = this.matDialog.open(ConfirmDialogComponent, {
       width: '20%',
-      data: { message: "Are you sure to delete " + account.name + "?" }
+      data: { message: "Are you sure to delete " + account.name + "?", showActions: true }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -99,25 +106,25 @@ export class AccountsComponent {
           return of([]);
         }
   
-        const selectedBusinessId = user.selectedBusiness;
+        const selectedBusiness = user.selectedBusiness;
   
         return this.afs.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges().pipe(
           switchMap((userRoles: any[]) => {
             if (!userRoles.length) return of([]);
   
             const hasRoleOnSelectedBusiness = userRoles.some(role =>
-              role.businessRoles?.some((br: any) => br.businessId === selectedBusinessId)
+              role.businessRoles?.some((br: any) => br.businessId === selectedBusiness.id)
             );
   
             if (hasRoleOnSelectedBusiness) {
-              return this.afs.collection('account', ref => ref.where('businessId', '==', selectedBusinessId))
+              return this.afs.collection('account', ref => ref.where('business.id', '==', selectedBusiness.id))
                 .snapshotChanges()
                 .pipe(
                   map(changes => changes.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as Account) })))
                 );
             } else {
               const accountIds = userRoles.flatMap(ur => ur.accountRoles ? ur.accountRoles.map((ar: any) => ar.accountId) : []);
-              return this.afs.collection('account', ref => ref.where('businessId', '==', selectedBusinessId)
+              return this.afs.collection('account', ref => ref.where('business.businessId', '==', selectedBusiness.id)
                 .where(documentId(), 'in', accountIds))
                 .snapshotChanges()
                 .pipe(
@@ -235,7 +242,7 @@ export class AccountsComponent {
       tap(user => {
         if (user) {
           const userDoc = this.afs.doc(`user/${user.uid}`);
-          userDoc.update({ selectedAccount: account.id })
+          userDoc.update({ selectedAccount: account })
           .then(() => {
             this.router.navigate(['/alerts', account.id]);
           })

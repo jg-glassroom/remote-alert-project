@@ -19,13 +19,14 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 import { BusinessComponent } from '../form/business/business.component';
 
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 import { AccountComponent } from '../form/account/account.component';
-import { user } from '@angular/fire/auth';
+
 
 @Component({
   selector: 'app-header',
@@ -38,7 +39,8 @@ import { user } from '@angular/fire/auth';
     MatSidenavModule,
     MatMenuModule,
     CommonModule, 
-    RouterOutlet
+    RouterOutlet,
+    MatExpansionModule
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
@@ -47,14 +49,15 @@ export class HeaderComponent {
   toaster = inject(ToastrService);
   isDialogOpen: boolean = false;
   private destroy$ = new Subject<void>();
-  collapsed = signal(true);
-  sidenavWidth = computed(() => this.collapsed() ? '80px' : '230px');
+  collapsed = signal(false);
+  sidenavWidth = computed(() => this.collapsed() ? '80px' : '250px');
 
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
 
   businesses: any = [];
+  selectedBusiness: any;
   accounts: any = [];
   userSubscription: Subscription = new Subscription();
 
@@ -89,11 +92,19 @@ export class HeaderComponent {
     }, 300);
   }
 
+  public getShortName(fullName: string) { 
+    return fullName.split(' ').map(n => n[0]).join('');
+  }
+
   openBusinessDialog() {
     this.matDialog.open(BusinessComponent, {
       width: '70%',
       height: '90vh'
     });
+  }
+
+  accountSelected(accountId: string) {
+    return this.commonService.selectedAccount && accountId === this.commonService.selectedAccount.id;
   }
   
   async loadAccounts(userId: string) {
@@ -105,25 +116,25 @@ export class HeaderComponent {
         }
 
         if (user.selectedAccount) {
-          this.commonService.selectedAccountId = user.selectedAccount;
+          this.commonService.selectedAccount = user.selectedAccount;
         }
   
-        const selectedBusinessId = user.selectedBusiness;
+        const selectedBusiness = user.selectedBusiness;
   
         return this.db.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges().pipe(
           switchMap((userRoles: any[]) => {
             if (!userRoles.length) return of([]);
   
             const hasRoleOnSelectedBusiness = userRoles.some(role =>
-              role.businessRoles?.some((br: any) => br.businessId === selectedBusinessId)
+              role.businessRoles?.some((br: any) => br.businessId === selectedBusiness.id)
             );
   
             if (hasRoleOnSelectedBusiness) {
-              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusinessId))
+              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusiness.id))
                 .snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as any) }))));
             } else {
               const accountIds = userRoles.flatMap(ur => ur.accountRoles ? ur.accountRoles.map((ar: any) => ar.accountId) : []);
-              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusinessId)
+              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusiness.id)
                 .where(documentId(), 'in', accountIds))
                 .snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as any) }))));
             }
@@ -148,7 +159,7 @@ export class HeaderComponent {
     this.db.doc(`user/${userId}`).valueChanges().pipe(
       tap((user: any) => {
         if (user.selectedBusiness) {
-          this.commonService.selectedBusinessId = user.selectedBusiness;
+          this.commonService.selectedBusiness = user.selectedBusiness;
         }
       }),
       switchMap(() => {
@@ -195,9 +206,11 @@ export class HeaderComponent {
         }
       });
       this.businesses = businesses;
-      this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
-      if (!this.commonService.selectedBusinessId && this.businesses.length > 0) {
-        this.commonService.selectedAccountId = this.businesses[0].id;
+      if (!this.businesses.some((b: any) => b.name)) {
+        this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      }
+      if (!this.commonService.selectedBusiness && this.businesses.length > 0) {
+        this.commonService.selectedBusiness = this.businesses[0];
       }
     }, error => console.error('Error loading businesses:', error));
   }
@@ -207,18 +220,18 @@ export class HeaderComponent {
       tap(user => {
         if (user) {
           const userDoc = this.db.doc(`user/${user.uid}`);
-          if (this.commonService.selectedBusinessId !== business.id) {
-            userDoc.update({ selectedBusiness: business.id, selectedAccount: null })
+          if (this.commonService.selectedBusiness.id !== business.id) {
+            userDoc.update({ selectedBusiness: business, selectedAccount: null })
             .then(() => {
               this.router.navigate(['/accounts']);
-              this.commonService.selectedBusinessId = business.id;
-              this.commonService.selectedAccountId = null;
+              this.commonService.selectedBusiness = business;
+              this.commonService.selectedAccount = null;
             })
             .catch(() => this.toaster.error('Failed to update business selection'));
           } else {
             userDoc.update({ selectedAccount: null })
             .then(() => {
-              this.commonService.selectedAccountId = null;
+              this.commonService.selectedAccount = null;
               this.router.navigate(['/accounts']);
             })
           }
@@ -233,14 +246,15 @@ export class HeaderComponent {
       tap(user => {
         if (user) {
           const userDoc = this.db.doc(`user/${user.uid}`);
-          if (this.commonService.selectedAccountId !== account.id) {
-            userDoc.update({ selectedAccount: account.id })
+          if (this.commonService.selectedAccount && account && this.commonService.selectedAccount.id !== account.id) {
+            userDoc.update({ selectedAccount: account })
             .then(() => {
               this.router.navigate(['/alerts', account.id]);
-              this.commonService.selectedAccountId = account.id;
+              this.commonService.selectedAccount = account;
             })
             .catch(() => this.toaster.error('Failed to update account selection'));
           } else {
+            userDoc.update({ selectedAccount: account });
             this.router.navigate(['/alerts', account.id]);
           }
         }
@@ -275,11 +289,11 @@ export class HeaderComponent {
 
   editElement(event: any): void {
     event.stopPropagation();
-    const id = this.commonService.selectedAccountId ? this.commonService.selectedAccountId : this.commonService.selectedBusinessId;
-    const componentType = this.commonService.selectedAccountId ? AccountComponent : BusinessComponent;
+    const id = this.commonService.selectedAccount ? this.commonService.selectedAccount.id : this.commonService.selectedBusiness.id;
+    const componentType = this.commonService.selectedAccount ? AccountComponent : BusinessComponent;
     
     if (id) {
-      this.db.collection(this.commonService.selectedAccountId ? 'account' : 'business').doc(id)
+      this.db.collection(this.commonService.selectedAccount ? 'account' : 'business').doc(id)
         .valueChanges().pipe(takeUntil(this.destroy$))
         .subscribe(data => {
           if (!this.isDialogOpen) {
@@ -292,7 +306,7 @@ export class HeaderComponent {
   
             dialogRef.afterClosed().subscribe(() => {
               this.isDialogOpen = false;
-              if (this.commonService.selectedAccountId) {
+              if (this.commonService.selectedAccount) {
                 this.getElements(false, true);
               } else {
                 this.getElements(true, false)

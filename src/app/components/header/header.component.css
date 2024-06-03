@@ -1,3 +1,36 @@
+@keyframes gradient {
+  0% {
+    background-position: 0% 100%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+.link-home{
+  margin-left:15px;
+  font-weight: 700;
+}
+
+#main_header {
+  border-width: 0;
+  border-bottom: 0px solid transparent;
+  background-image: linear-gradient(270deg, #8b2ee5, #27d87f), linear-gradient(transparent, transparent);
+  background-size: 200% 3px;
+  background-position: 0% 100%, 0% 100%;
+  background-repeat: no-repeat;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+  text-transform: uppercase;
+  animation: gradient 4s ease infinite;
+  background-color: #000020;
+  color: #fff;
+}
+
 .spacer {
   flex: 1 1 auto;
 }
@@ -15,11 +48,6 @@ img {
   margin-left: 5px;
   display: flex;
   align-items: center;
-}
-
-.menu-icon {
-  margin-right: 5px;
-  margin-left: 6px;
 }
 
 .bottom-list {
@@ -61,17 +89,82 @@ mat-nav-list {
 
 .selected {
   background-color: #00796b;
-  color: white;
+  color: #333;
 }
 
 .list.selected:hover {
   background-color: #303f9f;
+  color: #FFF;
+}
+
+mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.menu-label-manager {
+  margin-left: 10px;
+  font-size: 13px;
+  font-weight: 300;
 }
 
 .menu-label {
   margin-left: 10px;
+  font-size: 12px;
+  font-weight: 300;
 }
 
 * {
   transition: all 300ms ease-in-out;
+}
+
+.circle-icon {
+  background-color: #f4f4f4;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  color: #333;
+}
+
+.account-menu .menu-label{
+  font-size: 12px;
+  font-weight: 300;
+}
+
+mat-expansion-panel{
+  box-shadow: none !important;
+  border-bottom: 1px solid #f9f9f9;
+}
+
+.manager-list-item{
+  margin: 10px 0px;
+  cursor: pointer;
+}
+
+.manager-list-item .menu-label-manager{
+  font-weight: 300;
+  font-size: 12px;
+}
+
+.sidebar-title{
+  font-size: 11px;
+  margin: 15px 0px 5px 30px;
+  font-weight: 700;
+}
+
+.sidebar-title-icon{
+  font-size: 18px;
+  margin-left: 5px;
+  margin-right: 7px;
+  color: #505068;
+}
+
+.mat-expansion-panel-header{
+  padding: 0px 0px 0px 15px;
 }
