@@ -128,7 +128,7 @@ export class DV360ReportService {
     }
   }
 
-  async getReportLink() {
+  async getReportLink(retryCount = 10) {
     let status = null;
     while (status !== 'DONE') {
       try {
@@ -142,8 +142,12 @@ export class DV360ReportService {
         } else {
           console.log("Report link not found in response:", data);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log(error);
+        if (retryCount > 0) {
+          await this.externalPlatforms.handleGoogleError(error, 'dv360');
+          this.getReportLink(retryCount - 1);
+        }
       }
     }
   }

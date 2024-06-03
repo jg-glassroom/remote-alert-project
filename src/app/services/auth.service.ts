@@ -16,6 +16,14 @@ import moment from 'moment';
 
 import { ConfirmDialogComponent } from '../components/confirm-dialog/confirm-dialog.component';
 
+import { DV360ReportService } from './reports/dv360/dv360-report.service';
+import { FacebookReportService } from './reports/facebook/facebook-report.service';
+import { GoogleAdsReportService } from './reports/google-ads/google-ads-report.service';
+import { LinkedinReportService } from './reports/linkedin/linkedin-report.service';
+import { BingReportService } from './reports/bing/bing-report.service';
+
+import { CommonService } from './common/common.service';
+
 
 @Injectable({
   providedIn: 'root'
@@ -28,6 +36,12 @@ export class AuthService {
     private afs: AngularFirestore,
     private router: Router,
     private matDialog: MatDialog,
+    private dv360ReportService: DV360ReportService,
+    private facebookReportService: FacebookReportService,
+    private googleAdsReportService: GoogleAdsReportService,
+    private linkedinReportService: LinkedinReportService,
+    private bingReportService: BingReportService,
+    private commonService: CommonService
   ) { 
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
@@ -64,7 +78,7 @@ export class AuthService {
       await userRef.update({ last_login: moment().format('MM/DD/YYYY HH:mm:ss') });
       
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
-      userDoc.pipe(first()).subscribe((user: any) => {
+      userDoc.pipe(first()).subscribe(async (user: any) => {
         if (user.googleAdsAccessToken) {
           localStorage.setItem('googleAdsAccessToken', user.googleAdsAccessToken);
         }
@@ -87,6 +101,43 @@ export class AuthService {
             data: { showActions: false }
           })
         }
+
+        if (this.commonService.selectedAccount) {
+          const currentDate = moment().startOf('day').toDate();
+
+          const alertsRef = this.afs.collection('userSearch', ref => ref
+            .where('accountId', '==', this.commonService.selectedAccount.id)
+          );
+
+          const alertsSnapshot: any = await alertsRef.get().toPromise();
+          alertsSnapshot.forEach(async (doc: any) => {
+            const alert = doc.data();
+            if (!alert.last_refreshed || moment(alert.last_refreshed.toDate()).startOf('day').isBefore(currentDate)) {
+              console.log('AAAAAA', alert);
+              const alertId = doc.id;
+              const updatePromises = alert.platforms.map(async (platformData: any, index: any) => {
+                const platform = platformData.platform;
+                if (platform === 'dv360') {
+                  await this.dv360ReportService.processReport(alert, index);
+                } else if (platform === 'facebook') {
+                  await this.facebookReportService.processReport(alert, index);
+                } else if (platform === 'googleAds') {
+                  await this.googleAdsReportService.processReport(alert, index);
+                } else if (platform === 'bing') {
+                  await this.bingReportService.processReport(alert, index);
+                } else if (platform === 'linkedin') {
+                  await this.linkedinReportService.processReport(alert, index);
+                }
+              });
+
+              await Promise.all(updatePromises);
+
+              await this.afs.collection('userSearch').doc(alertId).update({
+                last_refreshed: currentDate
+              });
+            }
+          });
+        }        
       });
     } catch (error) {
       console.error("An error occurred: ", error);
