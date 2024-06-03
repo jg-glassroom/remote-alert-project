@@ -132,6 +132,15 @@ mat-icon {
   color: #333;
 }
 
+.circle-logo {
+  border-radius: 100%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .account-menu .menu-label{
   font-size: 12px;
   font-weight: 300;

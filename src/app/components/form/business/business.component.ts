@@ -4,8 +4,10 @@ import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { arrayUnion } from 'firebase/firestore';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { arrayUnion, doc } from 'firebase/firestore';
 import { getAuth } from '@angular/fire/auth';
+import { getDoc } from 'firebase/firestore';
 
 import { CommonService } from '../../../services/common/common.service';
 
@@ -48,6 +50,7 @@ export class BusinessComponent {
   private countriesSubject = new BehaviorSubject<any[]>([]);
   public countries$ = this.countriesSubject.asObservable();
   originalCountries$!: Observable<any[]>;
+  file: any;
 
   constructor(
     private http: HttpClient,
@@ -55,7 +58,8 @@ export class BusinessComponent {
     private formBuilder: FormBuilder,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private db: AngularFirestore,
-    public commonService: CommonService
+    public commonService: CommonService,
+    private fireStorage: AngularFireStorage
   ) {
     this.isEditMode = !!data && data.id;
     if (data && data.disableCancel) {
@@ -115,8 +119,18 @@ export class BusinessComponent {
   }
 
   async saveBusiness() {
+    let business = this.formGroup.value;
     if (this.isEditMode && this.documentId) {
-      await this.db.collection('business').doc(this.documentId).update(this.formGroup.value);
+      await this.db.collection('business').doc(this.documentId).update(this.formGroup.value).then(async () => {
+        if (this.file) {
+          const path = `businessLogo/${this.documentId}_${this.file.name}`;
+          const uploadTask = await this.fireStorage.upload(path, this.file);
+          const url = await uploadTask.ref.getDownloadURL();
+          await this.db.collection('business').doc(this.documentId!).update({
+            logoUrl: url
+          });
+        }
+      });
       this.toaster.success('Business updated successfully', 'Success');
     } else {
       const auth = getAuth();
@@ -124,38 +138,53 @@ export class BusinessComponent {
       if (!user) {
         return;
       }
-      const docRef = await this.db.collection('business').add(this.formGroup.value);
-  
-      const userRolesRef = this.db.collection('userRoles').ref.where('userId', '==', user.uid);
-      const snapshot = await userRolesRef.get();
-  
-      if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        await this.db.collection('userRoles').doc(doc.id).update({
-          businessRoles: arrayUnion({
-            businessId: docRef.id,
-            role: 'ADMIN'
-          })
+      await this.db.collection('business').add(this.formGroup.value).then(async (docRef) => {
+        if (this.file) {
+          const path = `businessLogo/${docRef.id}_${this.file.name}`;
+          const uploadTask = await this.fireStorage.upload(path, this.file);
+          const url = await uploadTask.ref.getDownloadURL();
+          await this.db.collection('business').doc(docRef.id!).update({
+            logoUrl: url
+          });
+        }
+
+        const userRolesRef = this.db.collection('userRoles').ref.where('userId', '==', user.uid);
+        const snapshot = await userRolesRef.get();
+    
+        if (!snapshot.empty) {
+          const doc = snapshot.docs[0];
+          await this.db.collection('userRoles').doc(doc.id).update({
+            businessRoles: arrayUnion({
+              businessId: docRef.id,
+              role: 'ADMIN'
+            })
+          });
+        } else {
+          await this.db.collection('userRoles').add({
+            userId: user.uid,
+            businessRoles: [{
+              businessId: docRef.id,
+              role: 'ADMIN'
+            }]
+          });
+        }
+
+        const selectedBusinessDoc = await getDoc(docRef);
+        const selectedBusiness = { id: docRef.id, ...selectedBusinessDoc.data() as any };
+        await this.db.collection('user').doc(user.uid).update({
+            selectedBusiness: selectedBusiness
         });
-      } else {
-        await this.db.collection('userRoles').add({
-          userId: user.uid,
-          businessRoles: [{
-            businessId: docRef.id,
-            role: 'ADMIN'
-          }]
-        });
-      }
-  
-      await this.db.collection('user').doc(user.uid).update({
-          selectedBusiness: docRef.id
+        this.toaster.success('Business created successfully', 'Success');
       });
-      this.toaster.success('Business created successfully', 'Success');
     }
-    this.dialogRef.close();
+    this.dialogRef.close(business);
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  async onFileChange(event: any) {
+    this.file = event.target.files[0];
   }
 }

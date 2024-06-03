@@ -57,9 +57,9 @@ export class HeaderComponent {
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
 
-  businesses: any = [];
+  businesses: any[] = [];
   selectedBusiness: any;
-  accounts: any = [];
+  accounts: any[] = [];
   userSubscription: Subscription = new Subscription();
 
   constructor(
@@ -97,13 +97,19 @@ export class HeaderComponent {
   }
 
   public getShortName(fullName: string) {
+    if (!fullName) return '';
     return fullName.split(' ').map(n => n[0]).join('');
   }
 
   openBusinessDialog() {
-    this.matDialog.open(BusinessComponent, {
+    const dialogRef = this.matDialog.open(BusinessComponent, {
       width: '70%',
       height: '90vh'
+    });
+
+    dialogRef.afterClosed().subscribe((business) => {
+      this.commonService.selectedBusiness = business;
+      this.getElements(true, false);
     });
   }
 

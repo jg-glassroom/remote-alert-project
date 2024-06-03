@@ -16,7 +16,8 @@
                 <mat-expansion-panel hideToggle (opened)="panelOpened('business')" [expanded]="activePanel === 'business'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
-                            <div class="circle-icon" *ngIf="commonService.selectedBusiness && commonService.selectedBusiness.name">{{getShortName(commonService.selectedBusiness.name)}}</div>
+                            <div class="circle-icon" *ngIf="commonService.selectedBusiness && commonService.selectedBusiness.name && !commonService.selectedBusiness.logoUrl">{{getShortName(commonService.selectedBusiness.name)}}</div>
+                            <img class="circle-logo" *ngIf="commonService.selectedBusiness && commonService.selectedBusiness.logoUrl" [src]="commonService.selectedBusiness.logoUrl">
                             <span class="menu-label-manager" *ngIf="!collapsed() && commonService.selectedBusiness && commonService.selectedBusiness.name">{{commonService.selectedBusiness.name}}</span>
                         </span>
                     </mat-expansion-panel-header>
@@ -24,7 +25,8 @@
                         <div class="manager-list-item" *ngFor="let business of businesses" (click)="selectBusiness(business)">
                             <mat-list-item>
                                 <span class="list-item" *ngIf="business.name">
-                                    <div class="circle-icon">{{getShortName(business.name)}}</div>
+                                    <div class="circle-icon" *ngIf="!business.logoUrl">{{getShortName(business.name)}}</div>
+                                    <img class="circle-logo" *ngIf="business && business.logoUrl" [src]="business.logoUrl">
                                     <span class="menu-label-manager" *ngIf="!collapsed()">{{business.name}}</span>
                                 </span>
                             </mat-list-item>
@@ -36,7 +38,7 @@
                 </mat-expansion-panel>
             </mat-accordion>
 
-            <mat-accordion multi="false">
+            <mat-accordion multi="false" *ngIf="accounts.length > 0">
                 <mat-expansion-panel hideToggle (opened)="panelOpened('account')" [expanded]="activePanel === 'account'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
