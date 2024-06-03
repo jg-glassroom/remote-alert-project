@@ -12,12 +12,12 @@
     <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side" [style.width]="sidenavWidth()">
 
         <mat-nav-list>
-            <mat-accordion>
-                <mat-expansion-panel hideToggle>
+            <mat-accordion multi="false">
+                <mat-expansion-panel hideToggle (opened)="panelOpened('business')" [expanded]="activePanel === 'business'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
-                            <div class="circle-icon">GR</div>
-                            <span class="menu-label-manager" *ngIf="!collapsed()">Glassroom</span>
+                            <div class="circle-icon" *ngIf="commonService.selectedBusiness && commonService.selectedBusiness.name">{{getShortName(commonService.selectedBusiness.name)}}</div>
+                            <span class="menu-label-manager" *ngIf="!collapsed() && commonService.selectedBusiness && commonService.selectedBusiness.name">{{commonService.selectedBusiness.name}}</span>
                         </span>
                     </mat-expansion-panel-header>
                     <div class="managers_list">
@@ -28,8 +28,6 @@
                                     <span class="menu-label-manager" *ngIf="!collapsed()">{{business.name}}</span>
                                 </span>
                             </mat-list-item>
-                                
-                        
                         </div>
                         <button mat-menu-item (click)="openBusinessDialog()">
                             <mat-icon class="add">add</mat-icon>Manager
@@ -38,8 +36,8 @@
                 </mat-expansion-panel>
             </mat-accordion>
 
-            <mat-accordion>
-                <mat-expansion-panel hideToggle>
+            <mat-accordion multi="false">
+                <mat-expansion-panel hideToggle (opened)="panelOpened('account')" [expanded]="activePanel === 'account'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
                             <span class="material-symbols-outlined sidebar-title-icon">
@@ -80,7 +78,7 @@
                         <span class="menu-label" *ngIf="!collapsed()">Manager Settings</span>
                     </span>
                 </mat-list-item>
-                <mat-list-item (click)="toggleSidemenu()">
+                <mat-list-item (click)="toggleSidemenu(true)">
                     <span class="list-item">
                         <mat-icon class="menu-icon">arrow_back_ios</mat-icon>
                         <span class="menu-label" *ngIf="!collapsed()">Collapse Menu</span>
