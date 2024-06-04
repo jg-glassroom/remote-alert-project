@@ -138,11 +138,11 @@ export class HeaderComponent {
             );
 
             if (hasRoleOnSelectedBusiness) {
-              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusiness.id))
+              return this.db.collection('account', ref => ref.where('business.id', '==', selectedBusiness.id))
                 .snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as any) }))));
             } else {
               const accountIds = userRoles.flatMap(ur => ur.accountRoles ? ur.accountRoles.map((ar: any) => ar.accountId) : []);
-              return this.db.collection('account', ref => ref.where('businessId', '==', selectedBusiness.id)
+              return this.db.collection('account', ref => ref.where('business.id', '==', selectedBusiness.id)
                 .where(documentId(), 'in', accountIds))
                 .snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...(a.payload.doc.data() as any) }))));
             }
