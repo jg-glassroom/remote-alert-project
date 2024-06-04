@@ -15,6 +15,9 @@
                     <button mat-raised-button color="primary" (click)="addUsers(account.id)">
                         <mat-icon>add</mat-icon>Users
                     </button>
+                    <button mat-raised-button color="primary" class="delete" (click)="editElement(account.id)">
+                        Edit
+                    </button>
                     <button mat-raised-button color="primary" class="delete" (click)="deleteAccount(account)">
                         Delete
                     </button>

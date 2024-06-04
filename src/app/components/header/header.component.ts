@@ -2,7 +2,6 @@ import { Component, ViewChild, computed, inject, signal, ChangeDetectorRef } fro
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
-import { ComponentType } from '@angular/cdk/overlay';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { documentId } from 'firebase/firestore';
@@ -25,7 +24,6 @@ import { BusinessComponent } from '../form/business/business.component';
 
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
-import { AccountComponent } from '../form/account/account.component';
 
 
 @Component({
@@ -299,28 +297,22 @@ export class HeaderComponent {
 
   editElement(event: any): void {
     event.stopPropagation();
-    const id = this.commonService.selectedAccount ? this.commonService.selectedAccount.id : this.commonService.selectedBusiness.id;
-    const componentType = this.commonService.selectedAccount ? AccountComponent : BusinessComponent;
 
-    if (id) {
-      this.db.collection(this.commonService.selectedAccount ? 'account' : 'business').doc(id)
+    if (this.commonService.selectedBusiness.id) {
+      this.db.collection('business').doc(this.commonService.selectedBusiness.id)
         .valueChanges().pipe(takeUntil(this.destroy$))
         .subscribe(data => {
           if (!this.isDialogOpen) {
             this.isDialogOpen = true;
-            const dialogRef = this.matDialog.open(componentType as ComponentType<any>, {
+            const dialogRef = this.matDialog.open(BusinessComponent, {
               width: '70%',
               height: '90vh',
-              data: { ...data as any, id }
+              data: { ...data as any, id: this.commonService.selectedBusiness.id }
             });
 
             dialogRef.afterClosed().subscribe(() => {
               this.isDialogOpen = false;
-              if (this.commonService.selectedAccount) {
-                this.getElements(false, true);
-              } else {
-                this.getElements(true, false)
-              }
+              this.getElements(true, false);
             });
           }
         });

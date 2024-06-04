@@ -17,8 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 
-import { switchMap, catchError } from 'rxjs/operators';
-import { of, tap, take, map } from 'rxjs';
+import { switchMap, catchError, takeUntil } from 'rxjs/operators';
+import { of, tap, take, map, Subject } from 'rxjs';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -50,6 +50,7 @@ export class AccountsComponent {
   toaster = inject(ToastrService);
   accounts: any = [];
   isDialogOpen: boolean = false;
+  private destroy$ = new Subject<void>();
 
   constructor (
     private matDialog: MatDialog,
@@ -251,5 +252,36 @@ export class AccountsComponent {
       }),
       take(1)
     ).subscribe();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  editElement(accountId: any) {
+    this.afs.collection('account').doc(accountId)
+      .valueChanges().pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        if (!this.isDialogOpen) {
+          this.isDialogOpen = true;
+          const dialogRef = this.matDialog.open(AccountComponent, {
+            width: '70%',
+            height: '90vh',
+            data: { ...data as any, id: accountId }
+          });
+
+          dialogRef.afterClosed().subscribe(() => {
+            this.isDialogOpen = false;
+
+            this.authService.user$.subscribe(user => {
+              if (user) {
+                this.getAccounts(user.uid);
+                this.checkRolesAndOpenDialog(user.uid);
+              }
+            });
+          });
+        }
+      });
   }
 }
