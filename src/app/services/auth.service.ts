@@ -76,7 +76,7 @@ export class AuthService {
 
       const userRef = this.afs.collection('user').doc(currentUser.uid);
       await userRef.update({ last_login: moment().format('MM/DD/YYYY HH:mm:ss') });
-      
+
       const userDoc = this.afs.collection('user').doc(currentUser.uid).valueChanges();
       userDoc.pipe(first()).subscribe(async (user: any) => {
         if (user.googleAdsAccessToken) {
@@ -111,12 +111,12 @@ export class AuthService {
 
           const alertsSnapshot: any = await alertsRef.get().toPromise();
           alertsSnapshot.forEach(async (doc: any) => {
-            const alert = doc.data();
+            const alert = {id: doc.id, ...doc.data()};
             if (!alert.last_refreshed || moment(alert.last_refreshed.toDate()).startOf('day').isBefore(currentDate)) {
-              console.log('AAAAAA', alert);
               const alertId = doc.id;
               const updatePromises = alert.platforms.map(async (platformData: any, index: any) => {
                 const platform = platformData.platform;
+                await this.updateLoadingStatus(alertId, index, true);
                 if (platform === 'dv360') {
                   await this.dv360ReportService.processReport(alert, index);
                 } else if (platform === 'facebook') {
@@ -137,13 +137,21 @@ export class AuthService {
               });
             }
           });
-        }        
+        }
       });
     } catch (error) {
       console.error("An error occurred: ", error);
       throw error;
     }
   }
+
+  async updateLoadingStatus(alertId: string, index: number, status: boolean) {
+    const alertRef = this.afs.collection('userSearch').doc(alertId);
+    const alertSnapshot: any = await alertRef.get().toPromise();
+    const alertData = alertSnapshot.data() as any;
+    alertData.platforms[index].loading = status;
+    await alertRef.update(alertData);
+  }  
 
   async signOut() {
     await this.afAuth.signOut();

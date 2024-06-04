@@ -257,34 +257,36 @@ export class AlertsComponent {
   async getAlerts() {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.pacingAlerts = [];
-      this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(async querySnapshot => {
-        let alerts: any = [];
-        querySnapshot.forEach((doc: any) => {
-          const pacingAlert = {
-            id: doc.id,
-            ...doc.data() as any,
-            originalPlatforms: doc.data().platforms
-          };
-          alerts.push(pacingAlert);
-        });
+      this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId))
+        .snapshotChanges().subscribe(async querySnapshot => {
+          let alerts: any = [];
+          querySnapshot.forEach(snapshot => {
+            const data = snapshot.payload.doc.data() as any;
+            const pacingAlert = {
+              id: snapshot.payload.doc.id,
+              ...data,
+              originalPlatforms: data.platforms
+            };
+            alerts.push(pacingAlert);
+          });
 
-        for (const alert of alerts) {
-          for (const [index, platform] of alert.platforms.entries()) {
-            const collectionName = `${platform.platform}Report`;
-            const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
-            const report = result.docs.map((doc: any) => doc.data());
-            if (report.length > 0) {
-              alert.platforms[index].report = report[0];
-              alert.originalPlatforms[index].report = report[0];
+          for (const alert of alerts) {
+            for (const [index, platform] of alert.platforms.entries()) {
+              const collectionName = `${platform.platform}Report`;
+              const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
+              const report = result.docs.map((doc: any) => doc.data());
+              if (report.length > 0) {
+                alert.platforms[index].report = report[0];
+                alert.originalPlatforms[index].report = report[0];
+              }
             }
           }
-        }
 
-        this.alertsService.pacingAlerts = alerts;
-        resolve();
-      }, error => {
-        reject(error);
-      });
+          this.alertsService.pacingAlerts = alerts;
+          resolve();
+        }, error => {
+          reject(error);
+        });
     });
   }
 
@@ -305,22 +307,20 @@ export class AlertsComponent {
   async getSubaccounts() {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.subaccounts = [];
-      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          const subaccount = {
-            id: doc.id,
-            ...doc.data() as any
-          };
-          this.alertsService.subaccounts.push(subaccount);
+      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.selectedAccountId))
+        .snapshotChanges().subscribe(querySnapshot => {
+          this.alertsService.subaccounts = querySnapshot.map(snapshot => ({
+            id: snapshot.payload.doc.id,
+            ...snapshot.payload.doc.data() as any
+          }));
+          this.alertsService.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
+          if (this.alertsService.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
+            this.alertsService.subaccounts.push({ id: 0, name: 'Without Subaccounts' });
+          }
+          resolve();
+        }, error => {
+          reject(error);
         });
-        this.alertsService.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
-        if (this.alertsService.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
-          this.alertsService.subaccounts.push({ id: 0, name: 'Without Subaccounts' });
-        }
-        resolve();
-      }, error => {
-        reject(error);
-      });
     });
   }
 
@@ -432,39 +432,19 @@ export class AlertsComponent {
       }
       this.db.collection(`userSearch`).doc(campaign.id).update(data).then(() => {
         if (platform.platform === 'dv360') {
-          this.DV360ReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          this.DV360ReportService.processReport(campaign, index)
         }
         if (platform.platform === 'linkedin') {
-          this.linkedinReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          this.linkedinReportService.processReport(campaign, index)
         }
         if (platform.platform === 'facebook') {
-          this.facebookReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          this.facebookReportService.processReport(campaign, index)
         }
         if (platform.platform === 'bing') {
-          this.bingReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          this.bingReportService.processReport(campaign, index)
         }
         if (platform.platform === 'googleAds') {
-          this.googleAdsReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          this.googleAdsReportService.processReport(campaign, index)
         }
       });
     });

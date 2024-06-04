@@ -34,6 +34,10 @@
     text-align: center;
 }
 
+.alert-container {
+    margin-bottom: 30px;
+}
+
 .subaccount-list {
     display: flex;
     flex-direction: column;
