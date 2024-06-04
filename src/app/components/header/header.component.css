@@ -191,3 +191,7 @@ mat-expansion-panel {
 .mat-expansion-panel-header {
   padding: 0px 0px 0px 15px;
 }
+
+.menu-icon {
+  margin-left: 7px;
+}
