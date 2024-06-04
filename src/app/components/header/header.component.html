@@ -11,7 +11,7 @@
 <mat-drawer-container autosize>
     <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side" [style.width]="sidenavWidth()">
 
-        <mat-nav-list>
+        <mat-nav-list class="business-account">
             <mat-accordion multi="false">
                 <mat-expansion-panel hideToggle (opened)="panelOpened('business')" [expanded]="activePanel === 'business'">
                     <mat-expansion-panel-header>

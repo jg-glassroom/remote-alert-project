@@ -53,8 +53,22 @@ img {
 .bottom-list {
   position: fixed;
   bottom: 0;
+  width: 100%;
   overflow: auto;
   min-width: 80px;
+  background-color: white;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.bottom-list mat-nav-list {
+  padding: 0 !important;
+}
+
+.business-account {
+  padding-top: 70px;
+  max-height: calc(100vh - 270px);
+  overflow-y: auto;
 }
 
 .content {
@@ -141,39 +155,39 @@ mat-icon {
   align-items: center;
 }
 
-.account-menu .menu-label{
+.account-menu .menu-label {
   font-size: 12px;
   font-weight: 300;
 }
 
-mat-expansion-panel{
+mat-expansion-panel {
   box-shadow: none !important;
   border-bottom: 1px solid #f9f9f9;
 }
 
-.manager-list-item{
+.manager-list-item {
   margin: 10px 0px;
   cursor: pointer;
 }
 
-.manager-list-item .menu-label-manager{
+.manager-list-item .menu-label-manager {
   font-weight: 300;
   font-size: 12px;
 }
 
-.sidebar-title{
+.sidebar-title {
   font-size: 11px;
   margin: 15px 0px 5px 30px;
   font-weight: 700;
 }
 
-.sidebar-title-icon{
+.sidebar-title-icon {
   font-size: 18px;
   margin-left: 5px;
   margin-right: 7px;
   color: #505068;
 }
 
-.mat-expansion-panel-header{
+.mat-expansion-panel-header {
   padding: 0px 0px 0px 15px;
 }
