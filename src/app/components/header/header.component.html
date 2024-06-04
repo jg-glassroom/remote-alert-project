@@ -38,7 +38,7 @@
                 </mat-expansion-panel>
             </mat-accordion>
 
-            <mat-accordion multi="false" *ngIf="accounts.length > 0">
+            <mat-accordion multi="false">
                 <mat-expansion-panel hideToggle (opened)="panelOpened('account')" [expanded]="activePanel === 'account'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
