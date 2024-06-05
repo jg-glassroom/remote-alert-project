@@ -103,6 +103,11 @@ export class BingFormComponent {
     await this.getCustomers();
   }
 
+  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput);
+  }
+
   async createForm() {
     this.formGroup = this.formBuilder.group({
       bingLabel: [this.data?.bingLabel || null],

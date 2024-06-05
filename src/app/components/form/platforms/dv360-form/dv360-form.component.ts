@@ -112,8 +112,8 @@ export class Dv360FormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
-  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
-    event.stopPropagation();
+  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
     this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
     this.filterIOsByCampaigns();
   }

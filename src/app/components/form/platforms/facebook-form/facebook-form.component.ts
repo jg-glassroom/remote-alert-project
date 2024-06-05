@@ -105,8 +105,8 @@ export class FacebookFormComponent {
     await this.getAdAccounts();
   }
 
-  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
-    event.stopPropagation();
+  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
     this.platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput);
     this.filterAdsetsByCampaigns();
   }

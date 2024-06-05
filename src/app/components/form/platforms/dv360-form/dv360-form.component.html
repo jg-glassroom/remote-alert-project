@@ -67,9 +67,9 @@
                     [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
                     [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                     (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'dv360CampaignId')"/>
-                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, campaignInput)">
                     <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                        <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
+                        <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation()">
                             {{ campaign.displayName }} | {{ campaign.campaignId }}
                         </mat-checkbox>
                     </mat-option>

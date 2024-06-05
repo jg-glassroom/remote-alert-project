@@ -69,12 +69,12 @@
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
             (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'bingCampaign')"/>
 
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'bingCampaign', selection, announcer, campaignInput)">
-            <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput)">
-                {{ campaign.name }} | {{ campaign.id }}
-                </mat-checkbox>
-            </mat-option>
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, campaignInput)">
+                <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
+                    <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation()">
+                        {{ campaign.name }} | {{ campaign.id }}
+                    </mat-checkbox>
+                </mat-option>
             </mat-autocomplete>
 
             <mat-hint *ngIf="form['bingCampaign'].errors?.['required'] && (submitted || form['bingCampaign'].touched)">

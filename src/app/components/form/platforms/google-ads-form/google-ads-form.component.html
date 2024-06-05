@@ -56,9 +56,9 @@
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
             (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'googleAdsCampaign')"/>
 
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'googleAdsCampaign', selection, announcer, campaignInput)">
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, campaignInput)">
             <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'googleAdsCampaign', 'id', formGroup, selection, campaignInput)">
+                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation()">
                 {{ campaign.name }} | {{ campaign.id }}
                 </mat-checkbox>
             </mat-option>

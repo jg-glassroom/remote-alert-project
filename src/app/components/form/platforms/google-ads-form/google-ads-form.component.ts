@@ -203,6 +203,11 @@ export class GoogleAdsFormComponent {
     }
   }
 
+  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'googleAdsCampaign', 'id', formGroup, selection, campaignInput);
+  }
+
   async getAdAccountCampaigns(retryCount = 2, event?: MatAutocompleteSelectedEvent, edit?: boolean): Promise<any> {
     this.isLoading = true;
     let adAccount: any = null

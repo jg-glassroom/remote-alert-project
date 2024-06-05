@@ -55,10 +55,10 @@
                         [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
                         [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                         (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'facebookCampaign')"/>
-                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, campaignInput)">
                     <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                        <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
-                        {{ campaign.name }} | {{ campaign.id }}
+                        <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation()">
+                            {{ campaign.name }} | {{ campaign.id }}
                         </mat-checkbox>
                     </mat-option>
                 </mat-autocomplete>
