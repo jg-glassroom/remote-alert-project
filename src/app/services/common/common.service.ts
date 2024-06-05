@@ -18,6 +18,13 @@ export class CommonService {
   selectedAccount: any = null;
   selectedBusiness: any = null;
   isAdmin: boolean = false;
+  platforms: any = [
+    { name: 'Bing', value: 'bing' },
+    { name: 'Display & Video 360', value: 'dv360' },
+    { name: 'Facebook', value: 'facebook' },
+    { name: 'Google Ads', value: 'googleAds' },
+    { name: 'LinkedIn', value: 'linkedin' }
+  ];
 
   constructor(
     private afAuth: AngularFireAuth,
