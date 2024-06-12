@@ -73,6 +73,7 @@ export class PlatformsIntegrationComponent {
     dialogRef.afterClosed().subscribe(async result => {
       if (result) {
         this.isLoading = true;
+        this.cdr.detectChanges();
         await this.externalPlatformsService.refreshGoogleToken(platform);
         this.googleService.googleDisconnect(platform);
 
@@ -97,6 +98,7 @@ export class PlatformsIntegrationComponent {
             console.log("User not logged in");
           }
           this.isLoading = false;
+          this.cdr.detectChanges();
         });
       }
     });
@@ -112,22 +114,27 @@ export class PlatformsIntegrationComponent {
     this.route.queryParams.subscribe(async params => {
       const authCode = params['code'];
       if (authCode) {
-        if (source === 'dv360') {
-         await this.exchangeGoogleTokens(authCode, source)
-          .catch(error => console.error('Error calling cloud function', error));
-        } else if (source === 'googleAds') {
-          await this.exchangeGoogleTokens(authCode, source)
-          .catch(error => console.error('Error calling cloud function', error));
-        } else if (source === 'microsoft') {
-          await this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
-        } else if (source === 'linkedin') {
-          await this.exchangeLinkedinToken(authCode)
-          .catch(error => console.error('Error calling cloud function', error));
+        try {
+          if (source === 'dv360') {
+            await this.exchangeGoogleTokens(authCode, source);
+          } else if (source === 'googleAds') {
+            await this.exchangeGoogleTokens(authCode, source);
+          } else if (source === 'microsoft') {
+            await this.exchangeMicrosoftTokens(authCode);
+          } else if (source === 'linkedin') {
+            await this.exchangeLinkedinToken(authCode);
+          }
+        } catch (error) {
+          console.error('Error calling cloud function', error);
+        } finally {
+          this.isLoading = false;
+          this.cdr.detectChanges();
         }
+      } else {
+        this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
-    this.isLoading = false;
-    this.cdr.detectChanges();
   }
 
   private async exchangeMicrosoftTokens(authCode: string): Promise<void> {
@@ -137,7 +144,7 @@ export class PlatformsIntegrationComponent {
       'https://localhost:4200/integrations/microsoft' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/microsoft' }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
-      this.db.collection('user').doc(currentUser.uid).update({
+      await this.db.collection('user').doc(currentUser.uid).update({
         microsoftAccessToken: result.access_token,
         microsoftRefreshToken: result.refresh_token,
       });
@@ -146,6 +153,7 @@ export class PlatformsIntegrationComponent {
       this.toaster.success('Microsoft account connected successfully');
     } catch (error) {
       console.error('Error calling cloud function', error);
+      this.toaster.error('Error connecting Microsoft account', 'Error');
     }
   }
 
@@ -156,7 +164,7 @@ export class PlatformsIntegrationComponent {
       'https://localhost:4200/integrations/linkedin' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/linkedin' }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
-      this.db.collection('user').doc(currentUser.uid).update({
+      await this.db.collection('user').doc(currentUser.uid).update({
         linkedinAccessToken: result.access_token,
       });
       localStorage.setItem('linkedinAccessToken', result.access_token);
@@ -164,6 +172,7 @@ export class PlatformsIntegrationComponent {
       this.toaster.success('Linkedin account connected successfully');
     } catch (error) {
       console.error('Error calling cloud function', error);
+      this.toaster.error('Error connecting LinkedIn account', 'Error');
     }
   }
 
@@ -174,7 +183,7 @@ export class PlatformsIntegrationComponent {
       'https://localhost:4200/integrations/' + platform : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/' + platform, platform: platform }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
-      this.db.collection('user').doc(currentUser.uid).update({
+      await this.db.collection('user').doc(currentUser.uid).update({
         [`${platform}AccessToken`]: result.access_token,
         [`${platform}RefreshToken`]: result.refresh_token,
       });
@@ -183,11 +192,13 @@ export class PlatformsIntegrationComponent {
       this.toaster.success(`${platform === 'dv360' ? 'Display & Video 360' : 'Google Ads'} account connected successfully`);
     } catch (error) {
       console.error('Error calling cloud function', error);
+      this.toaster.error(`Error connecting ${platform === 'dv360' ? 'Display & Video 360' : 'Google Ads'} account`, 'Error');
     }
   }
 
   async facebookConnect() {
     this.isLoading = true;
+    this.cdr.detectChanges();
     try {
       await this.facebookService.facebookConnect();
     } finally {
@@ -198,19 +209,25 @@ export class PlatformsIntegrationComponent {
 
   async facebookDisconnect() {
     this.isLoading = true;
+    this.cdr.detectChanges();
     await this.facebookService.facebookDisconnect();
     this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   async bingDisconnect() {
     this.isLoading = true;
+    this.cdr.detectChanges();
     await this.bingService.bingDisconnect();
     this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   async linkedinDisconnect() {
     this.isLoading = true;
+    this.cdr.detectChanges();
     await this.linkedinService.linkedinDisconnect();
     this.isLoading = false;
+    this.cdr.detectChanges();
   }
 }
