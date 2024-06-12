@@ -20,7 +20,12 @@ import { getAnalytics, isSupported } from 'firebase/analytics';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideToastr(),
+    provideToastr({
+      timeOut: 20000,
+      positionClass: 'toast-top-right',
+      preventDuplicates: true,
+      progressBar: true
+    }),
     provideNativeDateAdapter(),
     provideRouter(routes),
     { provide: FIREBASE_OPTIONS, useValue: environment.firebaseConfig },
