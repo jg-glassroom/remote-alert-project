@@ -18,6 +18,7 @@ import { FacebookService } from '../../services/platforms/facebook/facebook.serv
 import { BingService } from '../../services/platforms/bing/bing.service';
 import { LinkedinService } from '../../services/platforms/linkedin/linkedin.service';
 import { CommonService } from '../../services/common/common.service';
+import { ExternalPlatformsService } from '../../services/external-platforms.service';
 
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
@@ -55,7 +56,8 @@ export class PlatformsIntegrationComponent {
     public bingService: BingService,
     public linkedinService: LinkedinService,
     public commonService: CommonService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public externalPlatformsService: ExternalPlatformsService
   ) {}
 
   ngOnInit(): void {
@@ -68,9 +70,10 @@ export class PlatformsIntegrationComponent {
       data: { message: "You will be disconnected from all Google platforms. Are you sure?" }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe(async result => {
       if (result) {
         this.isLoading = true;
+        await this.externalPlatformsService.refreshGoogleToken(platform);
         this.googleService.googleDisconnect(platform);
 
         const db = getFirestore();
@@ -101,6 +104,7 @@ export class PlatformsIntegrationComponent {
 
   private handleQueryParams(): void {
     this.isLoading = true;
+    this.cdr.detectChanges();
     let source = '';
     this.route.params.forEach((params: any) => {
       source = params.oauthProvider;
@@ -123,6 +127,7 @@ export class PlatformsIntegrationComponent {
       }
     });
     this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   private async exchangeMicrosoftTokens(authCode: string): Promise<void> {
