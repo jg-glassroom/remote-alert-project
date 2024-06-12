@@ -351,9 +351,9 @@ export class HeaderComponent {
 
   refreshView() {
     this.zone.run(() => {
+      this.isLoading = false;
       this.cdr.detectChanges();
       this.appRef.tick();
-      this.isLoading = false;
     });
   }
 

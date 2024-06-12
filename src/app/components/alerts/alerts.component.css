@@ -184,3 +184,18 @@ mat-spinner {
 mat-icon {
     color: black;
 }
+
+.title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0;
+}

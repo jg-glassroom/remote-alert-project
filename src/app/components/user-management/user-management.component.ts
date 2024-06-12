@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
@@ -43,7 +43,8 @@ export class UserManagementComponent {
     private matDialog: MatDialog,
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
-    private commonService: CommonService
+    private commonService: CommonService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -89,6 +90,7 @@ export class UserManagementComponent {
       await this.fetchUsers(userIds);
     }
     this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   async fetchUsers(userIds: string[]) {
