@@ -257,15 +257,21 @@ export class AlertsComponent {
   }
 
   async getData() {
+    console.log('AAAAAAAAAAAAAAAAAA');
     this.isLoading = true;
+    this.cdr.detectChanges();
+    console.log('BBBBBBBBBBBBBBBBBB');
     await this.getAlerts();
     await this.getSubaccounts();
     await this.getUsers();
+    console.log('CCCCCCCCCCCCCCCCCCC');
     this.getFilters();
     this.applyFilters();
     await this.fetchTooltips(this.alertsService.pacingAlerts);
+    console.log('DDDDDDDDDDDDDDDDDD');
     this.isLoading = false;
     this.cdr.detectChanges();
+    console.log('EEEEEEEEEEEEEEEEEE', this.isLoading);
   }
 
   getFilteredAlerts(subaccountId: string | null): any[] {

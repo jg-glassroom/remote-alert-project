@@ -138,7 +138,7 @@
                                     <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
                                     <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
                                     <td class="cell subcell" [class.border-cell]="!last">
-                                        <div *ngIf="platform.loading; else noBudgetLoading" class="loader-overlay">
+                                        <div *ngIf="platform.loading; else noBudgetLoading">
                                             <mat-spinner [diameter]="30"></mat-spinner>
                                         </div>
                                         <ng-template #noBudgetLoading>
@@ -151,7 +151,7 @@
                                         </ng-template>
                                     </td>
                                     <td class="cell subcell" [class.border-cell]="!last">
-                                        <div *ngIf="platform.loading; else noEstimatedSpendLoading" class="loader-overlay">
+                                        <div *ngIf="platform.loading; else noEstimatedSpendLoading">
                                             <mat-spinner [diameter]="30"></mat-spinner>
                                         </div>
                                         <ng-template #noEstimatedSpendLoading>
@@ -164,7 +164,7 @@
                                         </ng-template>
                                     </td>
                                     <td class="cell subcell" [class.border-cell]="!last">
-                                        <div *ngIf="platform.loading; else noOverallLoading" class="loader-overlay">
+                                        <div *ngIf="platform.loading; else noOverallLoading">
                                             <mat-spinner [diameter]="30"></mat-spinner>
                                         </div>
                                         <ng-template #noOverallLoading>
@@ -177,7 +177,7 @@
                                         </ng-template>
                                     </td>
                                     <td class="cell subcell" [class.border-cell]="!last">
-                                        <div *ngIf="platform.loading; else noYesterdaySpentLoading" class="loader-overlay">
+                                        <div *ngIf="platform.loading; else noYesterdaySpentLoading">
                                             <mat-spinner [diameter]="30"></mat-spinner>
                                         </div>
                                         <ng-template #noYesterdaySpentLoading>
@@ -190,7 +190,7 @@
                                         </ng-template>
                                     </td>
                                     <td class="cell subcell" [class.border-cell]="!last">
-                                        <div *ngIf="platform.loading; else noSpendPerDayLoading" class="loader-overlay">
+                                        <div *ngIf="platform.loading; else noSpendPerDayLoading">
                                             <mat-spinner [diameter]="30"></mat-spinner>
                                         </div>
                                         <ng-template #noSpendPerDayLoading>
@@ -216,7 +216,7 @@
                     </mat-expansion-panel-header>
                     <div *ngIf="openPanels.has(pacingAlert.id)">
                         <ng-container *ngIf="loadingGraphs.has(pacingAlert.id); else showChart">
-                            <div class="loader-overlay">
+                            <div>
                                 <mat-spinner [diameter]="50"></mat-spinner>
                             </div>
                         </ng-container>
@@ -305,7 +305,7 @@
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <div *ngIf="platform.loading; else noBudgetLoadingBis" class="loader-overlay">
+                                    <div *ngIf="platform.loading; else noBudgetLoadingBis">
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noBudgetLoadingBis>
@@ -318,7 +318,7 @@
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <div *ngIf="platform.loading; else noEstimatedSpendLoadingBis" class="loader-overlay">
+                                    <div *ngIf="platform.loading; else noEstimatedSpendLoadingBis">
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noEstimatedSpendLoadingBis>
@@ -331,7 +331,7 @@
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <div *ngIf="platform.loading; else noOverallLoadingBis" class="loader-overlay">
+                                    <div *ngIf="platform.loading; else noOverallLoadingBis">
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noOverallLoadingBis>
@@ -344,7 +344,7 @@
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <div *ngIf="platform.loading; else noYesterdaySpentLoadingBis" class="loader-overlay">
+                                    <div *ngIf="platform.loading; else noYesterdaySpentLoadingBis">
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noYesterdaySpentLoadingBis>
@@ -357,7 +357,7 @@
                                     </ng-template>
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">
-                                    <div *ngIf="platform.loading; else noSpendPerDayLoadingBis" class="loader-overlay">
+                                    <div *ngIf="platform.loading; else noSpendPerDayLoadingBis">
                                         <mat-spinner [diameter]="30"></mat-spinner>
                                     </div>
                                     <ng-template #noSpendPerDayLoadingBis>
@@ -379,7 +379,7 @@
                 </mat-expansion-panel-header>
                 <div *ngIf="openPanels.has(pacingAlert.id)">
                     <ng-container *ngIf="loadingGraphs.has(pacingAlert.id); else showChartBis">
-                        <div class="loader-overlay">
+                        <div>
                             <mat-spinner [diameter]="50"></mat-spinner>
                         </div>
                     </ng-container>
