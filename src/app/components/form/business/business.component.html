@@ -35,7 +35,11 @@
         <input type="file" (change)="onFileChange($event)"/>
     </div>
 
-    <div class="form-element footer" *ngIf="commonService.isAdmin">
+    <div *ngIf="filePreview" class="form-element">
+        <img [src]="filePreview" alt="image preview" style="max-width: 100%; height: auto;"/>
+    </div>
+
+    <div class="form-element" *ngIf="commonService.isAdmin">
       <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="saveBusiness()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
       &nbsp;
       <button mat-raised-button class="button" *ngIf="!disableCancel" (click)="onCancel()">Cancel</button>

@@ -51,6 +51,7 @@ export class BusinessComponent {
   public countries$ = this.countriesSubject.asObservable();
   originalCountries$!: Observable<any[]>;
   file: any;
+  filePreview: string | ArrayBuffer | null = null;
 
   constructor(
     private http: HttpClient,
@@ -123,12 +124,13 @@ export class BusinessComponent {
     if (this.isEditMode && this.documentId) {
       await this.db.collection('business').doc(this.documentId).update(this.formGroup.value).then(async () => {
         if (this.file) {
-          const path = `businessLogo/${this.documentId}_${this.file.name}`;
+          const path = `businessLogo/${this.documentId}`;
           const uploadTask = await this.fireStorage.upload(path, this.file);
           const url = await uploadTask.ref.getDownloadURL();
           await this.db.collection('business').doc(this.documentId!).update({
             logoUrl: url
           });
+          business.logoUrl = url;
         }
       });
       this.toaster.success('Business updated successfully', 'Success');
@@ -146,6 +148,7 @@ export class BusinessComponent {
           await this.db.collection('business').doc(docRef.id!).update({
             logoUrl: url
           });
+          business.logoUrl = url;
         }
 
         const userRolesRef = this.db.collection('userRoles').ref.where('userId', '==', user.uid);
@@ -186,5 +189,11 @@ export class BusinessComponent {
 
   async onFileChange(event: any) {
     this.file = event.target.files[0];
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.filePreview = reader.result;
+    };
+    reader.readAsDataURL(this.file);
   }
 }

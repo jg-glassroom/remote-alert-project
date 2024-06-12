@@ -1,7 +1,6 @@
-import { Component, ViewChild, computed, inject, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, computed, inject, signal, ChangeDetectorRef, ChangeDetectionStrategy, ApplicationRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { Router } from '@angular/router';
+import { RouterOutlet, Router } from '@angular/router';
 
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { documentId } from 'firebase/firestore';
@@ -19,15 +18,16 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { BusinessComponent } from '../form/business/business.component';
 
 import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
 
-
 @Component({
   selector: 'app-header',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
     MatToolbarModule,
@@ -38,12 +38,14 @@ import { of, combineLatest, tap, map, take, Subscription, Subject } from 'rxjs';
     MatMenuModule,
     CommonModule,
     RouterOutlet,
-    MatExpansionModule
+    MatExpansionModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css'
+  styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
+  isLoading: boolean = false;
   toaster = inject(ToastrService);
   isDialogOpen: boolean = false;
   private destroy$ = new Subject<void>();
@@ -54,6 +56,8 @@ export class HeaderComponent {
   @ViewChild('sidemenu') sidemenu!: MatDrawer;
   @ViewChild(MatMenuTrigger) trigger!: MatMenuTrigger;
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  private appRef: ApplicationRef = inject(ApplicationRef);
+  private zone: NgZone = inject(NgZone);
 
   businesses: any[] = [];
   selectedBusiness: any;
@@ -106,8 +110,12 @@ export class HeaderComponent {
     });
 
     dialogRef.afterClosed().subscribe((business) => {
-      this.commonService.selectedBusiness = business;
-      this.getElements(true, false);
+      if (business) {
+        this.updateSelectedBusiness(business).then(() => {
+          this.getElements(true, false);
+          this.refreshView();
+        });
+      }
     });
   }
 
@@ -224,6 +232,7 @@ export class HeaderComponent {
   }
 
   selectBusiness(business: any) {
+    this.isLoading = true;
     this.auth.user$.pipe(
       tap(user => {
         if (user) {
@@ -231,17 +240,25 @@ export class HeaderComponent {
           if (this.commonService.selectedBusiness.id !== business.id) {
             userDoc.update({ selectedBusiness: business, selectedAccount: null })
               .then(() => {
-                this.router.navigate(['/accounts']);
-                this.commonService.selectedBusiness = business;
-                this.commonService.selectedAccount = null;
+                this.updateSelectedBusiness(business).then(() => {
+                  this.router.navigate(['/accounts']).then(() => {
+                    setTimeout(() => {
+                      this.refreshView();
+                    }, 200);
+                  });
+                });
               })
               .catch(() => this.toaster.error('Failed to update business selection'));
           } else {
             userDoc.update({ selectedAccount: null })
               .then(() => {
                 this.commonService.selectedAccount = null;
-                this.router.navigate(['/accounts']);
-              })
+                this.router.navigate(['/accounts']).then(() => {
+                  setTimeout(() => {
+                    this.refreshView();
+                  }, 200);
+                });
+              });
           }
         }
       }),
@@ -259,11 +276,13 @@ export class HeaderComponent {
               .then(() => {
                 this.router.navigate(['/alerts', account.id]);
                 this.commonService.selectedAccount = account;
+                this.refreshView();
               })
               .catch(() => this.toaster.error('Failed to update account selection'));
           } else {
             userDoc.update({ selectedAccount: account });
             this.router.navigate(['/alerts', account.id]);
+            this.refreshView();
           }
         }
       }),
@@ -310,9 +329,13 @@ export class HeaderComponent {
               data: { ...data as any, id: this.commonService.selectedBusiness.id }
             });
 
-            dialogRef.afterClosed().subscribe(() => {
+            dialogRef.afterClosed().subscribe((data) => {
               this.isDialogOpen = false;
-              this.getElements(true, false);
+              if (data) {
+                this.updateSelectedBusiness({ ...data as any, id: this.commonService.selectedBusiness.id }).then(() => {
+                  this.getElements(true, false);
+                });
+              }
             });
           }
         });
@@ -324,5 +347,30 @@ export class HeaderComponent {
       this.toggleSidemenu();
     }
     this.activePanel = panel;
+  }
+
+  refreshView() {
+    this.zone.run(() => {
+      this.cdr.detectChanges();
+      this.appRef.tick();
+      this.isLoading = false;
+    });
+  }
+
+  updateSelectedBusiness(business: any): Promise<void> {
+    return new Promise<void>((resolve) => {
+      this.commonService.selectedBusiness = business;
+      this.auth.user$.pipe(take(1)).subscribe(user => {
+        if (user) {
+          const userDoc = this.db.doc(`user/${user.uid}`);
+          userDoc.update({ selectedBusiness: business }).then(() => {
+            this.refreshView();
+            resolve();
+          });
+        } else {
+          resolve();
+        }
+      });
+    });
   }
 }
