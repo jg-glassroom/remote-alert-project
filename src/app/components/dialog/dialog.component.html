@@ -4,7 +4,7 @@
 <form [formGroup]="formGroup">
   <div class="header">
     <mat-form-field class="form-element">
-      <mat-label>Campaign Name</mat-label>
+      <mat-label>Alert Name</mat-label>
       <input matInput formControlName="campaignName">
       <mat-error *ngIf="(submitted || formGroup.get('campaignName')!.touched) && formGroup.get('campaignName')!.invalid">
         The field is required
@@ -21,15 +21,6 @@
       </mat-autocomplete>
     </mat-form-field>
   </div>
-
-  <button
-    mat-raised-button
-    class="button form-button create-button"
-    color="primary"
-    (click)="addTab()"
-    type="button">
-    <mat-icon>add</mat-icon>Platform
-  </button>
 
   <mat-tab-group [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
     @for (tab of tabs; track tab; let index = $index) {
@@ -116,6 +107,15 @@
       </mat-tab>
     }
   </mat-tab-group>
+
+  <button
+    mat-raised-button
+    class="button form-button create-button"
+    color="accent"
+    (click)="addTab()"
+    type="button">
+    <mat-icon>add</mat-icon>Platform
+  </button>
 
   <div class="form-element footer">
     <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">Save</button>

@@ -27,6 +27,8 @@ import { ToastrService } from 'ngx-toastr';
 import { firstValueFrom, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
+import moment from 'moment';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -80,7 +82,6 @@ export class AlertsComponent {
     'spend',
     'estimatedSpend',
     'overallPacing',
-    'pacing',
     'spendPerDay',
     'yesterdaySpent'
   ];
@@ -117,6 +118,8 @@ export class AlertsComponent {
   isLoading: boolean = false;
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
 
+  tooltipData: { [alertId: string]: any } = {};
+
   constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
@@ -148,6 +151,40 @@ export class AlertsComponent {
       startWith(''),
       map(value => this._filter(value, this.users, 'email'))
     );
+  }
+
+  async fetchTooltips(alerts: any[]) {
+    for (const alert of alerts) {
+      await this.getTooltipAlert(alert);
+    }
+  }
+
+  async getTooltipAlert(alert: any) {
+    const userId = alert.originalPlatforms[0].formData.userId;
+    try {
+      const user = this.users.find((user: any) => user.id === userId);
+      let userEmail = '';
+      if (user && user.email) {
+        userEmail = user.email;
+      }
+      const lastUpdated = moment(alert.last_refreshed.toDate()).format('MM/DD/YYYY');
+
+      const processSuccessfully = alert.platforms.every(
+        (platform: any) => 
+          platform.pacingAlerts &&
+          platform.pacingAlerts[platform.platform + '_overall_delta_value']
+      );
+
+      this.tooltipData[alert.id] = `Creator: ${userEmail}\nLast updated: ${lastUpdated}\nProcess: ${processSuccessfully ? 'Success' : 'Failed'}`;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      this.tooltipData[alert.id] = 'Error fetching tooltip data';
+    }
+  }
+
+  getPacingInfo(alert: any, index: any): any {
+    const platform = alert.platforms[index];
+    return `Last seven days: ${platform.pacingAlerts[platform.platform + '_seven_days_delta_value'].toLocaleString()}%\nYesterday: ${platform.pacingAlerts[platform.platform + '_yesterday_delta_value'].toLocaleString()}%`;
   }
 
   togglePanel(alertId: string) {
@@ -226,6 +263,7 @@ export class AlertsComponent {
     await this.getUsers();
     this.getFilters();
     this.applyFilters();
+    await this.fetchTooltips(this.alertsService.pacingAlerts);
     this.isLoading = false;
     this.cdr.detectChanges();
   }
