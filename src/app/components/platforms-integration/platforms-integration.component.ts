@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
@@ -11,6 +11,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { GoogleService } from '../../services/platforms/google/google.service';
 import { FacebookService } from '../../services/platforms/facebook/facebook.service';
@@ -34,13 +35,15 @@ import { firstValueFrom } from 'rxjs';
     MatCardModule,
     MatExpansionModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './platforms-integration.component.html',
   styleUrl: './platforms-integration.component.css'
 })
 export class PlatformsIntegrationComponent {
   toaster = inject(ToastrService);
+  isLoading: boolean = false;
 
   constructor(
     private matDialog: MatDialog,
@@ -52,6 +55,7 @@ export class PlatformsIntegrationComponent {
     public bingService: BingService,
     public linkedinService: LinkedinService,
     public commonService: CommonService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +70,7 @@ export class PlatformsIntegrationComponent {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        this.isLoading = true;
         this.googleService.googleDisconnect(platform);
 
         const db = getFirestore();
@@ -88,33 +93,36 @@ export class PlatformsIntegrationComponent {
           } else {
             console.log("User not logged in");
           }
+          this.isLoading = false;
         });
       }
     });
   }
 
   private handleQueryParams(): void {
+    this.isLoading = true;
     let source = '';
     this.route.params.forEach((params: any) => {
       source = params.oauthProvider;
     });
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(async params => {
       const authCode = params['code'];
       if (authCode) {
         if (source === 'dv360') {
-          this.exchangeGoogleTokens(authCode, source)
+         await this.exchangeGoogleTokens(authCode, source)
           .catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'googleAds') {
-          this.exchangeGoogleTokens(authCode, source)
+          await this.exchangeGoogleTokens(authCode, source)
           .catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'microsoft') {
-          this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
+          await this.exchangeMicrosoftTokens(authCode).catch(error => console.error('Error calling cloud function', error));
         } else if (source === 'linkedin') {
-          this.exchangeLinkedinToken(authCode)
+          await this.exchangeLinkedinToken(authCode)
           .catch(error => console.error('Error calling cloud function', error));
         }
       }
     });
+    this.isLoading = false;
   }
 
   private async exchangeMicrosoftTokens(authCode: string): Promise<void> {
@@ -143,7 +151,6 @@ export class PlatformsIntegrationComponent {
       'https://localhost:4200/integrations/linkedin' : 'https://alert-project-xy52mshrpa-nn.a.run.app/integrations/linkedin' }));
       const currentUser = getAuth().currentUser;
       if (!currentUser) throw new Error('User not logged in');
-      console.log('result', result);
       this.db.collection('user').doc(currentUser.uid).update({
         linkedinAccessToken: result.access_token,
       });
@@ -172,5 +179,33 @@ export class PlatformsIntegrationComponent {
     } catch (error) {
       console.error('Error calling cloud function', error);
     }
+  }
+
+  async facebookConnect() {
+    this.isLoading = true;
+    try {
+      await this.facebookService.facebookConnect();
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async facebookDisconnect() {
+    this.isLoading = true;
+    await this.facebookService.facebookDisconnect();
+    this.isLoading = false;
+  }
+
+  async bingDisconnect() {
+    this.isLoading = true;
+    await this.bingService.bingDisconnect();
+    this.isLoading = false;
+  }
+
+  async linkedinDisconnect() {
+    this.isLoading = true;
+    await this.linkedinService.linkedinDisconnect();
+    this.isLoading = false;
   }
 }

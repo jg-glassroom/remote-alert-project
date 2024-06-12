@@ -1,3 +1,7 @@
+<div *ngIf="isLoading" class="loader-overlay">
+    <mat-spinner></mat-spinner>
+</div>
+
 <div class="title">
     <h1>Platforms integration</h1>
 </div>
@@ -40,8 +44,8 @@
                     <mat-icon style="color: green;" *ngIf="commonService.isConnected('facebook')">check</mat-icon>
                     <mat-icon style="color: red;" *ngIf="!commonService.isConnected('facebook')">close</mat-icon>
                 </div>
-                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookConnect()" *ngIf="!commonService.isConnected('facebook')">Connect</button>
-                <button mat-raised-button color="primary" class="reconnect" (click)="facebookService.facebookDisconnect()" *ngIf="commonService.isConnected('facebook')">Disconnect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="facebookConnect()" *ngIf="!commonService.isConnected('facebook')">Connect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="facebookDisconnect()" *ngIf="commonService.isConnected('facebook')">Disconnect</button>
             </div>
         </mat-card-content>
     </mat-card>
@@ -55,7 +59,7 @@
                     <mat-icon style="color: red;" *ngIf="!commonService.isConnected('bing')">close</mat-icon>
                 </div>
                 <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingConnect()" *ngIf="!commonService.isConnected('bing')">Connect</button>
-                <button mat-raised-button color="primary" class="reconnect" (click)="bingService.bingDisconnect()" *ngIf="commonService.isConnected('bing')">Disconnect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="bingDisconnect()" *ngIf="commonService.isConnected('bing')">Disconnect</button>
             </div>
         </mat-card-content>
     </mat-card>
@@ -69,7 +73,7 @@
                     <mat-icon style="color: red;" *ngIf="!commonService.isConnected('linkedin')">close</mat-icon>
                 </div>
                 <button mat-raised-button color="primary" class="reconnect" (click)="linkedinService.linkedinConnect()" *ngIf="!commonService.isConnected('linkedin')">Connect</button>
-                <button mat-raised-button color="primary" class="reconnect" (click)="linkedinService.linkedinDisconnect()" *ngIf="commonService.isConnected('linkedin')">Disconnect</button>
+                <button mat-raised-button color="primary" class="reconnect" (click)="linkedinDisconnect()" *ngIf="commonService.isConnected('linkedin')">Disconnect</button>
             </div>
         </mat-card-content>
     </mat-card>

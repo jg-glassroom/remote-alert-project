@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
@@ -114,6 +114,9 @@ export class AlertsComponent {
   openPanels: Set<string> = new Set<string>();
   loadingGraphs: Set<string> = new Set();
 
+  isLoading: boolean = false;
+  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+
   constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
@@ -133,8 +136,11 @@ export class AlertsComponent {
       const accountId = params.get('accountId');
       if (accountId !== this.selectedAccountId) {
         this.selectedAccountId = accountId;
+        this.isLoading = true;
         await this.getData();
         this.applyFilters();
+        this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
 
@@ -214,11 +220,14 @@ export class AlertsComponent {
   }
 
   async getData() {
+    this.isLoading = true;
     await this.getAlerts();
     await this.getSubaccounts();
     await this.getUsers();
     this.getFilters();
     this.applyFilters();
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   getFilteredAlerts(subaccountId: string | null): any[] {
