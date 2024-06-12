@@ -257,21 +257,16 @@ export class AlertsComponent {
   }
 
   async getData() {
-    console.log('AAAAAAAAAAAAAAAAAA');
     this.isLoading = true;
     this.cdr.detectChanges();
-    console.log('BBBBBBBBBBBBBBBBBB');
     await this.getAlerts();
     await this.getSubaccounts();
     await this.getUsers();
-    console.log('CCCCCCCCCCCCCCCCCCC');
     this.getFilters();
     this.applyFilters();
     await this.fetchTooltips(this.alertsService.pacingAlerts);
-    console.log('DDDDDDDDDDDDDDDDDD');
     this.isLoading = false;
     this.cdr.detectChanges();
-    console.log('EEEEEEEEEEEEEEEEEE', this.isLoading);
   }
 
   getFilteredAlerts(subaccountId: string | null): any[] {
@@ -336,6 +331,7 @@ export class AlertsComponent {
           }
 
           this.alertsService.pacingAlerts = alerts;
+          this.cdr.detectChanges();
           resolve();
         }, error => {
           reject(error);
@@ -483,22 +479,28 @@ export class AlertsComponent {
       if (pacingAlert && pacingAlert.platforms[index]) {
         pacingAlert.platforms[index].loading = true;
       }
-      this.db.collection(`userSearch`).doc(campaign.id).update(data).then(() => {
+      this.db.collection(`userSearch`).doc(campaign.id).update(data).then(async () => {
         if (platform.platform === 'dv360') {
-          this.DV360ReportService.processReport(campaign, index)
+          await this.DV360ReportService.processReport(campaign, index);
         }
         if (platform.platform === 'linkedin') {
-          this.linkedinReportService.processReport(campaign, index)
+          await this.linkedinReportService.processReport(campaign, index);
         }
         if (platform.platform === 'facebook') {
-          this.facebookReportService.processReport(campaign, index)
+          await this.facebookReportService.processReport(campaign, index);
         }
         if (platform.platform === 'bing') {
-          this.bingReportService.processReport(campaign, index)
+          await this.bingReportService.processReport(campaign, index);
         }
         if (platform.platform === 'googleAds') {
-          this.googleAdsReportService.processReport(campaign, index)
+          await this.googleAdsReportService.processReport(campaign, index);
         }
+
+        data.platforms[index].loading = false;
+        if (pacingAlert && pacingAlert.platforms[index]) {
+          pacingAlert.platforms[index].loading = false;
+        }  
+        this.cdr.detectChanges();
       });
     });
   }
