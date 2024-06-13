@@ -160,9 +160,7 @@ export class BingFormComponent {
     const accountsList = accountsInfo.map((account: any) => ({
         id: account['a:Id'][0],
         name: account['a:Name'][0],
-        number: account['a:Number'][0],
         accountLifeCycleStatus: account['a:AccountLifeCycleStatus'][0],
-        pauseReason: account['a:PauseReason'][0]['$']['i:nil'] === "true" ? null : account['a:PauseReason'][0]['_']
     }));
 
     accountsList.sort((a: any, b: any) => a.name.localeCompare(b.name));
