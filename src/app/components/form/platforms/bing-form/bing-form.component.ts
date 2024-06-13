@@ -173,19 +173,22 @@ export class BingFormComponent {
   extractCampaigns(data: any) {
     const campaignsInfo = data['s:Envelope']['s:Body'][0]['GetCampaignsByAccountIdResponse'][0]['Campaigns'][0]['Campaign'];
 
-    const campaignsData = campaignsInfo.map((campaign: any) => ({
-      id: campaign['Id'][0],
-      name: campaign['Name'][0],
-      status: campaign['Status'][0],
-      budgetType: campaign['BudgetType'][0],
-      dailyBudget: campaign['DailyBudget'][0],
-      timeZone: campaign['TimeZone'][0],
-      campaignType: campaign['CampaignType'][0],
-      languages: campaign['Languages'] && campaign['Languages'][0]['a:string'] ? campaign['Languages'][0]['a:string'] : [],
-      customParameters: campaign['UrlCustomParameters'] ? this.extractCustomParameters(campaign['UrlCustomParameters'][0]) : []
-    }));
-
-    campaignsData.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    let campaignsData: any = [];
+    if (campaignsInfo) {
+      campaignsData = campaignsInfo.map((campaign: any) => ({
+        id: campaign['Id'][0],
+        name: campaign['Name'][0],
+        status: campaign['Status'][0],
+        budgetType: campaign['BudgetType'][0],
+        dailyBudget: campaign['DailyBudget'][0],
+        timeZone: campaign['TimeZone'][0],
+        campaignType: campaign['CampaignType'][0],
+        languages: campaign['Languages'] && campaign['Languages'][0]['a:string'] ? campaign['Languages'][0]['a:string'] : [],
+        customParameters: campaign['UrlCustomParameters'] ? this.extractCustomParameters(campaign['UrlCustomParameters'][0]) : []
+      }));
+  
+      campaignsData.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    }
 
     return campaignsData;
   }
