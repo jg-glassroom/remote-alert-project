@@ -39,7 +39,7 @@
         <img [src]="filePreview" alt="image preview" style="max-width: 100%; height: auto;"/>
     </div>
 
-    <div class="form-element" *ngIf="commonService.isAdmin">
+    <div class="form-element" *ngIf="commonService.isAdmin || !isEditMode">
       <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="saveBusiness()">{{ isEditMode ? 'Edit' : 'Save' }}</button>
       &nbsp;
       <button mat-raised-button class="button" *ngIf="!disableCancel" (click)="onCancel()">Cancel</button>

@@ -110,7 +110,7 @@ export class BusinessComponent {
       country: [this.data?.country || ''],
     });
 
-    if (!this.commonService.isAdmin) {
+    if (!this.commonService.isAdmin && this.isEditMode) {
       this.formGroup.disable();
     }
   }

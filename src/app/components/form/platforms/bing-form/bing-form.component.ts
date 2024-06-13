@@ -217,6 +217,25 @@ export class BingFormComponent {
       const result = await firstValueFrom(callable({ accessToken: localStorage.getItem('microsoftAccessToken') }));
 
       this.customers = this.extractCustomers(result);
+
+      for (const customer of this.customers) {
+        const callableInfo = this.fns.httpsCallable('getBingCustomerInfo');
+        const result = await firstValueFrom(callableInfo({ accessToken: localStorage.getItem('microsoftAccessToken'), customerId: customer.id }));
+        if (
+          result &&
+          result['s:Envelope'] &&
+          result['s:Envelope']['s:Body'] &&
+          result['s:Envelope']['s:Body'][0] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'][0] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'][0]['Customer'][0] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'][0]['Customer'][0]['a:ServiceLevel'][0] === 'Premium'
+        ) {
+          customer.isManager = true;
+        }
+      }
+
+      this.customers = this.customers.filter((customer: any) => customer.isManager);
       this.customersSubject.next(this.customers);
       this.originalCustomers$ = of(this.customers);
       localStorage.setItem('customers', JSON.stringify(this.customers));
