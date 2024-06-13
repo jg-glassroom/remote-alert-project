@@ -103,9 +103,39 @@ export class BingFormComponent {
     await this.getCustomers();
   }
 
-  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
     const campaign = event.option.value;
+    console.log('AAAAAAAAAAAAAAAA', campaign, campaigns);
+    if (!campaigns.some((c: any) => c.id === campaign.id)) {
+      console.log('BBBBBBBBBBBBBBB');
+      campaigns.push(campaign);
+      formGroup.patchValue({ bingCampaign: campaigns });
+    } else {
+      console.log('CCCCCCCCCCCCCCCC', this.campaigns);
+      const index = campaigns.findIndex((c: any) => c.id === campaign.id);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ bingCampaign: campaigns });
+      }
+    }
+    console.log('XXXXXXXXXX', this.campaigns);
     this.platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   async createForm() {

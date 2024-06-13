@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -95,7 +95,8 @@ export class Dv360FormComponent {
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private http: HttpClient,
-    public platformsCommon: CommonService
+    public platformsCommon: CommonService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -112,10 +113,35 @@ export class Dv360FormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
-  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
     const campaign = event.option.value;
+    if (!campaigns.some((c: any) => c.campaignId === campaign.campaignId)) {
+      campaigns.push(campaign);
+      formGroup.patchValue({ dv360CampaignId: campaigns });
+    } else {
+      const index = campaigns.findIndex((c: any) => c.campaignId === campaign.campaignId);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ dv360CampaignId: campaigns });
+      }
+    }
     this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
     this.filterIOsByCampaigns();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {

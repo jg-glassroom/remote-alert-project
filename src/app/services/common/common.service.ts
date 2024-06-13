@@ -59,7 +59,9 @@ export class CommonService {
       campaign.selected = false;
       campaigns$.forEach((c: any) => {
         let campaignToUpdate = c.find((cc: any) => cc[idField] === campaign[idField]);
-        campaignToUpdate.selected = false;
+        if (campaignToUpdate) {
+          campaignToUpdate.selected = false;
+        }
         if (c[idField] === campaign[idField]) {
           c.selected = false;
         }
@@ -81,7 +83,7 @@ export class CommonService {
       campaigns.push(campaign);
     }
     if (campaignInput && campaignInput.nativeElement) {
-      campaignInput.nativeElement.value = '';
+      campaignInput.value = '';
     }
     formGroup.get(formField)!.setValue(null);
   }

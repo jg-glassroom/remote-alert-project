@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
@@ -87,7 +87,8 @@ export class LinkedinFormComponent {
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     public platformsCommon: CommonService,
-    private fns: AngularFireFunctions
+    private fns: AngularFireFunctions,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -104,9 +105,33 @@ export class LinkedinFormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
-  selectCampaign(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
     const campaign = event.option.value;
+    if (!campaigns.some((c: any) => c.id === campaign.id)) {
+      campaigns.push(campaign);
+      formGroup.patchValue({ linkedinCampaign: campaigns });
+    } else {
+      const index = campaigns.findIndex((c: any) => c.id === campaign.id);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ linkedinCampaign: campaigns });
+      }
+    }
     this.platformsCommon.toggleSelection(campaigns, campaign, 'linkedinCampaign', 'id', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'linkedinCampaign', 'id', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
