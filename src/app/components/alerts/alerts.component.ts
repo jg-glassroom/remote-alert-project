@@ -167,15 +167,26 @@ export class AlertsComponent {
       if (user && user.email) {
         userEmail = user.email;
       }
-      const lastUpdated = moment(alert.last_refreshed.toDate()).format('MM/DD/YYYY');
+
+      let tooltipLabel = '';
+
+      if (userEmail) {
+        tooltipLabel = `Creator: ${userEmail}\n`;
+      }
+
+      if (alert.last_refreshed) {
+        const lastUpdated = moment(alert.last_refreshed.toDate()).format('MM/DD/YYYY');
+        tooltipLabel += `Last updated: ${lastUpdated}\n`;
+      }
 
       const processSuccessfully = alert.platforms.every(
         (platform: any) => 
           platform.pacingAlerts &&
           platform.pacingAlerts[platform.platform + '_overall_delta_value']
       );
+      tooltipLabel += `Process: ${processSuccessfully ? 'Success' : 'Failed'}`;
 
-      this.tooltipData[alert.id] = `Creator: ${userEmail}\nLast updated: ${lastUpdated}\nProcess: ${processSuccessfully ? 'Success' : 'Failed'}`;
+      this.tooltipData[alert.id] = tooltipLabel;
     } catch (error) {
       console.error('Error fetching user data:', error);
       this.tooltipData[alert.id] = 'Error fetching tooltip data';
