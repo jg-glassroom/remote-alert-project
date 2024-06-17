@@ -77,9 +77,11 @@ export class AlertsComponent {
     'name',
     'startDate',
     'endDate',
+    'percDaysPassed',
     'platforms',
     'budget',
     'spend',
+    'percBudgetSpent',
     'estimatedSpend',
     'overallPacing',
     'spendPerDay',
@@ -326,6 +328,7 @@ export class AlertsComponent {
               ...data,
               originalPlatforms: data.platforms
             };
+            console.log(pacingAlert);
             alerts.push(pacingAlert);
           });
 

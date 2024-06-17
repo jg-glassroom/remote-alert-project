@@ -90,11 +90,17 @@
                             End Date
                         </td>
                         <td class="subcell">
+                            % days
+                        </td>
+                        <td class="subcell">
                             Budget
                         </td>
                         <td class="subcell">
                             Spend
                             <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                        </td>
+                        <td class="subcell">
+                            % spend
                         </td>
                         <td class="subcell">
                             Estimated Spend
@@ -136,7 +142,20 @@
                                     </td>
                                     <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'StartDate'] }}</td>
                                     <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
-                                    <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
+                                    <td class="cell subcell" [class.border-cell]="!last">
+                                        <div *ngIf="platform.loading; else noPercBudgetLoading">
+                                            <mat-spinner [diameter]="30"></mat-spinner>
+                                        </div>
+                                        <ng-template #noPercBudgetLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudget">
+                                                {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                                            </span>
+                                            <ng-template #noPercBudget>
+                                                <span>Not available</span>
+                                            </ng-template>
+                                        </ng-template>
+                                    </td>
+                                    <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}$</td>
                                     <td class="cell subcell" [class.border-cell]="!last">
                                         <div *ngIf="platform.loading; else noBudgetLoading">
                                             <mat-spinner [diameter]="30"></mat-spinner>
@@ -146,6 +165,19 @@
                                                 {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
                                             </span>
                                             <ng-template #noSpend>
+                                                <span>Not available</span>
+                                            </ng-template>
+                                        </ng-template>
+                                    </td>
+                                    <td class="cell subcell" [class.border-cell]="!last">
+                                        <div *ngIf="platform.loading; else noPercSpentLoading">
+                                            <mat-spinner [diameter]="30"></mat-spinner>
+                                        </div>
+                                        <ng-template #noPercSpentLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpent">
+                                                {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
+                                            </span>
+                                            <ng-template #noPercSpent>
                                                 <span>Not available</span>
                                             </ng-template>
                                         </ng-template>
@@ -256,12 +288,18 @@
                         <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
                     </td>
                     <td class="subcell">
+                        % days
+                    </td>
+                    <td class="subcell">
                         Budget
                         <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
                     </td>
                     <td class="subcell">
                         Spend
                         <mat-icon matTooltip="Info about the action" class="tooltip">question_mark</mat-icon>
+                    </td>
+                    <td class="subcell">
+                        % spend
                     </td>
                     <td class="subcell">
                         Estimated Spend
@@ -303,7 +341,20 @@
                                 </td>
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'StartDate'] }}</td>
                                 <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'EndDate'] }}</td>
-                                <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}</td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <div *ngIf="platform.loading; else noPercBudgetLoadingBis">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noPercBudgetLoadingBis>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudgetBis">
+                                            {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                                        </span>
+                                        <ng-template #noPercBudgetBis>
+                                            <span>Not available</span>
+                                        </ng-template>
+                                    </ng-template>
+                                </td>
+                                <td class="cell subcell" [class.border-cell]="!last">{{ platform.formData[platform.platform + 'Budget'] }}$</td>
                                 <td class="cell subcell" [class.border-cell]="!last">
                                     <div *ngIf="platform.loading; else noBudgetLoadingBis">
                                         <mat-spinner [diameter]="30"></mat-spinner>
@@ -313,6 +364,19 @@
                                             {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
                                         </span>
                                         <ng-template #noSpendBis>
+                                            <span>Not available</span>
+                                        </ng-template>
+                                    </ng-template>
+                                </td>
+                                <td class="cell subcell" [class.border-cell]="!last">
+                                    <div *ngIf="platform.loading; else noPercSpentLoadingBis">
+                                        <mat-spinner [diameter]="30"></mat-spinner>
+                                    </div>
+                                    <ng-template #noPercSpentLoadingBis>
+                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpentBis">
+                                            {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
+                                        </span>
+                                        <ng-template #noPercSpentBis>
                                             <span>Not available</span>
                                         </ng-template>
                                     </ng-template>
