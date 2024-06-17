@@ -328,7 +328,6 @@ export class AlertsComponent {
               ...data,
               originalPlatforms: data.platforms
             };
-            console.log(pacingAlert);
             alerts.push(pacingAlert);
           });
 
