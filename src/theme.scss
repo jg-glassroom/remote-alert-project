@@ -7,7 +7,7 @@ $custom-primary-map: (
   200: #ce93d8,
   300: #ba68c8,
   400: #ab47bc,
-  500: #8b2ee5, // This is the main color you specified
+  500: #8b2ee5,
   600: #8e24aa,
   700: #7b1fa2,
   800: #6a1b9a,
@@ -36,7 +36,6 @@ $custom-primary-map: (
 
 $custom-primary: mat.define-palette($custom-primary-map);
 
-// Define your custom accent palette with the color #4992ff
 $custom-accent-map: (
   50: #e0f3ff,
   100: #b3e1ff,
@@ -72,10 +71,8 @@ $custom-accent-map: (
 
 $custom-accent: mat.define-palette($custom-accent-map);
 
-// Define your custom warn palette or use the default one
 $custom-warn: mat.define-palette(mat.$red-palette);
 
-// Create the theme object with your custom palettes
 $custom-theme: mat.define-light-theme((
   color: (
     primary: $custom-primary,
@@ -84,6 +81,5 @@ $custom-theme: mat.define-light-theme((
   )
 ));
 
-// Include the Angular Material theme styles with your custom theme
 @include mat.core();
 @include mat.all-component-themes($custom-theme);
