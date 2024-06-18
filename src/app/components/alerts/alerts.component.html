@@ -94,26 +94,41 @@
                             </th>
                             <th>
                                 Spend
-                                <span class="question">*</span>
+                                <span class="tooltip">
+                                    *
+                                    <span class="tooltiptext">Info about the action</span>
+                                </span>
                             </th>
                             <th>
                                 % spend
                             </th>
                             <th>
                                 Estimated Spend
-                                <span class="question">*</span>
+                                <span class="tooltip">
+                                    *
+                                    <span class="tooltiptext">Info about the action</span>
+                                </span>
                             </th>
                             <th>
                                 Overall Pacing
-                                <span class="question">*</span>
+                                <span class="tooltip">
+                                    *
+                                    <span class="tooltiptext">Info about the action</span>
+                                </span>
                             </th>
                             <th>
                                 Yesterday Spent
-                                <span class="question">*</span>
+                                <span class="tooltip">
+                                    *
+                                    <span class="tooltiptext">Info about the action</span>
+                                </span>
                             </th>
                             <th>
                                 Spend/day
-                                <span class="question">*</span>
+                                <span class="tooltip">
+                                    *
+                                    <span class="tooltiptext">Info about the action</span>
+                                </span>
                             </th>
                             <th>
                             </th>
@@ -213,7 +228,13 @@
                                         </div>
                                         <ng-template #noOverallLoading>
                                             <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverall">
-                                                {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                                <span class="tooltip">
+                                                    {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                                    <span class="tooltiptext">
+                                                        <span *ngIf="platform.pacingAlerts[platform.platform + '_yesterday_delta_value']">Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%<br></span>
+                                                        <span *ngIf="platform.pacingAlerts[platform.platform + '_seven_days_delta_value']">Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%</span>
+                                                    </span>
+                                                </span>
                                             </span>
                                             <ng-template #noOverall>
                                                 <span>Not available</span>
@@ -309,26 +330,41 @@
                     </th>
                     <th>
                         Spend
-                        <span class="question">*</span>
+                        <span class="tooltip">
+                            *
+                            <span class="tooltiptext">Info about the action</span>
+                        </span>
                     </th>
                     <th>
                         % spend
                     </th>
                     <th>
                         Estimated Spend
-                        <span class="question">*</span>
+                        <span class="tooltip">
+                            *
+                            <span class="tooltiptext">Info about the action</span>
+                        </span>
                     </th>
                     <th>
                         Overall Pacing
-                        <span class="question">*</span>
+                        <span class="tooltip">
+                            *
+                            <span class="tooltiptext">Info about the action</span>
+                        </span>
                     </th>
                     <th>
                         Yesterday Spent
-                        <span class="question">*</span>
+                        <span class="tooltip">
+                            *
+                            <span class="tooltiptext">Info about the action</span>
+                        </span>
                     </th>
                     <th>
                         Spend/day
-                        <span class="question">*</span>
+                        <span class="tooltip">
+                            *
+                            <span class="tooltiptext">Info about the action</span>
+                        </span>
                     </th>
                     <th>
                     </th>
@@ -430,7 +466,13 @@
                                 </div>
                                 <ng-template #noOverallLoadingBis>
                                     <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverallBis">
-                                        {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                        <span class="tooltip">
+                                            {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                            <span class="tooltiptext">
+                                                <span *ngIf="platform.pacingAlerts[platform.platform + '_yesterday_delta_value']">Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%<br></span>
+                                                <span *ngIf="platform.pacingAlerts[platform.platform + '_seven_days_delta_value']">Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%</span>
+                                            </span>
+                                        </span>
                                     </span>
                                     <ng-template #noOverallBis>
                                         <span>Not available</span>
