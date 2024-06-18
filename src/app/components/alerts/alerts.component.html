@@ -64,9 +64,9 @@
             <div class="subaccount">
                 <div class="subaccount-name">{{ subaccount.name }}</div>
                 <span class="button-group">
-                    <button mat-stroked-button (click)="editSubaccount(subaccount)" *ngIf="subaccount.id" class="button-subaccount">Edit</button>
+                    <button mat-stroked-button (click)="editSubaccount(subaccount)" *ngIf="subaccount.id" class="button-subaccount">Modifier</button>
                     &nbsp;
-                    <button mat-stroked-button (click)="deleteSubaccount(subaccount)" *ngIf="subaccount.id" class="button-subaccount">Delete</button>
+                    <button mat-stroked-button (click)="deleteSubaccount(subaccount)" *ngIf="subaccount.id" class="button-subaccount">Supprimer</button>
                 </span>
             </div>
             <mat-divider></mat-divider>
@@ -120,156 +120,166 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let pacingAlert of getFilteredAlerts(subaccount.id)">
-                            <td>
-                                {{ pacingAlert.campaignName }}
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    {{ platforms[platform.platform] }}<br>
-                                    <span *ngIf="platform.formData[platform.platform + 'Label']">
-                                        {{ platform.formData[platform.platform + 'Label'] }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    {{ platform.formData[platform.platform + 'StartDate'] }}
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    {{ platform.formData[platform.platform + 'EndDate'] }}
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noPercBudgetLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
-                                    </div>
-                                    <ng-template #noPercBudgetLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudget">
-                                            {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                        <ng-container *ngFor="let pacingAlert of getFilteredAlerts(subaccount.id)">
+                            <tr>
+                                <td>{{ pacingAlert.campaignName }}</td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        {{ platforms[platform.platform] }}<br>
+                                        <span *ngIf="platform.formData[platform.platform + 'Label']">
+                                            {{ platform.formData[platform.platform + 'Label'] }}
                                         </span>
-                                        <ng-template #noPercBudget>
-                                            <span>Not available</span>
-                                        </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    {{ platform.formData[platform.platform + 'Budget'] }}$
-                                </div>
-                            </td>
-                            <td>
-                                <div *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noBudgetLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
                                     </div>
-                                    <ng-template #noBudgetLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_campaign_cost'); else noSpend">
-                                            {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
-                                        </span>
-                                        <ng-template #noSpend>
-                                            <span>Not available</span>
-                                        </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noPercSpentLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        {{ platform.formData[platform.platform + 'StartDate'] }}
                                     </div>
-                                    <ng-template #noPercSpentLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpent">
-                                            {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
-                                        </span>
-                                        <ng-template #noPercSpent>
-                                            <span>Not available</span>
-                                        </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noEstimatedSpendLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        {{ platform.formData[platform.platform + 'EndDate'] }}
                                     </div>
-                                    <ng-template #noEstimatedSpendLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_estimated_cost'); else noEstimatedSpend">
-                                            {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
-                                        </span>
-                                        <ng-template #noEstimatedSpend>
-                                            <span>Not available</span>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noPercBudgetLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noPercBudgetLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudget">
+                                                {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                                            </span>
+                                            <ng-template #noPercBudget>
+                                                <span>Not available</span>
+                                            </ng-template>
                                         </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noOverallLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
                                     </div>
-                                    <ng-template #noOverallLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverall">
-                                            {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
-                                        </span>
-                                        <ng-template #noOverall>
-                                            <span>Not available</span>
-                                        </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noYesterdaySpentLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        {{ platform.formData[platform.platform + 'Budget'] }}$
                                     </div>
-                                    <ng-template #noYesterdaySpentLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_spent'); else noYesterdaySpent">
-                                            {{ platform.pacingAlerts[platform.platform + '_yesterday_spent'] | number:'1.0-2' }}$
-                                        </span>
-                                        <ng-template #noYesterdaySpent>
-                                            <span>Not available</span>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noBudgetLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noBudgetLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_campaign_cost'); else noSpend">
+                                                {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
+                                            </span>
+                                            <ng-template #noSpend>
+                                                <span>Not available</span>
+                                            </ng-template>
                                         </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td>
-                                <div  *ngFor="let platform of pacingAlert.platforms">
-                                    <div class="mat-spinner-container" *ngIf="platform.loading; else noSpendPerDayLoading">
-                                        <mat-spinner [diameter]="20"></mat-spinner>
                                     </div>
-                                    <ng-template #noSpendPerDayLoading>
-                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_daily_estimated_cost'); else noSpendPerDay">
-                                            {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
-                                        </span>
-                                        <ng-template #noSpendPerDay>
-                                            <span>Not available</span>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noPercSpentLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noPercSpentLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpent">
+                                                {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
+                                            </span>
+                                            <ng-template #noPercSpent>
+                                                <span>Not available</span>
+                                            </ng-template>
                                         </ng-template>
-                                    </ng-template>
-                                </div>
-                            </td>
-                            <td class="buttons">
-                                <button class="button" (click)="editAlert(pacingAlert, $event)">
-                                    <mat-icon>edit</mat-icon>
-                                </button>
-                                <button class="button" (click)="deleteAlert(pacingAlert, $event)">
-                                    <mat-icon>delete</mat-icon>
-                                </button>
-                                <button class="button" (click)="deleteAlert(pacingAlert, $event)">
-                                    <mat-icon>arrow_drop_down</mat-icon>
-                                </button>
-                            </td>
-                        </tr>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noEstimatedSpendLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noEstimatedSpendLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_estimated_cost'); else noEstimatedSpend">
+                                                {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
+                                            </span>
+                                            <ng-template #noEstimatedSpend>
+                                                <span>Not available</span>
+                                            </ng-template>
+                                        </ng-template>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noOverallLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noOverallLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverall">
+                                                {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                            </span>
+                                            <ng-template #noOverall>
+                                                <span>Not available</span>
+                                            </ng-template>
+                                        </ng-template>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noYesterdaySpentLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noYesterdaySpentLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_spent'); else noYesterdaySpent">
+                                                {{ platform.pacingAlerts[platform.platform + '_yesterday_spent'] | number:'1.0-2' }}$
+                                            </span>
+                                            <ng-template #noYesterdaySpent>
+                                                <span>Not available</span>
+                                            </ng-template>
+                                        </ng-template>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div *ngFor="let platform of pacingAlert.platforms">
+                                        <div class="mat-spinner-container" *ngIf="platform.loading; else noSpendPerDayLoading">
+                                            <mat-spinner [diameter]="20"></mat-spinner>
+                                        </div>
+                                        <ng-template #noSpendPerDayLoading>
+                                            <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_daily_estimated_cost'); else noSpendPerDay">
+                                                {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
+                                            </span>
+                                            <ng-template #noSpendPerDay>
+                                                <span>Not available</span>
+                                            </ng-template>
+                                        </ng-template>
+                                    </div>
+                                </td>
+                                <td class="buttons">
+                                    <button class="button" (click)="editAlert(pacingAlert, $event)">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button class="button" (click)="deleteAlert(pacingAlert, $event)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                    <button class="button" (click)="toggleAccordion(pacingAlert.id)">
+                                        <mat-icon>arrow_drop_down</mat-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="accordionStates[pacingAlert.id]">
+                                <td colspan="13">
+                                    <app-line-chart
+                                    *ngIf="hasOverallDeltaValue(pacingAlert)"
+                                    [chartData]="pacingAlert"
+                                    [uniqueId]="'chartdiv_' + pacingAlert.id">
+                                    </app-line-chart>
+                                </td>
+                            </tr>
+                        </ng-container>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
+
 
 <div *ngIf="alertsService.subaccounts.length === 0">
     <div class="table-container">
@@ -322,150 +332,161 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let pacingAlert of getFilteredAlerts(null)">
-                    <td>
-                        {{ pacingAlert.campaignName }}
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            {{ platforms[platform.platform] }}<br>
-                            <span *ngIf="platform.formData[platform.platform + 'Label']">
-                                {{ platform.formData[platform.platform + 'Label'] }}
-                            </span>
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            {{ platform.formData[platform.platform + 'StartDate'] }}
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            {{ platform.formData[platform.platform + 'EndDate'] }}
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noPercBudgetLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
-                            </div>
-                            <ng-template #noPercBudgetLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudgetBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                <ng-container *ngFor="let pacingAlert of getFilteredAlerts(null)">
+                    <tr>
+                        <td>
+                            {{ pacingAlert.campaignName }}
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                {{ platforms[platform.platform] }}<br>
+                                <span *ngIf="platform.formData[platform.platform + 'Label']">
+                                    {{ platform.formData[platform.platform + 'Label'] }}
                                 </span>
-                                <ng-template #noPercBudgetBis>
-                                    <span>Not available</span>
-                                </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td>
-                        <div  *ngFor="let platform of pacingAlert.platforms">
-                            {{ platform.formData[platform.platform + 'Budget'] }}$
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noBudgetLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
                             </div>
-                            <ng-template #noBudgetLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_campaign_cost'); else noSpendBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
-                                </span>
-                                <ng-template #noSpendBis>
-                                    <span>Not available</span>
-                                </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noPercSpentLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                {{ platform.formData[platform.platform + 'StartDate'] }}
                             </div>
-                            <ng-template #noPercSpentLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpentBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
-                                </span>
-                                <ng-template #noPercSpentBis>
-                                    <span>Not available</span>
-                                </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noEstimatedSpendLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                {{ platform.formData[platform.platform + 'EndDate'] }}
                             </div>
-                            <ng-template #noEstimatedSpendLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_estimated_cost'); else noEstimatedSpendBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
-                                </span>
-                                <ng-template #noEstimatedSpendBis>
-                                    <span>Not available</span>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noPercBudgetLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noPercBudgetLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudgetBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                                    </span>
+                                    <ng-template #noPercBudgetBis>
+                                        <span>Not available</span>
+                                    </ng-template>
                                 </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noOverallLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
                             </div>
-                            <ng-template #noOverallLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverallBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
-                                </span>
-                                <ng-template #noOverallBis>
-                                    <span>Not available</span>
-                                </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noYesterdaySpentLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
+                        </td>
+                        <td>
+                            <div  *ngFor="let platform of pacingAlert.platforms">
+                                {{ platform.formData[platform.platform + 'Budget'] }}$
                             </div>
-                            <ng-template #noYesterdaySpentLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_spent'); else noYesterdaySpentBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_yesterday_spent'] | number:'1.0-2' }}$
-                                </span>
-                                <ng-template #noYesterdaySpentBis>
-                                    <span>Not available</span>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noBudgetLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noBudgetLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_campaign_cost'); else noSpendBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_campaign_cost'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noSpendBis>
+                                        <span>Not available</span>
+                                    </ng-template>
                                 </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td>
-                        <div *ngFor="let platform of pacingAlert.platforms">
-                            <div class="mat-spinner-container" *ngIf="platform.loading; else noSpendPerDayLoadingBis">
-                                <mat-spinner [diameter]="20"></mat-spinner>
                             </div>
-                            <ng-template #noSpendPerDayLoadingBis>
-                                <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_daily_estimated_cost'); else noSpendPerDayBis">
-                                    {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
-                                </span>
-                                <ng-template #noSpendPerDayBis>
-                                    <span>Not available</span>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noPercSpentLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noPercSpentLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpentBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
+                                    </span>
+                                    <ng-template #noPercSpentBis>
+                                        <span>Not available</span>
+                                    </ng-template>
                                 </ng-template>
-                            </ng-template>
-                        </div>
-                    </td>
-                    <td class="buttons">
-                        <button class="button" (click)="editAlert(pacingAlert, $event)">
-                            <mat-icon>edit</mat-icon>
-                        </button>
-                        <button class="button" (click)="deleteAlert(pacingAlert, $event)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
-                        <button class="button" (click)="deleteAlert(pacingAlert, $event)">
-                            <mat-icon>arrow_drop_down</mat-icon>
-                        </button>
-                    </td>
-                </tr>
+                            </div>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noEstimatedSpendLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noEstimatedSpendLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_estimated_cost'); else noEstimatedSpendBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_estimated_cost'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noEstimatedSpendBis>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </ng-template>
+                            </div>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noOverallLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noOverallLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_overall_delta_value'); else noOverallBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
+                                    </span>
+                                    <ng-template #noOverallBis>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </ng-template>
+                            </div>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noYesterdaySpentLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noYesterdaySpentLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_spent'); else noYesterdaySpentBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_yesterday_spent'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noYesterdaySpentBis>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </ng-template>
+                            </div>
+                        </td>
+                        <td>
+                            <div *ngFor="let platform of pacingAlert.platforms">
+                                <div class="mat-spinner-container" *ngIf="platform.loading; else noSpendPerDayLoadingBis">
+                                    <mat-spinner [diameter]="20"></mat-spinner>
+                                </div>
+                                <ng-template #noSpendPerDayLoadingBis>
+                                    <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_daily_estimated_cost'); else noSpendPerDayBis">
+                                        {{ platform.pacingAlerts[platform.platform + '_daily_estimated_cost'] | number:'1.0-2' }}$
+                                    </span>
+                                    <ng-template #noSpendPerDayBis>
+                                        <span>Not available</span>
+                                    </ng-template>
+                                </ng-template>
+                            </div>
+                        </td>
+                        <td class="buttons">
+                            <button class="button" (click)="editAlert(pacingAlert, $event)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button class="button" (click)="deleteAlert(pacingAlert, $event)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                            <button class="button" (click)="toggleAccordion(pacingAlert.id)">
+                                <mat-icon>arrow_drop_down</mat-icon>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="accordionStates[pacingAlert.id]">
+                        <td colspan="13">
+                            <app-line-chart
+                            *ngIf="hasOverallDeltaValue(pacingAlert)"
+                            [chartData]="pacingAlert"
+                            [uniqueId]="'chartdiv_' + pacingAlert.id">
+                            </app-line-chart>
+                        </td>
+                    </tr>
+                </ng-container>
             </tbody>
         </table>
     </div>

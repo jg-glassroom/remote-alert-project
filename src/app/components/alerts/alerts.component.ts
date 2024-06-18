@@ -102,6 +102,8 @@ export class AlertsComponent {
 
   tooltipData: { [alertId: string]: any } = {};
 
+  accordionStates: { [alertId: string]: boolean } = {};
+
   constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
@@ -572,4 +574,8 @@ export class AlertsComponent {
         break;
     }
   }
+
+  toggleAccordion(alertId: string) {
+    this.accordionStates[alertId] = !this.accordionStates[alertId];
+  }  
 }
