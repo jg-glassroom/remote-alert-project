@@ -3,7 +3,7 @@
 </div>
 <form [formGroup]="formGroup">
   <div class="header">
-    <mat-form-field class="form-element">
+    <mat-form-field appearance="outline" class="form-element">
       <mat-label>Alert Name</mat-label>
       <input matInput formControlName="campaignName">
       <mat-error *ngIf="(submitted || formGroup.get('campaignName')!.touched) && formGroup.get('campaignName')!.invalid">
@@ -11,7 +11,7 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field class="form-element">
+    <mat-form-field appearance="outline" class="form-element">
       <mat-label>Subaccount</mat-label>
       <input matInput placeholder="Choose a subaccount" [matAutocomplete]="auto" formControlName="subaccount">
       <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="createSubaccount($event)">
@@ -95,7 +95,7 @@
           </div>
         </ng-template>
         <div class="form-row">
-          <mat-form-field class="form-element">
+          <mat-form-field appearance="outline" class="form-element">
               <mat-label>Select a platform</mat-label>
               <mat-select (valueChange)="getPlatform($event, index)">
                 <mat-option *ngFor="let platform of commonService.platforms" [value]="platform.value" [disabled]="!commonService.isConnected(platform.value)">{{ platform.name }}</mat-option>

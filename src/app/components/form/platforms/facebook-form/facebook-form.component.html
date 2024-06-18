@@ -4,7 +4,7 @@
 <form [formGroup]="formGroup" class="form">
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Platform</mat-label>
             <mat-select formControlName="facebookPlatform" (selectionChange)="changePlatform($event.value)">
                 <mat-option *ngFor="let platform of platformsCommon.platforms" [value]="platform.value" [disabled]="platform.value === 'facebook'">{{ platform.name }}</mat-option>
@@ -13,14 +13,14 @@
             The field is required
             </mat-error>
         </mat-form-field>
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
           <mat-label>Label</mat-label>
           <input matInput formControlName="facebookLabel">
         </mat-form-field>
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Ad account</mat-label>
             <input type="text" placeholder="Select your ad account" formControlName="facebookAdAccount" aria-label="ad account" matInput [matAutocomplete]="adAccountsAuto">
             <mat-error *ngIf="(submitted || form['facebookAdAccount'].touched) && form['facebookAdAccount'].invalid">
@@ -37,7 +37,7 @@
         </mat-form-field>
 
         <div class="form-element adset">
-            <mat-form-field>
+            <mat-form-field appearance="outline">
                 <mat-label>Campaign*</mat-label>
                 <mat-chip-grid #chipGrid aria-label="Campaign Selection">
                     <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
@@ -67,7 +67,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Adsets</mat-label>
             <mat-chip-grid #chipGridAdset aria-label="Adset Selection">
                 <mat-chip-row *ngFor="let adset of adsets" (removed)="removeAdset(adset, adsets, selectionAdset, announcerAdset)">
@@ -90,7 +90,7 @@
             </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Budget</mat-label>
             <input matInput formControlName="facebookBudget">
             <mat-error *ngIf="form['facebookBudget'].errors?.['required'] && (submitted || form['facebookBudget'].touched)">
@@ -103,7 +103,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Start Date</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="facebookStartDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -117,7 +117,7 @@
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>End Date</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="facebookEndDate">
             <mat-hint>MM/DD/YYYY</mat-hint>

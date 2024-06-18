@@ -31,10 +31,7 @@ import moment from 'moment';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -50,10 +47,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     ReactiveFormsModule,
     MatIconModule,
     MatButtonModule,
-    MatExpansionModule,
-    MatTableModule,
     MatDividerModule,
-    MatTooltipModule,
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -73,20 +67,6 @@ export class AlertsComponent {
   toaster = inject(ToastrService);
   private selectedAccountId: any = '';
   users: any = [];
-  displayedColumns: string[] = [
-    'name',
-    'startDate',
-    'endDate',
-    'percDaysPassed',
-    'platforms',
-    'budget',
-    'spend',
-    'percBudgetSpent',
-    'estimatedSpend',
-    'overallPacing',
-    'spendPerDay',
-    'yesterdaySpent'
-  ];
   headerColumns = [{
     name: 'Campaign Name', startDate: 'Start Date', endDate: 'End Date', platforms: 'Platforms', budget: 'Budget'
   }];
