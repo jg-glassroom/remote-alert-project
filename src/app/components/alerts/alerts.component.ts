@@ -180,18 +180,6 @@ export class AlertsComponent {
     return `Last seven days: ${platform.pacingAlerts[platform.platform + '_seven_days_delta_value'].toLocaleString()}%\nYesterday: ${platform.pacingAlerts[platform.platform + '_yesterday_delta_value'].toLocaleString()}%`;
   }
 
-  togglePanel(alertId: string) {
-    if (this.openPanels.has(alertId)) {
-      this.openPanels.delete(alertId);
-    } else {
-      this.openPanels.add(alertId);
-      this.loadingGraphs.add(alertId);
-      setTimeout(() => {
-        this.loadingGraphs.delete(alertId);
-      }, 2000);
-    }
-  }
-
   onSelectionChange(event: any, type: string) {
     switch (type) {
       case 'subaccount':

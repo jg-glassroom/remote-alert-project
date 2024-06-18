@@ -182,3 +182,13 @@ th {
     align-items: center;
     gap: 5px;
 }
+
+.mat-spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mat-spinner-container mat-spinner {
+    margin: 0 auto;
+}
