@@ -4,7 +4,7 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
-
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
 
@@ -56,7 +56,14 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     LineChartComponent
   ],
   templateUrl: './alerts.component.html',
-  styleUrls: ['./alerts.component.css']
+  styleUrls: ['./alerts.component.css'],
+  animations: [
+    trigger('rotateIcon', [
+      state('in', style({ transform: 'rotate(180deg)' })),
+      state('out', style({ transform: 'rotate(0deg)' })),
+      transition('in <=> out', animate('300ms ease-in-out'))
+    ])
+  ]
 })
 export class AlertsComponent {
   @ViewChild('subaccountSelect') subaccountSelect!: MatSelect;
@@ -102,7 +109,7 @@ export class AlertsComponent {
 
   tooltipData: { [alertId: string]: any } = {};
 
-  accordionStates: { [alertId: string]: boolean } = {};
+  accordionStates: any = {};
 
   constructor(
     private db: AngularFirestore,
@@ -577,5 +584,12 @@ export class AlertsComponent {
 
   toggleAccordion(alertId: string) {
     this.accordionStates[alertId] = !this.accordionStates[alertId];
-  }  
+    if (this.accordionStates[alertId]) {
+      this.isLoading = true;
+      setTimeout(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }, 1500);
+    }
+  }
 }

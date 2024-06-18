@@ -134,6 +134,7 @@ tbody tr:nth-child(odd) {
 .buttons {
     display: flex;
     justify-content: space-between;
+    gap: 5px;
 }
 
 .button mat-icon {
@@ -190,4 +191,8 @@ th {
 
 .mat-spinner-container mat-spinner {
     margin: 0 auto;
+}
+
+mat-icon {
+    transition: transform 300ms ease-in-out;
 }

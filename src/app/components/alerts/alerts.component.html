@@ -259,7 +259,7 @@
                                         <mat-icon>delete</mat-icon>
                                     </button>
                                     <button class="button" (click)="toggleAccordion(pacingAlert.id)">
-                                        <mat-icon>arrow_drop_down</mat-icon>
+                                        <mat-icon [@rotateIcon]="accordionStates[pacingAlert.id] ? 'in' : 'out'">arrow_drop_down</mat-icon>
                                     </button>
                                 </td>
                             </tr>
@@ -473,7 +473,7 @@
                                 <mat-icon>delete</mat-icon>
                             </button>
                             <button class="button" (click)="toggleAccordion(pacingAlert.id)">
-                                <mat-icon>arrow_drop_down</mat-icon>
+                                <mat-icon [@rotateIcon]="accordionStates[pacingAlert.id] ? 'in' : 'out'">arrow_drop_down</mat-icon>
                             </button>
                         </td>
                     </tr>
