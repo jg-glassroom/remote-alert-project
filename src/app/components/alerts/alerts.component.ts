@@ -159,15 +159,15 @@ export class AlertsComponent {
         userEmail = user.email;
       }
 
-      let tooltipLabel = '';
+      let tooltipLabel: any = {};
 
       if (userEmail) {
-        tooltipLabel = `Creator: ${userEmail}\n`;
+        tooltipLabel.creator = `Creator: ${userEmail}\n`;
       }
 
       if (alert.last_refreshed) {
         const lastUpdated = moment(alert.last_refreshed.toDate()).format('MM/DD/YYYY');
-        tooltipLabel += `Last updated: ${lastUpdated}\n`;
+        tooltipLabel.lastUpdated = `Last updated: ${lastUpdated}\n`;
       }
 
       const processSuccessfully = alert.platforms.every(
@@ -175,7 +175,7 @@ export class AlertsComponent {
           platform.pacingAlerts &&
           platform.pacingAlerts[platform.platform + '_overall_delta_value']
       );
-      tooltipLabel += `Process: ${processSuccessfully ? 'Success' : 'Failed'}`;
+      tooltipLabel.process = `Process: ${processSuccessfully ? 'Success' : 'Failed'}`;
 
       this.tooltipData[alert.id] = tooltipLabel;
     } catch (error) {

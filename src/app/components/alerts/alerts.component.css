@@ -133,7 +133,7 @@ tbody tr:nth-child(odd) {
 
 .buttons {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     gap: 5px;
 }
 

@@ -258,13 +258,16 @@
                                     <button class="button" (click)="deleteAlert(pacingAlert, $event)">
                                         <mat-icon>delete</mat-icon>
                                     </button>
-                                    <button class="button" (click)="toggleAccordion(pacingAlert.id)">
+                                    <button *ngIf="hasOverallDeltaValue(pacingAlert)" class="button" (click)="toggleAccordion(pacingAlert.id)">
                                         <mat-icon [@rotateIcon]="accordionStates[pacingAlert.id] ? 'in' : 'out'">arrow_drop_down</mat-icon>
                                     </button>
                                 </td>
                             </tr>
                             <tr *ngIf="accordionStates[pacingAlert.id]">
                                 <td colspan="13">
+                                    <span *ngIf="tooltipData[pacingAlert.id].creator">{{ tooltipData[pacingAlert.id].creator }}&nbsp;&nbsp;</span>
+                                    <span *ngIf="tooltipData[pacingAlert.id].lastUpdated">{{ tooltipData[pacingAlert.id].lastUpdated }}&nbsp;&nbsp;</span>
+                                    <span *ngIf="tooltipData[pacingAlert.id].process">{{ tooltipData[pacingAlert.id].process }}</span>
                                     <app-line-chart
                                     *ngIf="hasOverallDeltaValue(pacingAlert)"
                                     [chartData]="pacingAlert"
@@ -472,15 +475,17 @@
                             <button class="button" (click)="deleteAlert(pacingAlert, $event)">
                                 <mat-icon>delete</mat-icon>
                             </button>
-                            <button class="button" (click)="toggleAccordion(pacingAlert.id)">
+                            <button *ngIf="hasOverallDeltaValue(pacingAlert)" class="button" (click)="toggleAccordion(pacingAlert.id)">
                                 <mat-icon [@rotateIcon]="accordionStates[pacingAlert.id] ? 'in' : 'out'">arrow_drop_down</mat-icon>
                             </button>
                         </td>
                     </tr>
                     <tr *ngIf="accordionStates[pacingAlert.id]">
                         <td colspan="13">
+                            <span *ngIf="tooltipData[pacingAlert.id].creator">{{ tooltipData[pacingAlert.id].creator }}&nbsp;&nbsp;</span>
+                            <span *ngIf="tooltipData[pacingAlert.id].lastUpdated">{{ tooltipData[pacingAlert.id].lastUpdated }}&nbsp;&nbsp;</span>
+                            <span *ngIf="tooltipData[pacingAlert.id].process">{{ tooltipData[pacingAlert.id].process }}</span>
                             <app-line-chart
-                            *ngIf="hasOverallDeltaValue(pacingAlert)"
                             [chartData]="pacingAlert"
                             [uniqueId]="'chartdiv_' + pacingAlert.id">
                             </app-line-chart>
