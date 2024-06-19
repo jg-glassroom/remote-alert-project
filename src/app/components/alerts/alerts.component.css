@@ -221,3 +221,7 @@ mat-icon {
 .breadcrumb-element {
     cursor: pointer;
 }
+.mat-select-panel {
+    background-color: #00796b;
+    color: #333;
+}

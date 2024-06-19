@@ -154,7 +154,6 @@ export class BusinessAccountService {
       if (!this.businesses.some((b: any) => b.name)) {
         this.businesses = this.businesses.sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
-      console.log('Businesses:', this.businesses[0].id, this.commonService.selectedBusiness?.id);
       if (!this.commonService.selectedBusiness && this.businesses.length > 0) {
         this.commonService.selectedBusiness = this.businesses[0];
       }
@@ -221,7 +220,7 @@ export class BusinessAccountService {
     });
   }
 
-  accountSelected(accountId: string) {
-    return this.commonService.selectedAccount && accountId === this.commonService.selectedAccount.id;
+  accountSelected(account: any) {
+    return this.commonService.selectedAccount && account.id === this.commonService.selectedAccount.id;
   }
 }

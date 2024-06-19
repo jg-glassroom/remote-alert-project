@@ -26,11 +26,11 @@
                     </mat-expansion-panel-header>
                     <div class="managers_list">
                         <div class="manager-list-item" *ngFor="let business of businessAccountService.businesses" (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)">
-                            <mat-list-item>
+                            <mat-list-item [ngStyle]="{'background-color': business.id === commonService.selectedBusiness.id ? '#8b2ee5' : 'white'}">
                                 <span class="list-item" *ngIf="business.name">
                                     <div class="circle-icon" *ngIf="!business.logoUrl">{{getShortName(business.name)}}</div>
                                     <img class="circle-logo" *ngIf="business && business.logoUrl" [src]="business.logoUrl">
-                                    <span class="menu-label-manager" *ngIf="!collapsed()">{{business.name}}</span>
+                                    <span class="menu-label-manager" *ngIf="!collapsed()" [ngStyle]="{'color': business.id === commonService.selectedBusiness.id ? 'white' : 'black'}">{{business.name}}</span>
                                 </span>
                             </mat-list-item>
                         </div>
@@ -53,9 +53,9 @@
                     </mat-expansion-panel-header>
                     <div class="managers_list" style="padding: 0px;">
                         <div class="manager-list-item" *ngFor="let account of businessAccountService.accounts" (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)">
-                            <mat-list-item>
+                            <mat-list-item [ngStyle]="{'background-color': account.id === commonService.selectedAccount.id ? '#8b2ee5' : 'white'}">
                                 <span class="list-item">
-                                    <span class="menu-label" *ngIf="!collapsed()">{{account.name}}</span>
+                                    <span class="menu-label" *ngIf="!collapsed()" [ngStyle]="{'color': account.id === commonService.selectedAccount.id ? 'white' : 'black'}">{{account.name}}</span>
                                 </span>
                             </mat-list-item>
                         </div>

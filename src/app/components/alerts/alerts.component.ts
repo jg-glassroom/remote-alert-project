@@ -133,7 +133,7 @@ export class AlertsComponent {
   ) {}
 
 	openMenu(menuTrigger: MatMenuTrigger) {
-	     menuTrigger.openMenu();
+    menuTrigger.openMenu();
 	}
 
   ngOnInit() {

@@ -28,7 +28,8 @@
     <button
     mat-menu-item
     *ngFor="let account of businessAccountService.accounts"
-    [class.selected]="businessAccountService.accountSelected(account.id)"
+    [class.selected]="businessAccountService.accountSelected(account)"
+    [ngStyle]="{'background-color': account.id === commonService.selectedAccount.id ? '#8b2ee5' : 'white', 'color': account.id === commonService.selectedAccount.id ? 'white' : 'black'}"
     (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)">
         {{account.name}}
     </button>
@@ -37,6 +38,7 @@
     <button
     mat-menu-item
     *ngFor="let business of businessAccountService.businesses"
+    [ngStyle]="{'background-color': business.id === commonService.selectedBusiness.id ? '#8b2ee5' : 'white', 'color': business.id === commonService.selectedBusiness.id ? 'white' : 'black'}"
     [class.selected]="business.id === commonService.selectedBusiness.id"
     (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)">
         {{business.name}}
