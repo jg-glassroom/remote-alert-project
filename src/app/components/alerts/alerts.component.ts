@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, inject, ChangeDetectorRef, ApplicationRef, NgZone } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
@@ -21,6 +21,7 @@ import { BingReportService } from '../../services/reports/bing/bing-report.servi
 import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-report.service';
 import { AlertsService } from '../../services/alerts/alerts.service';
 import { CommonService } from '../../services/common/common.service';
+import { BusinessAccountService } from '../../services/business-account/business-account.service';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -37,6 +38,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 
 @Component({
   selector: 'app-alerts',
@@ -53,6 +55,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     MatSelectModule,
     MatInputModule,
     MatAutocompleteModule,
+    MatMenuModule,
     LineChartComponent
   ],
   templateUrl: './alerts.component.html',
@@ -105,9 +108,12 @@ export class AlertsComponent {
   loadingGraphs: Set<string> = new Set();
 
   isLoading: boolean = false;
-  private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  public cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  public appRef: ApplicationRef = inject(ApplicationRef);
+  public zone: NgZone = inject(NgZone);
 
   tooltipData: { [alertId: string]: any } = {};
+  breadcrumb: any = {};
 
   accordionStates: any = {};
 
@@ -122,15 +128,23 @@ export class AlertsComponent {
     private bingReportService: BingReportService,
     private googleAdsReportService: GoogleAdsReportService,
     public alertsService: AlertsService,
-    public commonService: CommonService
+    public commonService: CommonService,
+    public businessAccountService: BusinessAccountService
   ) {}
 
+	openMenu(menuTrigger: MatMenuTrigger) {
+	     menuTrigger.openMenu();
+	}
+
   ngOnInit() {
-    this.route.paramMap.subscribe(async params => {
+    this.route.paramMap.subscribe(async (params: any) => {
       const accountId = params.get('accountId');
       if (accountId !== this.selectedAccountId) {
         this.selectedAccountId = accountId;
         this.isLoading = true;
+        if (params && params.params && params.params.accountId) {
+          await this.getBreadcrumb(params.params.accountId);
+        }
         await this.getData();
         this.applyFilters();
         this.isLoading = false;
@@ -142,6 +156,15 @@ export class AlertsComponent {
       startWith(''),
       map(value => this._filter(value, this.users, 'email'))
     );
+  }
+
+  async getBreadcrumb(accountId: string) {
+    this.db.doc(`account/${accountId}`).get().subscribe((doc: any) => {
+      this.breadcrumb.account = { id: doc.id, ...doc.data() };
+      this.db.doc(`business/${this.breadcrumb.account.business.id}`).get().subscribe((doc: any) => {
+        this.breadcrumb.business = { id: doc.id, ...doc.data() };  
+      });
+    });
   }
 
   async fetchTooltips(alerts: any[]) {

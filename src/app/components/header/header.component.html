@@ -1,4 +1,4 @@
-<div *ngIf="isLoading" class="loader-overlay">
+<div *ngIf="businessAccountService.isLoading" class="loader-overlay">
     <mat-spinner></mat-spinner>
 </div>
 <mat-toolbar id="main_header">
@@ -25,7 +25,7 @@
                         </span>
                     </mat-expansion-panel-header>
                     <div class="managers_list">
-                        <div class="manager-list-item" *ngFor="let business of businesses" (click)="selectBusiness(business)">
+                        <div class="manager-list-item" *ngFor="let business of businessAccountService.businesses" (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)">
                             <mat-list-item>
                                 <span class="list-item" *ngIf="business.name">
                                     <div class="circle-icon" *ngIf="!business.logoUrl">{{getShortName(business.name)}}</div>
@@ -52,7 +52,7 @@
                         </span>
                     </mat-expansion-panel-header>
                     <div class="managers_list" style="padding: 0px;">
-                        <div class="manager-list-item" *ngFor="let account of accounts" (click)="selectAccount(account)">
+                        <div class="manager-list-item" *ngFor="let account of businessAccountService.accounts" (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)">
                             <mat-list-item>
                                 <span class="list-item">
                                     <span class="menu-label" *ngIf="!collapsed()">{{account.name}}</span>
@@ -102,9 +102,9 @@
 <mat-menu #business="matMenu">
     <button 
     mat-menu-item 
-    *ngFor="let business of businesses" 
+    *ngFor="let business of businessAccountService.businesses" 
     [class.selected]="business.id === commonService.selectedBusiness.id"
-    (click)="selectBusiness(business)"
+    (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)"
     class="list">
         {{business.name}}
     </button>
@@ -116,9 +116,9 @@
 <mat-menu #account="matMenu">
     <button 
     mat-menu-item 
-    *ngFor="let account of accounts" 
-    [class.selected]="accountSelected(account.id)"
-    (click)="selectAccount(account)"
+    *ngFor="let account of businessAccountService.accounts" 
+    [class.selected]="businessAccountService.accountSelected(account.id)"
+    (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)"
     class="list">
         {{account.name}}
     </button>

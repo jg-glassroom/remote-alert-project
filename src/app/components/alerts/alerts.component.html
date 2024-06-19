@@ -1,4 +1,4 @@
-<div *ngIf="isLoading" class="loader-overlay">
+<div *ngIf="isLoading || businessAccountService.isLoading" class="loader-overlay">
     <mat-spinner></mat-spinner>
 </div>
 
@@ -6,7 +6,42 @@
     <h1>Alerts</h1>
 </div>
 
-<div class="breadcrumb"><a href="#">Glassroom</a> / <a href="#">Campari</a> / Alerts</div>
+<div class="breadcrumb" *ngIf="breadcrumb">
+    <span 
+    *ngIf="breadcrumb.business"
+    #menuTriggerBusiness="matMenuTrigger"
+    (mouseover)="openMenu(menuTriggerBusiness)"
+    [matMenuTriggerFor]="menuBusiness"
+    class="breadcrumb-element">
+        {{ breadcrumb.business.name }}
+    </span> / 
+    <span
+    *ngIf="breadcrumb.account"
+    #menuTriggerAccount="matMenuTrigger"
+    (mouseover)="openMenu(menuTriggerAccount)"
+    [matMenuTriggerFor]="menuAccount"
+    class="breadcrumb-element">
+        {{ breadcrumb.account.name }}
+    </span> / Alerts
+</div>
+<mat-menu #menuAccount="matMenu" #menuAccountTrigger="matMenu">
+    <button
+    mat-menu-item
+    *ngFor="let account of businessAccountService.accounts"
+    [class.selected]="businessAccountService.accountSelected(account.id)"
+    (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)">
+        {{account.name}}
+    </button>
+</mat-menu>
+<mat-menu #menuBusiness="matMenu" #menuBusinessTrigger="matMenu">
+    <button
+    mat-menu-item
+    *ngFor="let business of businessAccountService.businesses"
+    [class.selected]="business.id === commonService.selectedBusiness.id"
+    (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)">
+        {{business.name}}
+    </button>
+</mat-menu>
 
 <div class="header">
     <div class="filters-container">

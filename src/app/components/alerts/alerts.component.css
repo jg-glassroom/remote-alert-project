@@ -218,6 +218,6 @@ mat-icon {
     visibility: visible;
 }
 
-.tooltip-em {
-    color: blue;
+.breadcrumb-element {
+    cursor: pointer;
 }

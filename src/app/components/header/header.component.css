@@ -101,11 +101,6 @@ mat-nav-list {
   margin-left: 5px;
 }
 
-.selected {
-  background-color: #00796b;
-  color: #333;
-}
-
 .list.selected:hover {
   background-color: #303f9f;
   color: #FFF;

@@ -18,3 +18,8 @@ app-root {
     flex-direction: column;
     height: 100vh;
 }
+
+.selected {
+  background-color: #00796b;
+  color: #333;
+}
