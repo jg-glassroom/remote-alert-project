@@ -268,8 +268,8 @@
                                                 <span class="tooltip">
                                                     {{ platform.pacingAlerts[platform.platform + '_overall_delta_value'] | number:'1.0-2' }}%
                                                     <span class="tooltiptext">
-                                                        <span *ngIf="platform.pacingAlerts[platform.platform + '_yesterday_delta_value']">Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%<br></span>
-                                                        <span *ngIf="platform.pacingAlerts[platform.platform + '_seven_days_delta_value']">Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%</span>
+                                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_yesterday_delta_value')">Yesterday: {{ platform.pacingAlerts[platform.platform + '_yesterday_delta_value'] | number:'1.0-2' }}%<br></span>
+                                                        <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_seven_days_delta_value')">Seven days: {{ platform.pacingAlerts[platform.platform + '_seven_days_delta_value'] | number:'1.0-2' }}%</span>
                                                     </span>
                                                 </span>
                                             </span>

@@ -134,15 +134,15 @@ export class GoogleAdsReportService {
       let resultatAgregat: any = {};
 
       this.reportJson.forEach((line: any) => {
-        if (!resultatAgregat[line.date_stop]) {
-          resultatAgregat[line.date_stop] = {...line, Nombre: 1};
+        if (!resultatAgregat[line.Date]) {
+          resultatAgregat[line.Date] = {...line, Nombre: 1};
         } else {
           Object.keys(line).forEach(cle => {
             if (typeof line[cle] === 'number') {
-              resultatAgregat[line.date_stop][cle] += line[cle];
+              resultatAgregat[line.Date][cle] += line[cle];
             }
           });
-          resultatAgregat[line.date_stop].Nombre += 1;
+          resultatAgregat[line.Date].Nombre += 1;
         }
       });
       let filteredObj = Object.entries(resultatAgregat)

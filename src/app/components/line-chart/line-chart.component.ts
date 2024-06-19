@@ -79,12 +79,12 @@ export class LineChartComponent {
     let estimatedCumulativeCost = 0;
     let yesterdayCampaignCost = 0;
     let data: any = [];
-    sortedDates.forEach((date: any) => {
-      const revenue = parseFloat(aggregatedData[date].cost);
+    sortedDates.forEach((index: any) => {
+      const revenue = parseFloat(aggregatedData[index].cost);
 
       let startDates = this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'StartDate']);
       startDates = startDates.sort((a: any, b: any) => {
-        return Date.parse(a) > Date.parse(b);
+        return Date.parse(a) - Date.parse(b);
       });
       if (startDates.length === 0) {
         return;
@@ -99,25 +99,25 @@ export class LineChartComponent {
         return;
       }
       let endDate = moment.tz(endDates[0], "MM/DD/YYYY", "America/Montreal").startOf("day").toDate();
-      const daysLeft = ((endDate.getTime() - moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate().getTime()) / (1000 * 60 * 60 * 24)) + 2;
+      const daysLeft = ((endDate.getTime() - moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate().getTime()) / (1000 * 60 * 60 * 24)) + 2;
 
       if (
-        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
-        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= yesterday && !isNaN(revenue)
+        moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
+        moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= yesterday && !isNaN(revenue)
       ) {
         cumulativeCost += revenue;
       }
 
-      const twoDaysAgo = moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").subtract(2, "days").startOf("day").toDate();
+      const twoDaysAgo = moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").subtract(2, "days").startOf("day").toDate();
       if (
-        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
-        moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= twoDaysAgo && !isNaN(revenue)
+        moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() >= startDate &&
+        moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").startOf("day").toDate() <= twoDaysAgo && !isNaN(revenue)
       ) {
         yesterdayCampaignCost += revenue;
       }
 
       let startDateFormatted = moment(startDate).format("YYYY/MM/DD");
-      let currentDateFormatted = moment.tz(aggregatedData[date].date, "YYYY/MM/DD", "America/Montreal").format("YYYY/MM/DD");
+      let currentDateFormatted = moment.tz(aggregatedData[index].date, "YYYY/MM/DD", "America/Montreal").format("YYYY/MM/DD");
       
       let budget = 0;
       this.chartData.platforms.map((platform: any) => platform.formData[platform.platform + 'Budget']).forEach((platformBudget: any) => {
@@ -129,7 +129,7 @@ export class LineChartComponent {
       (daysLeft > 0 ? daysLeft : 1) + yesterdayCampaignCost;
 
       data.push({
-        date: new Date(aggregatedData[date].date).getTime(),
+        date: new Date(aggregatedData[index].date).getTime(),
         campaignCost: Math.round(cumulativeCost * 100) / 100,
         estimatedCost: Math.round(estimatedCumulativeCost * 100) / 100
       });
