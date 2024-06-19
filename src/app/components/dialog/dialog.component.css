@@ -15,7 +15,7 @@ form {
 }
 
 .form-element {
-    flex: 1; 
+    flex: 1;
 }
 
 .budget-row {
@@ -23,7 +23,7 @@ form {
 }
 
 .budget-row .form-element {
-    flex: 0 1 49%; 
+    flex: 0 1 49%;
 }
 
 .button {
@@ -48,7 +48,7 @@ form {
 }
 
 .loader-overlay {
-    position: fixed; 
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -70,7 +70,7 @@ form {
     font-size: 18px;
     vertical-align: bottom;
 }
-  
+
 .tab-label {
     display: flex;
     justify-content: space-between;
@@ -86,4 +86,3 @@ form {
 .close-icon {
     cursor: pointer;
 }
-  

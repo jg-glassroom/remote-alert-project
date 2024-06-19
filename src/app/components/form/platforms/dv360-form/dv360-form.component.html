@@ -4,28 +4,23 @@
 <form [formGroup]="formGroup" class="form">
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Platform</mat-label>
             <mat-select formControlName="dv360Platform" (selectionChange)="changePlatform($event.value)">
-                <mat-option value="dv360" disabled>Display & Video 360</mat-option>
-                <mat-option value="facebook">Facebook</mat-option>
-                <mat-option value="googleAds">Google Ads</mat-option>
-                <mat-option value="bing">Bing</mat-option>
-                <mat-option value="apple">Apple Search Ads</mat-option>
-                <mat-option value="linkedin">LinkedIn</mat-option>
+                <mat-option *ngFor="let platform of platformsCommon.platforms" [value]="platform.value" [disabled]="platform.value === 'dv360'">{{ platform.name }}</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['dv360Platform'].touched) && form['dv360Platform'].invalid">
             The field is required
             </mat-error>
         </mat-form-field>
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
           <mat-label>Label</mat-label>
           <input matInput formControlName="dv360Label">
         </mat-form-field>
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Partner</mat-label>
             <input type="text" placeholder="Select your partner" formControlName="dv360Partner" aria-label="partner" matInput [matAutocomplete]="partnersAuto">
             <mat-error *ngIf="(submitted || form['dv360Partner'].touched) && form['dv360Partner'].invalid">
@@ -38,7 +33,7 @@
             </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Advertiser</mat-label>
             <input type="text" placeholder="Select your advertiser" formControlName="dv360Advertiser" aria-label="advertiser" matInput [matAutocomplete]="advertisersAuto">
             <mat-error *ngIf="(submitted || form['dv360Advertiser'].touched) && form['dv360Advertiser'].invalid">
@@ -54,7 +49,7 @@
 
     <div class="form-row">
         <div class="form-element io">
-            <mat-form-field>
+            <mat-form-field appearance="outline">
                 <mat-label>Campaign*</mat-label>
                 <mat-chip-grid #chipGrid aria-label="Campaign Selection">
                     <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
@@ -68,9 +63,9 @@
                     [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
                     [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                     (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'dv360CampaignId')"/>
-                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+                <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaigns($event, campaigns, formGroup, selection, campaignInput)">
                     <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                        <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
+                        <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); selectCampaign(campaigns, campaign, formGroup, selection, campaignInput)">
                             {{ campaign.displayName }} | {{ campaign.campaignId }}
                         </mat-checkbox>
                     </mat-option>
@@ -82,7 +77,7 @@
             <button mat-stroked-button (click)="getDV360IO()" class="io-button">Get IOs</button>
         </div>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>IOs</mat-label>
             <mat-chip-grid #chipGridIO aria-label="IO Selection">
                 <mat-chip-row *ngFor="let IO of IOs" (removed)="removeIO(IO, IOs, selectionIO, announcerIO)">
@@ -107,7 +102,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Start Date</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="dv360StartDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -121,7 +116,7 @@
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>End Date*</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="dv360EndDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -140,7 +135,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Budget</mat-label>
             <input matInput formControlName="dv360Budget">
             <mat-error *ngIf="form['dv360Budget'].errors?.['required'] && (submitted || form['dv360Budget'].touched)">

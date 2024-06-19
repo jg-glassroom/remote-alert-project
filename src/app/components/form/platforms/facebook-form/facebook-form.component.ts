@@ -81,9 +81,9 @@ export class FacebookFormComponent {
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
   @ViewChild('adsetInput') adsetInput!: ElementRef<HTMLInputElement>;
-  
+
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -105,10 +105,35 @@ export class FacebookFormComponent {
     await this.getAdAccounts();
   }
 
-  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
-    event.stopPropagation();
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    if (!campaigns.some((c: any) => c.id === campaign.id)) {
+      campaigns.push(campaign);
+      formGroup.patchValue({ facebookCampaign: campaigns });
+    } else {
+      const index = campaigns.findIndex((c: any) => c.id === campaign.id);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ facebookCampaign: campaigns });
+      }
+    }
     this.platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
     this.filterAdsetsByCampaigns();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'facebookCampaign', 'id', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
@@ -159,7 +184,7 @@ export class FacebookFormComponent {
       const response = await firstValueFrom(this.http.get<any>(url));
       const fetchedAdAccounts = response.data;
       adAccounts = adAccounts.concat(fetchedAdAccounts);
-  
+
       if (response.paging && response.paging.next) {
         return this.fetchAllAdAccounts(response.paging.next, adAccounts);
       } else {
@@ -171,7 +196,7 @@ export class FacebookFormComponent {
       throw error;
     }
   }
-  
+
   async getAdAccounts(edit?: boolean) {
     this.isLoading = true;
     const cachedData = localStorage.getItem('adAccounts');
@@ -194,10 +219,10 @@ export class FacebookFormComponent {
       this.campaigns = [];
       this.adsets = [];
     }
-  
+
     const fields = 'account_id,id,name, business';
     const url = `https://graph.facebook.com/v19.0/me/adaccounts?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-  
+
     try {
       const allAdAccounts = await this.fetchAllAdAccounts(url);
       const sortedAdAccounts = allAdAccounts.sort((a: any, b: any) => a.name.localeCompare(b.name));
@@ -236,7 +261,7 @@ export class FacebookFormComponent {
       const response = await firstValueFrom(this.http.get<any>(fullUrl));
       const fetchedAdsets = response.data;
       adsets = adsets.concat(fetchedAdsets);
-  
+
       if (response.paging && response.paging.next) {
         return this.fetchAllAdsets(response.paging.next, adsets, filter);
       } else {
@@ -253,9 +278,9 @@ export class FacebookFormComponent {
     const fields = 'id,name,campaign_id';
     const adAccountId = this.formGroup.get('facebookAdAccount')!.value.id;
     const campaignIds = this.formGroup.get('facebookCampaign')!.value.map((campaign: any) => campaign.id).join(',');
-  
+
     const url = `https://graph.facebook.com/v19.0/${adAccountId}/adsets?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-  
+
     try {
       const allAdsets = await this.fetchAllAdsets(url, [], campaignIds);
       const sortedAdsets = allAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
@@ -269,7 +294,7 @@ export class FacebookFormComponent {
       console.error('Error fetching all Facebook Adsets:', error);
       this.isLoading = false;
     }
-  }  
+  }
 
   updateAdsetSelectionInEditMode(): void {
     this.adsets$.subscribe(adsets => {
@@ -286,7 +311,7 @@ export class FacebookFormComponent {
       });
     });
   }
-  
+
   async filterAdsetsByCampaigns() {
     const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.id);
     if (this.originalAdsets$) {
@@ -294,7 +319,7 @@ export class FacebookFormComponent {
         const filteredAdsets = originalAdsets.filter((adset: any) => selectedCampaignIds.includes(adset.campaign_id));
         const sortedAdsets = filteredAdsets.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
         this.adsets$ = of(sortedAdsets);
-    
+
         this.adsets.forEach((adset: any) => {
           if (!selectedCampaignIds.includes(adset.campaign_id)) {
             this.selectionAdset.deselect(adset);
@@ -319,7 +344,7 @@ export class FacebookFormComponent {
       this.isLoading = false;
       return;
     }
-  
+
     if (!edit) {
       this.formGroup.patchValue({
         facebookCampaign: [],
@@ -341,9 +366,9 @@ export class FacebookFormComponent {
       this.campaigns = this.data?.facebookCampaign;
       this.adsets = this.data?.facebookAdset;
     }
-  
+
     const url = `https://graph.facebook.com/v19.0/${adAccount.id}/campaigns?fields=${fields}&limit=${this.limit}&access_token=${localStorage.getItem('facebookAccessToken')}`;
-    
+
     try {
       const allCampaigns = await this.fetchAllCampaigns(url);
       const sortedCampaigns = allCampaigns.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
@@ -367,9 +392,9 @@ export class FacebookFormComponent {
       this.isLoading = false;
       console.error('Error fetching all Facebook Campaigns:', error);
     }
-  }  
+  }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 

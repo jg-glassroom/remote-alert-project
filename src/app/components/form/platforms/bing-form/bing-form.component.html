@@ -7,12 +7,7 @@
         <mat-form-field class="form-element">
             <mat-label>Platform</mat-label>
             <mat-select formControlName="bingPlatform" (selectionChange)="changePlatform($event.value)">
-                <mat-option value="dv360">Display & Video 360</mat-option>
-                <mat-option value="facebook">Facebook</mat-option>
-                <mat-option value="googleAds">Google Ads</mat-option>
-                <mat-option value="bing" disabled>Bing</mat-option>
-                <mat-option value="apple">Apple Search Ads</mat-option>
-                <mat-option value="linkedin">LinkedIn</mat-option>
+                <mat-option *ngFor="let platform of platformsCommon.platforms" [value]="platform.value" [disabled]="platform.value === 'bing'">{{ platform.name }}</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['bingPlatform'].touched) && form['bingPlatform'].invalid">
             The field is required
@@ -26,8 +21,8 @@
 
     <div class="form-row">
         <mat-form-field class="form-element">
-            <mat-label>Customer</mat-label>
-            <input type="text" placeholder="Select your customer" formControlName="bingCustomer" aria-label="customer" matInput [matAutocomplete]="customersAuto">
+            <mat-label>Manager</mat-label>
+            <input type="text" placeholder="Select your manager" formControlName="bingCustomer" aria-label="manager" matInput [matAutocomplete]="customersAuto">
             <mat-error *ngIf="(submitted || form['bingCustomer'].touched) && form['bingCustomer'].invalid">
                 The field is required
             </mat-error>
@@ -70,17 +65,15 @@
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
             (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'bingCampaign')"/>
 
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'bingCampaign', selection, announcer, campaignInput)">
-            <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput)">
-                {{ campaign.name }} | {{ campaign.id }}
-                </mat-checkbox>
-            </mat-option>
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaigns($event, campaigns, formGroup, selection, campaignInput)">
+                <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
+                    <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation()">
+                        {{ campaign.name }} | {{ campaign.id }}
+                    </mat-checkbox>
+                </mat-option>
             </mat-autocomplete>
 
-            <mat-hint *ngIf="form['bingCampaign'].errors?.['required'] && (submitted || form['bingCampaign'].touched)">
-                <span class="mat-error">At least one campaign must be selected</span>
-            </mat-hint>
+            <mat-hint
         </mat-form-field>
 
         <mat-form-field class="form-element">

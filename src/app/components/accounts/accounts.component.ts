@@ -10,15 +10,15 @@ import { BusinessComponent } from '../form/business/business.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { UserManagementFormComponent } from '../form/user-management-form/user-management-form.component';
 
-import { AuthService } from '../../services/auth.service'; 
+import { AuthService } from '../../services/auth.service';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 
-import { switchMap, catchError } from 'rxjs/operators';
-import { of, tap, take, map } from 'rxjs';
+import { switchMap, catchError, takeUntil } from 'rxjs/operators';
+import { of, tap, take, map, Subject } from 'rxjs';
 
 import { ToastrService } from 'ngx-toastr';
 
@@ -50,6 +50,7 @@ export class AccountsComponent {
   toaster = inject(ToastrService);
   accounts: any = [];
   isDialogOpen: boolean = false;
+  private destroy$ = new Subject<void>();
 
   constructor (
     private matDialog: MatDialog,
@@ -105,17 +106,17 @@ export class AccountsComponent {
           console.error('No selected business available');
           return of([]);
         }
-  
+
         const selectedBusiness = user.selectedBusiness;
-  
+
         return this.afs.collection('userRoles', ref => ref.where('userId', '==', userId)).valueChanges().pipe(
           switchMap((userRoles: any[]) => {
             if (!userRoles.length) return of([]);
-  
+
             const hasRoleOnSelectedBusiness = userRoles.some(role =>
               role.businessRoles?.some((br: any) => br.businessId === selectedBusiness.id)
             );
-  
+
             if (hasRoleOnSelectedBusiness) {
               return this.afs.collection('account', ref => ref.where('business.id', '==', selectedBusiness.id))
                 .snapshotChanges()
@@ -156,22 +157,22 @@ export class AccountsComponent {
           let okCount = 0;
           let warningCount = 0;
           let errorCount = 0;
-      
+
           querySnapshot.docs.forEach((doc: any) => {
             const data = doc.data();
             if (data.platforms) {
               data.platforms.forEach((platform: any) => {
                 if (platform.pacingAlerts) {
                   const overallDelta = platform.pacingAlerts[platform.platform + '_overall_delta_value'];
-    
+
                   if (overallDelta > -5 && overallDelta < 5) {
                     okCount++;
                   }
-    
+
                   if ((overallDelta <= -5 || overallDelta >= 5) && overallDelta > -10 && overallDelta < 10) {
                     warningCount++;
                   }
-    
+
                   if (overallDelta <= -10 || overallDelta >= 10) {
                     errorCount++;
                   }
@@ -251,5 +252,36 @@ export class AccountsComponent {
       }),
       take(1)
     ).subscribe();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  editElement(accountId: any) {
+    this.afs.collection('account').doc(accountId)
+      .valueChanges().pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        if (!this.isDialogOpen) {
+          this.isDialogOpen = true;
+          const dialogRef = this.matDialog.open(AccountComponent, {
+            width: '70%',
+            height: '90vh',
+            data: { ...data as any, id: accountId }
+          });
+
+          dialogRef.afterClosed().subscribe(() => {
+            this.isDialogOpen = false;
+
+            this.authService.user$.subscribe(user => {
+              if (user) {
+                this.getAccounts(user.uid);
+                this.checkRolesAndOpenDialog(user.uid);
+              }
+            });
+          });
+        }
+      });
   }
 }

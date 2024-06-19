@@ -44,7 +44,7 @@ export class AuthService {
     private bingReportService: BingReportService,
     private appleReportService: AppleReportService,
     private commonService: CommonService
-  ) { 
+  ) {
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
         if (user) {
@@ -116,12 +116,13 @@ export class AuthService {
 
           const alertsSnapshot: any = await alertsRef.get().toPromise();
           alertsSnapshot.forEach(async (doc: any) => {
-            const alert = doc.data();
+            const alert = {id: doc.id, ...doc.data()};
             if (!alert.last_refreshed || moment(alert.last_refreshed.toDate()).startOf('day').isBefore(currentDate)) {
               console.log('AAAAAA', alert);
               const alertId = doc.id;
               const updatePromises = alert.platforms.map(async (platformData: any, index: any) => {
                 const platform = platformData.platform;
+                await this.updateLoadingStatus(alertId, index, true);
                 if (platform === 'dv360') {
                   await this.dv360ReportService.processReport(alert, index);
                 } else if (platform === 'facebook') {
@@ -131,7 +132,7 @@ export class AuthService {
                 } else if (platform === 'bing') {
                   await this.bingReportService.processReport(alert, index);
                 } else if (platform === 'apple') {
-                  await this.appleReportService.processReport(alert, index);         
+                  await this.appleReportService.processReport(alert, index);
                 } else if (platform === 'linkedin') {
                   await this.linkedinReportService.processReport(alert, index);
                 }
@@ -144,12 +145,20 @@ export class AuthService {
               });
             }
           });
-        }        
+        }
       });
     } catch (error) {
       console.error("An error occurred: ", error);
       throw error;
     }
+  }
+
+  async updateLoadingStatus(alertId: string, index: number, status: boolean) {
+    const alertRef = this.afs.collection('userSearch').doc(alertId);
+    const alertSnapshot: any = await alertRef.get().toPromise();
+    const alertData = alertSnapshot.data() as any;
+    alertData.platforms[index].loading = status;
+    await alertRef.update(alertData);
   }
 
   async signOut() {

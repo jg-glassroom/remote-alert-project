@@ -72,9 +72,9 @@ export class GoogleAdsFormComponent {
   announcer = inject(LiveAnnouncer);
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
-  
+
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -122,7 +122,7 @@ export class GoogleAdsFormComponent {
     }
     this.cdRef.detectChanges();
   }
-  
+
   async getAdAccounts(retryCount = 2): Promise<any> {
     this.isLoading = true;
     const cachedData = localStorage.getItem('googleAdsAccounts');
@@ -145,7 +145,7 @@ export class GoogleAdsFormComponent {
       const response: any = await firstValueFrom(this.http.get(googleAdsUrl, { headers: headers }));
       const customerIds = response.resourceNames.map((name: any) => name.split('/')[1]);
       const customerDetails = await this.fetchCustomerDetails(customerIds, headers);
-      
+
       const successfulResponses = customerDetails!.filter(detail => detail.success);
       if (successfulResponses.length > 0) {
         let adAccountMap = new Map();
@@ -176,9 +176,9 @@ export class GoogleAdsFormComponent {
   }
 
   async fetchCustomerDetails(customerIds: any, headers: any) {
-    const query = `SELECT customer_client.client_customer, customer_client.level, 
-                  customer_client.manager, customer_client.descriptive_name, 
-                  customer_client.currency_code, customer_client.time_zone, 
+    const query = `SELECT customer_client.client_customer, customer_client.level,
+                  customer_client.manager, customer_client.descriptive_name,
+                  customer_client.currency_code, customer_client.time_zone,
                   customer_client.id, customer_client.status
                   FROM customer_client`;
 
@@ -188,7 +188,7 @@ export class GoogleAdsFormComponent {
         const url = `https://googleads.googleapis.com/v16/customers/${id}/googleAds:searchStream`;
         try {
             const response = await firstValueFrom(this.http.post(url, body, { headers }));
-            return { success: true, data: response }; 
+            return { success: true, data: response };
         } catch (error) {
             return { success: false, error: error, id: id };
         }
@@ -196,11 +196,36 @@ export class GoogleAdsFormComponent {
 
     try {
         const results = await Promise.all(detailsPromises);
-        return results; 
+        return results;
     } catch (error) {
         console.error('An unexpected error occurred:', error);
         return null;
     }
+  }
+
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    if (!campaigns.some((c: any) => c.id === campaign.id)) {
+      campaigns.push(campaign);
+      formGroup.patchValue({ facebookCampaign: campaigns });
+    } else {
+      const index = campaigns.findIndex((c: any) => c.id === campaign.id);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ facebookCampaign: campaigns });
+      }
+    }
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'googleAdsCampaign', 'id', formGroup, selection, campaignInput);
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'googleAdsCampaign', 'id', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   async getAdAccountCampaigns(retryCount = 2, event?: MatAutocompleteSelectedEvent, edit?: boolean): Promise<any> {
@@ -244,7 +269,7 @@ export class GoogleAdsFormComponent {
 
     const url = `https://googleads.googleapis.com/v16/customers/${adAccount}/googleAds:searchStream`;
     const body = {"query": "SELECT campaign.id, campaign.name, campaign.status FROM campaign ORDER BY campaign.id"};
-    
+
     try {
       let allCampaigns = await firstValueFrom(this.http.post<any>(url, body, { headers: headers }));
       if (allCampaigns.length > 0) {
@@ -267,7 +292,7 @@ export class GoogleAdsFormComponent {
     }
   }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 

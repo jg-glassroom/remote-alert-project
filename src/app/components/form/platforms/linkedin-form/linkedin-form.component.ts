@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
@@ -82,12 +82,13 @@ export class LinkedinFormComponent {
   announcer = inject(LiveAnnouncer);
 
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     public platformsCommon: CommonService,
-    private fns: AngularFireFunctions
+    private fns: AngularFireFunctions,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -95,7 +96,7 @@ export class LinkedinFormComponent {
     }
   }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 
@@ -104,9 +105,33 @@ export class LinkedinFormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
-  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
-    event.stopPropagation();
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    if (!campaigns.some((c: any) => c.id === campaign.id)) {
+      campaigns.push(campaign);
+      formGroup.patchValue({ linkedinCampaign: campaigns });
+    } else {
+      const index = campaigns.findIndex((c: any) => c.id === campaign.id);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ linkedinCampaign: campaigns });
+      }
+    }
     this.platformsCommon.toggleSelection(campaigns, campaign, 'linkedinCampaign', 'id', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'linkedinCampaign', 'id', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
@@ -191,7 +216,7 @@ export class LinkedinFormComponent {
       });
       this.campaigns = [];
     }
-  
+
     const url = `https://api.linkedin.com/v2/adAccountsV2?q=search&search.status.values[0]=ACTIVE`;
 
     try {
@@ -249,7 +274,7 @@ export class LinkedinFormComponent {
       });
       this.campaigns = [];
     }
-  
+
     const url = `https://api.linkedin.com/rest/adAccounts/${adAccount.id}/adCampaignGroups?q=search&sortOrder=DESCENDING`;
 
     try {
@@ -272,7 +297,7 @@ export class LinkedinFormComponent {
       const response = await firstValueFrom(callable({ url: url, accessToken: localStorage.getItem('linkedinAccessToken') }));
       const fetchedCampaigns = response.elements;
       campaigns = campaigns.concat(fetchedCampaigns);
-  
+
       if (response.metadata && response.metadata.nextPageToken) {
         const nextUrl = `${url}&pageToken=${response.metadata.nextPageToken}`;
         return this.fetchAllCampaigns(nextUrl, campaigns);

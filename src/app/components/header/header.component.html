@@ -1,3 +1,6 @@
+<div *ngIf="businessAccountService.isLoading" class="loader-overlay">
+    <mat-spinner></mat-spinner>
+</div>
 <mat-toolbar id="main_header">
     <span class="link-home">VAKAD</span>
     <span class="spacer"></span>
@@ -11,25 +14,25 @@
 <mat-drawer-container autosize>
     <mat-drawer #sidemenu [opened]="(auth.user$ | async) ? true : false" mode="side" [style.width]="sidenavWidth()">
 
-        <mat-nav-list>
-            <mat-accordion>
-                <mat-expansion-panel hideToggle>
+        <mat-nav-list class="business-account">
+            <mat-accordion multi="false">
+                <mat-expansion-panel hideToggle (opened)="panelOpened('business')" [expanded]="activePanel === 'business'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
-                            <div class="circle-icon">GR</div>
-                            <span class="menu-label-manager" *ngIf="!collapsed()">Glassroom</span>
+                            <div class="circle-icon" *ngIf="commonService.selectedBusiness && commonService.selectedBusiness.name && !commonService.selectedBusiness.logoUrl">{{getShortName(commonService.selectedBusiness.name)}}</div>
+                            <img class="circle-logo" *ngIf="commonService.selectedBusiness && commonService.selectedBusiness.logoUrl" [src]="commonService.selectedBusiness.logoUrl">
+                            <span class="menu-label-manager" *ngIf="!collapsed() && commonService.selectedBusiness && commonService.selectedBusiness.name">{{commonService.selectedBusiness.name}}</span>
                         </span>
                     </mat-expansion-panel-header>
                     <div class="managers_list">
-                        <div class="manager-list-item" *ngFor="let business of businesses" (click)="selectBusiness(business)">
+                        <div class="manager-list-item" *ngFor="let business of businessAccountService.businesses" (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)">
                             <mat-list-item>
                                 <span class="list-item" *ngIf="business.name">
-                                    <div class="circle-icon">{{getShortName(business.name)}}</div>
+                                    <div class="circle-icon" *ngIf="!business.logoUrl">{{getShortName(business.name)}}</div>
+                                    <img class="circle-logo" *ngIf="business && business.logoUrl" [src]="business.logoUrl">
                                     <span class="menu-label-manager" *ngIf="!collapsed()">{{business.name}}</span>
                                 </span>
                             </mat-list-item>
-                                
-                        
                         </div>
                         <button mat-menu-item (click)="openBusinessDialog()">
                             <mat-icon class="add">add</mat-icon>Manager
@@ -38,8 +41,8 @@
                 </mat-expansion-panel>
             </mat-accordion>
 
-            <mat-accordion>
-                <mat-expansion-panel hideToggle>
+            <mat-accordion multi="false">
+                <mat-expansion-panel hideToggle (opened)="panelOpened('account')" [expanded]="activePanel === 'account'">
                     <mat-expansion-panel-header>
                         <span class="list-item">
                             <span class="material-symbols-outlined sidebar-title-icon">
@@ -49,7 +52,7 @@
                         </span>
                     </mat-expansion-panel-header>
                     <div class="managers_list" style="padding: 0px;">
-                        <div class="manager-list-item" *ngFor="let account of accounts" (click)="selectAccount(account)">
+                        <div class="manager-list-item" *ngFor="let account of businessAccountService.accounts" (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)">
                             <mat-list-item>
                                 <span class="list-item">
                                     <span class="menu-label" *ngIf="!collapsed()">{{account.name}}</span>
@@ -80,7 +83,7 @@
                         <span class="menu-label" *ngIf="!collapsed()">Manager Settings</span>
                     </span>
                 </mat-list-item>
-                <mat-list-item (click)="toggleSidemenu()">
+                <mat-list-item (click)="toggleSidemenu(true)">
                     <span class="list-item">
                         <mat-icon class="menu-icon">arrow_back_ios</mat-icon>
                         <span class="menu-label" *ngIf="!collapsed()">Collapse Menu</span>
@@ -97,11 +100,11 @@
 </mat-drawer-container>
 
 <mat-menu #business="matMenu">
-    <button 
-    mat-menu-item 
-    *ngFor="let business of businesses" 
+    <button
+    mat-menu-item
+    *ngFor="let business of businessAccountService.businesses"
     [class.selected]="business.id === commonService.selectedBusiness.id"
-    (click)="selectBusiness(business)"
+    (click)="businessAccountService.selectBusiness(business, cdr, appRef, zone)"
     class="list">
         {{business.name}}
     </button>
@@ -111,11 +114,11 @@
 </mat-menu>
 
 <mat-menu #account="matMenu">
-    <button 
-    mat-menu-item 
-    *ngFor="let account of accounts" 
-    [class.selected]="accountSelected(account.id)"
-    (click)="selectAccount(account)"
+    <button
+    mat-menu-item
+    *ngFor="let account of businessAccountService.accounts"
+    [class.selected]="businessAccountService.accountSelected(account.id)"
+    (click)="businessAccountService.selectAccount(account, cdr, appRef, zone)"
     class="list">
         {{account.name}}
     </button>

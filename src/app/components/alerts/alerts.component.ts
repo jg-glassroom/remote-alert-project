@@ -1,10 +1,10 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild, inject, ChangeDetectorRef, ApplicationRef, NgZone } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
-
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
 
@@ -23,23 +23,24 @@ import { LinkedinReportService } from '../../services/reports/linkedin/linkedin-
 
 import { AlertsService } from '../../services/alerts/alerts.service';
 import { CommonService } from '../../services/common/common.service';
+import { BusinessAccountService } from '../../services/business-account/business-account.service';
 
 import { ToastrService } from 'ngx-toastr';
 
 import { firstValueFrom, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
+import moment from 'moment';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 
 @Component({
   selector: 'app-alerts',
@@ -50,19 +51,24 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     ReactiveFormsModule,
     MatIconModule,
     MatButtonModule,
-    MatExpansionModule,
-    MatTableModule,
     MatDividerModule,
-    MatTooltipModule,
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
     MatAutocompleteModule,
+    MatMenuModule,
     LineChartComponent
   ],
   templateUrl: './alerts.component.html',
-  styleUrls: ['./alerts.component.css']
+  styleUrls: ['./alerts.component.css'],
+  animations: [
+   trigger('rotateIcon', [
+     state('in', style({ transform: 'rotate(180deg)' })),
+     state('out', style({ transform: 'rotate(0deg)' })),
+     transition('in <=> out', animate('300ms ease-in-out'))
+   ])
+ ]
 })
 export class AlertsComponent {
   @ViewChild('subaccountSelect') subaccountSelect!: MatSelect;
@@ -73,19 +79,6 @@ export class AlertsComponent {
   toaster = inject(ToastrService);
   private selectedAccountId: any = '';
   users: any = [];
-  displayedColumns: string[] = [
-    'name',
-    'startDate',
-    'endDate',
-    'platforms',
-    'budget',
-    'spend',
-    'estimatedSpend',
-    'overallPacing',
-    'pacing',
-    'spendPerDay',
-    'yesterdaySpent'
-  ];
   headerColumns = [{
     name: 'Campaign Name', startDate: 'Start Date', endDate: 'End Date', platforms: 'Platforms', budget: 'Budget'
   }];
@@ -94,7 +87,7 @@ export class AlertsComponent {
     'googleAds': 'Google Ads',
     'bing': 'Bing',
     'dv360': 'Display & Video 360',
-    'apple': 'Apple Search Ads'
+    'apple': 'Apple Search Ads',
     'linkedin': 'LinkedIn'
   };
   panelOpenState = false;
@@ -117,6 +110,16 @@ export class AlertsComponent {
   openPanels: Set<string> = new Set<string>();
   loadingGraphs: Set<string> = new Set();
 
+  isLoading: boolean = false;
+  public cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
+  public appRef: ApplicationRef = inject(ApplicationRef);
+  public zone: NgZone = inject(NgZone);
+
+  tooltipData: { [alertId: string]: any } = {};
+  breadcrumb: any = {};
+
+  accordionStates: any = {};
+
   constructor(
     private db: AngularFirestore,
     private fns: AngularFireFunctions,
@@ -129,16 +132,27 @@ export class AlertsComponent {
     private googleAdsReportService: GoogleAdsReportService,
     private appleReportService: AppleReportService,
     public alertsService: AlertsService,
-    public commonService: CommonService
+    public commonService: CommonService,
+    public businessAccountService: BusinessAccountService
   ) {}
 
+        openMenu(menuTrigger: MatMenuTrigger) {
+    menuTrigger.openMenu();
+        }
+
   ngOnInit() {
-    this.route.paramMap.subscribe(async params => {
+    this.route.paramMap.subscribe(async (params: any) => {
       const accountId = params.get('accountId');
       if (accountId !== this.selectedAccountId) {
         this.selectedAccountId = accountId;
+        this.isLoading = true;
+        if (params && params.params && params.params.accountId) {
+          await this.getBreadcrumb(params.params.accountId);
+        }
         await this.getData();
         this.applyFilters();
+        this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
 
@@ -148,16 +162,92 @@ export class AlertsComponent {
     );
   }
 
-  togglePanel(alertId: string) {
-    if (this.openPanels.has(alertId)) {
-      this.openPanels.delete(alertId);
-    } else {
-      this.openPanels.add(alertId);
-      this.loadingGraphs.add(alertId);
-      setTimeout(() => {
-        this.loadingGraphs.delete(alertId);
-      }, 2000);
+  async getBreadcrumb(accountId: string) {
+   this.db.doc(`account/${accountId}`).get().subscribe((doc: any) => {
+     this.breadcrumb.account = { id: doc.id, ...doc.data() };
+     this.db.doc(`business/${this.breadcrumb.account.business.id}`).get().subscribe((doc: any) => {
+       this.breadcrumb.business = { id: doc.id, ...doc.data() };
+     });
+   });
+  }
+
+  async fetchTooltips(alerts: any[]) {
+    for (const alert of alerts) {
+      await this.getTooltipAlert(alert);
     }
+  }
+
+  async getTooltipAlert(alert: any) {
+   const userId = alert.originalPlatforms[0].formData.userId;
+   try {
+     const user = this.users.find((user: any) => user.id === userId);
+     let userEmail = '';
+     if (user && user.email) {
+       userEmail = user.email;
+     }
+
+     let tooltipLabel: any = {};
+
+     if (userEmail) {
+       tooltipLabel.creator = `Creator: ${userEmail}\n`;
+     }
+
+     if (alert.last_refreshed) {
+       const lastUpdated = moment(alert.last_refreshed.toDate()).format('MM/DD/YYYY');
+       tooltipLabel.lastUpdated = `Last updated: ${lastUpdated}\n`;
+     }
+
+     const processSuccessfully = alert.platforms.every(
+       (platform: any) =>
+         platform.pacingAlerts &&
+         platform.pacingAlerts[platform.platform + '_overall_delta_value']
+     );
+     tooltipLabel.process = `Process: ${processSuccessfully ? 'Success' : 'Failed'}`;
+
+     this.tooltipData[alert.id] = tooltipLabel;
+   } catch (error) {
+     console.error('Error fetching user data:', error);
+     this.tooltipData[alert.id] = 'Error fetching tooltip data';
+   }
+  }
+
+  async getTooltipAlert(alert: any) {
+    const userId = alert.originalPlatforms[0].formData.userId;
+    try {
+      const user = this.users.find((user: any) => user.id === userId);
+      let userEmail = '';
+      if (user && user.email) {
+        userEmail = user.email;
+      }
+
+      let tooltipLabel: any = {};
+
+      if (userEmail) {
+        tooltipLabel.creator = `Creator: ${userEmail}\n`;
+      }
+
+      if (alert.last_refreshed) {
+        const lastUpdated = moment(alert.last_refreshed.toDate()).format('MM/DD/YYYY');
+        tooltipLabel.lastUpdated = `Last updated: ${lastUpdated}\n`;
+      }
+
+      const processSuccessfully = alert.platforms.every(
+        (platform: any) =>
+          platform.pacingAlerts &&
+          platform.pacingAlerts[platform.platform + '_overall_delta_value']
+      );
+      tooltipLabel.process = `Process: ${processSuccessfully ? 'Success' : 'Failed'}`;
+
+      this.tooltipData[alert.id] = tooltipLabel;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      this.tooltipData[alert.id] = 'Error fetching tooltip data';
+    }
+  }
+
+  getPacingInfo(alert: any, index: any): any {
+    const platform = alert.platforms[index];
+    return `Last seven days: ${platform.pacingAlerts[platform.platform + '_seven_days_delta_value'].toLocaleString()}%\nYesterday: ${platform.pacingAlerts[platform.platform + '_yesterday_delta_value'].toLocaleString()}%`;
   }
 
   onSelectionChange(event: any, type: string) {
@@ -218,11 +308,16 @@ export class AlertsComponent {
   }
 
   async getData() {
+    this.isLoading = true;
+    this.cdr.detectChanges();
     await this.getAlerts();
     await this.getSubaccounts();
     await this.getUsers();
     this.getFilters();
     this.applyFilters();
+    await this.fetchTooltips(this.alertsService.pacingAlerts);
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   getFilteredAlerts(subaccountId: string | null): any[] {
@@ -261,34 +356,37 @@ export class AlertsComponent {
   async getAlerts() {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.pacingAlerts = [];
-      this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(async querySnapshot => {
-        let alerts: any = [];
-        querySnapshot.forEach((doc: any) => {
-          const pacingAlert = {
-            id: doc.id,
-            ...doc.data() as any,
-            originalPlatforms: doc.data().platforms
-          };
-          alerts.push(pacingAlert);
-        });
+      this.db.collection('userSearch', ref => ref.where('accountId', '==', this.selectedAccountId))
+        .snapshotChanges().subscribe(async querySnapshot => {
+          let alerts: any = [];
+          querySnapshot.forEach(snapshot => {
+            const data = snapshot.payload.doc.data() as any;
+            const pacingAlert = {
+              id: snapshot.payload.doc.id,
+              ...data,
+              originalPlatforms: data.platforms
+            };
+            alerts.push(pacingAlert);
+          });
 
-        for (const alert of alerts) {
-          for (const [index, platform] of alert.platforms.entries()) {
-            const collectionName = `${platform.platform}Report`;
-            const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
-            const report = result.docs.map((doc: any) => doc.data());
-            if (report.length > 0) {
-              alert.platforms[index].report = report[0];
-              alert.originalPlatforms[index].report = report[0];
+          for (const alert of alerts) {
+            for (const [index, platform] of alert.platforms.entries()) {
+              const collectionName = `${platform.platform}Report`;
+              const result: any = await this.db.collection(collectionName, ref => ref.where('userSearchId', '==', alert.id + '_' + index)).get().toPromise();
+              const report = result.docs.map((doc: any) => doc.data());
+              if (report.length > 0) {
+                alert.platforms[index].report = report[0];
+                alert.originalPlatforms[index].report = report[0];
+              }
             }
           }
-        }
 
-        this.alertsService.pacingAlerts = alerts;
-        resolve();
-      }, error => {
-        reject(error);
-      });
+          this.alertsService.pacingAlerts = alerts;
+          this.cdr.detectChanges();
+          resolve();
+        }, error => {
+          reject(error);
+        });
     });
   }
 
@@ -309,22 +407,20 @@ export class AlertsComponent {
   async getSubaccounts() {
     return new Promise<void>((resolve, reject) => {
       this.alertsService.subaccounts = [];
-      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.selectedAccountId)).get().subscribe(querySnapshot => {
-        querySnapshot.forEach(doc => {
-          const subaccount = {
-            id: doc.id,
-            ...doc.data() as any
-          };
-          this.alertsService.subaccounts.push(subaccount);
+      this.db.collection('subaccount', ref => ref.where('accountId', '==', this.selectedAccountId))
+        .snapshotChanges().subscribe(querySnapshot => {
+          this.alertsService.subaccounts = querySnapshot.map(snapshot => ({
+            id: snapshot.payload.doc.id,
+            ...snapshot.payload.doc.data() as any
+          }));
+          this.alertsService.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
+          if (this.alertsService.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
+            this.alertsService.subaccounts.push({ id: 0, name: 'Without Subaccounts' });
+          }
+          resolve();
+        }, error => {
+          reject(error);
         });
-        this.alertsService.subaccounts.sort((a, b) => a.name.localeCompare(b.name));
-        if (this.alertsService.subaccounts.length > 0 && this.getFilteredAlerts(null).length > 0) {
-          this.alertsService.subaccounts.push({ id: 0, name: 'Without Subaccounts' });
-        }
-        resolve();
-      }, error => {
-        reject(error);
-      });
     });
   }
 
@@ -434,49 +530,31 @@ export class AlertsComponent {
       if (pacingAlert && pacingAlert.platforms[index]) {
         pacingAlert.platforms[index].loading = true;
       }
-      this.db.collection(`userSearch`).doc(campaign.id).update(data).then(() => {
+      this.db.collection(`userSearch`).doc(campaign.id).update(data).then(async () => {
         if (platform.platform === 'dv360') {
-          this.DV360ReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          await this.DV360ReportService.processReport(campaign, index);
         }
         if (platform.platform === 'linkedin') {
-          this.linkedinReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          await this.linkedinReportService.processReport(campaign, index);
         }
         if (platform.platform === 'facebook') {
-          this.facebookReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          await this.facebookReportService.processReport(campaign, index);
         }
         if (platform.platform === 'bing') {
-          this.bingReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          await this.bingReportService.processReport(campaign, index);
         }
         if (platform.platform === 'googleAds') {
-          this.googleAdsReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          await this.googleAdsReportService.processReport(campaign, index);
         }
         if (platform.platform === 'apple') {
-          this.appleReportService.processReport(campaign, index).then(success => {
-            if (success) {
-              this.alertsService.updateData(campaign.id, index);
-            }
-          });
+          await this.appleReportService.processReport(campaign, index);
         }
+
+        data.platforms[index].loading = false;
+        if (pacingAlert && pacingAlert.platforms[index]) {
+          pacingAlert.platforms[index].loading = false;
+        }
+        this.cdr.detectChanges();
       });
     });
   }
@@ -543,7 +621,7 @@ export class AlertsComponent {
     );
 
     const userIds = Array.from(new Set(filteredAlerts.flatMap(alert => alert.platforms.map((platform: any) => platform.formData.userId))));
-    
+
     const filteredUsers = this.filterUsers();
     this.filteredUserOptions = this.userFilter.valueChanges.pipe(
       startWith(''),
@@ -567,4 +645,15 @@ export class AlertsComponent {
         break;
     }
   }
+
+  toggleAccordion(alertId: string) {
+   this.accordionStates[alertId] = !this.accordionStates[alertId];
+   if (this.accordionStates[alertId]) {
+     this.isLoading = true;
+     setTimeout(() => {
+       this.isLoading = false;
+       this.cdr.detectChanges();
+     }, 1500);
+   }
+ }
 }

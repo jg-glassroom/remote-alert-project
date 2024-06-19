@@ -78,9 +78,9 @@ export class BingFormComponent {
   announcer = inject(LiveAnnouncer);
 
   @ViewChild('campaignInput') campaignInput!: ElementRef<HTMLInputElement>;
-  
+
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -101,6 +101,41 @@ export class BingFormComponent {
     }
     this.createForm();
     await this.getCustomers();
+  }
+
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    console.log('AAAAAAAAAAAAAAAA', campaign, campaigns);
+    if (!campaigns.some((c: any) => c.id === campaign.id)) {
+      console.log('BBBBBBBBBBBBBBB');
+      campaigns.push(campaign);
+      formGroup.patchValue({ bingCampaign: campaigns });
+    } else {
+      console.log('CCCCCCCCCCCCCCCC', this.campaigns);
+      const index = campaigns.findIndex((c: any) => c.id === campaign.id);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ bingCampaign: campaigns });
+      }
+    }
+    console.log('XXXXXXXXXX', this.campaigns);
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'bingCampaign', 'id', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   async createForm() {
@@ -155,9 +190,7 @@ export class BingFormComponent {
     const accountsList = accountsInfo.map((account: any) => ({
         id: account['a:Id'][0],
         name: account['a:Name'][0],
-        number: account['a:Number'][0],
         accountLifeCycleStatus: account['a:AccountLifeCycleStatus'][0],
-        pauseReason: account['a:PauseReason'][0]['$']['i:nil'] === "true" ? null : account['a:PauseReason'][0]['_']
     }));
 
     accountsList.sort((a: any, b: any) => a.name.localeCompare(b.name));
@@ -168,19 +201,22 @@ export class BingFormComponent {
   extractCampaigns(data: any) {
     const campaignsInfo = data['s:Envelope']['s:Body'][0]['GetCampaignsByAccountIdResponse'][0]['Campaigns'][0]['Campaign'];
 
-    const campaignsData = campaignsInfo.map((campaign: any) => ({
-      id: campaign['Id'][0],
-      name: campaign['Name'][0],
-      status: campaign['Status'][0],
-      budgetType: campaign['BudgetType'][0],
-      dailyBudget: campaign['DailyBudget'][0],
-      timeZone: campaign['TimeZone'][0],
-      campaignType: campaign['CampaignType'][0],
-      languages: campaign['Languages'] && campaign['Languages'][0]['a:string'] ? campaign['Languages'][0]['a:string'] : [],
-      customParameters: campaign['UrlCustomParameters'] ? this.extractCustomParameters(campaign['UrlCustomParameters'][0]) : []
-    }));
+    let campaignsData: any = [];
+    if (campaignsInfo) {
+      campaignsData = campaignsInfo.map((campaign: any) => ({
+        id: campaign['Id'][0],
+        name: campaign['Name'][0],
+        status: campaign['Status'][0],
+        budgetType: campaign['BudgetType'][0],
+        dailyBudget: campaign['DailyBudget'][0],
+        timeZone: campaign['TimeZone'][0],
+        campaignType: campaign['CampaignType'][0],
+        languages: campaign['Languages'] && campaign['Languages'][0]['a:string'] ? campaign['Languages'][0]['a:string'] : [],
+        customParameters: campaign['UrlCustomParameters'] ? this.extractCustomParameters(campaign['UrlCustomParameters'][0]) : []
+      }));
 
-    campaignsData.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      campaignsData.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    }
 
     return campaignsData;
   }
@@ -195,7 +231,7 @@ export class BingFormComponent {
     return [];
   }
 
-  
+
   async getCustomers(retryCount = 2): Promise<any> {
     this.isLoading = true;
     const cachedData = localStorage.getItem('customers');
@@ -212,6 +248,25 @@ export class BingFormComponent {
       const result = await firstValueFrom(callable({ accessToken: localStorage.getItem('microsoftAccessToken') }));
 
       this.customers = this.extractCustomers(result);
+
+      for (const customer of this.customers) {
+        const callableInfo = this.fns.httpsCallable('getBingCustomerInfo');
+        const result = await firstValueFrom(callableInfo({ accessToken: localStorage.getItem('microsoftAccessToken'), customerId: customer.id }));
+        if (
+          result &&
+          result['s:Envelope'] &&
+          result['s:Envelope']['s:Body'] &&
+          result['s:Envelope']['s:Body'][0] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'][0] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'][0]['Customer'][0] &&
+          result['s:Envelope']['s:Body'][0]['GetCustomerResponse'][0]['Customer'][0]['a:ServiceLevel'][0] === 'Premium'
+        ) {
+          customer.isManager = true;
+        }
+      }
+
+      this.customers = this.customers.filter((customer: any) => customer.isManager);
       this.customersSubject.next(this.customers);
       this.originalCustomers$ = of(this.customers);
       localStorage.setItem('customers', JSON.stringify(this.customers));
@@ -228,7 +283,7 @@ export class BingFormComponent {
       }
     }
   }
-  
+
   async getAdAccounts(retryCount = 2, event: MatAutocompleteSelectedEvent): Promise<any> {
     this.isLoading = true;
     let customer: any = null
@@ -297,7 +352,7 @@ export class BingFormComponent {
       });
       this.campaigns = this.data?.bingCampaign;
     }
-    
+
     try {
       const customerId = this.formGroup.value.bingCustomer.id;
       const callable = this.fns.httpsCallable('getBingCampaigns');
@@ -320,7 +375,7 @@ export class BingFormComponent {
     }
   }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 

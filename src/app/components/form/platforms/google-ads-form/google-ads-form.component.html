@@ -4,28 +4,23 @@
 <form [formGroup]="formGroup" class="form">
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Platform</mat-label>
-            <mat-select formControlName="googleAdsPlatform" (selectionChange)="changePlatform($event.value)">
-                <mat-option value="dv360">Display & Video 360</mat-option>
-                <mat-option value="facebook">Facebook</mat-option>
-                <mat-option value="googleAds" disabled>Google Ads</mat-option>
-                <mat-option value="bing">Bing</mat-option>
-                <mat-option value="apple">Apple Search Ads</mat-option>
-                <mat-option value="linkedin">LinkedIn</mat-option>
+            <mat-select formControlName="linkedinPlatform" (selectionChange)="changePlatform($event.value)">
+                <mat-option *ngFor="let platform of platformsCommon.platforms" [value]="platform.value" [disabled]="platform.value === 'linkedin'">{{ platform.name }}</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['googleAdsPlatform'].touched) && form['googleAdsPlatform'].invalid">
             The field is required
             </mat-error>
         </mat-form-field>
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
           <mat-label>Label</mat-label>
           <input matInput formControlName="googleAdsLabel">
         </mat-form-field>
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Ad account</mat-label>
             <input type="text" placeholder="Select your ad account" formControlName="googleAdsAccount" aria-label="ad account" matInput [matAutocomplete]="adAccountsAuto">
             <mat-error *ngIf="(submitted || form['googleAdsAccount'].touched) && form['googleAdsAccount'].invalid">
@@ -40,7 +35,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Campaign*</mat-label>
 
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
@@ -57,9 +52,9 @@
             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
             (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'googleAdsCampaign')"/>
 
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="platformsCommon.selected($event, campaigns, formGroup, 'googleAdsCampaign', selection, announcer, campaignInput)">
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaigns($event, campaigns, formGroup, selection, campaignInput)">
             <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); platformsCommon.toggleSelection(campaigns, campaign, 'googleAdsCampaign', 'id', formGroup, selection, campaignInput)">
+                <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); selectCampaign(campaigns, campaign, formGroup, selection, campaignInput)">
                 {{ campaign.name }} | {{ campaign.id }}
                 </mat-checkbox>
             </mat-option>
@@ -70,7 +65,7 @@
             </mat-hint>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Start Date</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="googleAdsStartDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -86,7 +81,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>End Date</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="googleAdsEndDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -103,7 +98,7 @@
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Budget</mat-label>
             <input matInput formControlName="googleAdsBudget">
             <mat-error *ngIf="form['googleAdsBudget'].errors?.['required'] && (submitted || form['googleAdsBudget'].touched)">

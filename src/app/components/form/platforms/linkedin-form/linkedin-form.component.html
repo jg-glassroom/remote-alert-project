@@ -4,27 +4,23 @@
 <form [formGroup]="formGroup" class="form">
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Platform</mat-label>
             <mat-select formControlName="linkedinPlatform" (selectionChange)="changePlatform($event.value)">
-                <mat-option value="dv360">Display & Video 360</mat-option>
-                <mat-option value="facebook">Facebook</mat-option>
-                <mat-option value="googleAds">Google Ads</mat-option>
-                <mat-option value="bing">Bing</mat-option>
-                <mat-option value="linkedin" disabled>LinkedIn</mat-option>
+                <mat-option *ngFor="let platform of platformsCommon.platforms" [value]="platform.value" [disabled]="platform.value === 'linkedin'">{{ platform.name }}</mat-option>
             </mat-select>
             <mat-error *ngIf="(submitted || form['linkedinPlatform'].touched) && form['linkedinPlatform'].invalid">
             The field is required
             </mat-error>
         </mat-form-field>
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
           <mat-label>Label</mat-label>
           <input matInput formControlName="linkedinLabel">
         </mat-form-field>
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Ad account</mat-label>
             <input type="text" placeholder="Select your ad account" formControlName="linkedinAdAccount" aria-label="ad account" matInput [matAutocomplete]="adAccountsAuto">
             <mat-error *ngIf="(submitted || form['linkedinAdAccount'].touched) && form['linkedinAdAccount'].invalid">
@@ -37,7 +33,7 @@
             </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Campaign Group</mat-label>
             <input type="text" placeholder="Select your campaign group" formControlName="linkedinCampaignGroup" aria-label="campaign group" matInput [matAutocomplete]="campaignGroupsAuto">
             <mat-error *ngIf="(submitted || form['linkedinCampaignGroup'].touched) && form['linkedinCampaignGroup'].invalid">
@@ -52,7 +48,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Campaign*</mat-label>
             <mat-chip-grid #chipGrid aria-label="Campaign Selection">
                 <mat-chip-row *ngFor="let campaign of campaigns" (removed)="removeCampaign(campaign, campaigns, selection, announcer)">
@@ -66,9 +62,9 @@
                 [matChipInputFor]="chipGrid" [matAutocomplete]="campaignsAuto"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 (matChipInputTokenEnd)="platformsCommon.add($event, campaigns, formGroup, 'linkedinCampaign')"/>
-            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaign($event, campaigns, formGroup, selection, announcer, campaignInput)">
+            <mat-autocomplete #campaignsAuto="matAutocomplete" (optionSelected)="selectCampaigns($event, campaigns, formGroup, selection, campaignInput)">
                 <mat-option *ngFor="let campaign of campaigns$ | async" [value]="campaign">
-                    <mat-checkbox [checked]="campaign.selected" (click)="selectCampaign($event, campaigns, campaign, formGroup, selection, campaignInput)">
+                    <mat-checkbox [checked]="campaign.selected" (click)="$event.stopPropagation(); selectCampaign(campaigns, campaign, formGroup, selection, campaignInput)">
                         {{ campaign.name }} | {{ campaign.id }}
                     </mat-checkbox>
                 </mat-option>
@@ -78,7 +74,7 @@
             </mat-hint>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Start Date</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="linkedinStartDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -94,7 +90,7 @@
     </div>
 
     <div class="form-row">
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>End Date*</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="linkedinEndDate">
             <mat-hint>MM/DD/YYYY</mat-hint>
@@ -111,7 +107,7 @@
             </mat-error>
         </mat-form-field>
 
-        <mat-form-field class="form-element">
+        <mat-form-field appearance="outline" class="form-element">
             <mat-label>Budget</mat-label>
             <input matInput formControlName="linkedinBudget">
             <mat-error *ngIf="form['linkedinBudget'].errors?.['required'] && (submitted || form['linkedinBudget'].touched)">

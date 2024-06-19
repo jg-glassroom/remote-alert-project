@@ -3,15 +3,15 @@
 </div>
 <form [formGroup]="formGroup">
   <div class="header">
-    <mat-form-field class="form-element">
-      <mat-label>Campaign Name</mat-label>
+    <mat-form-field appearance="outline" class="form-element">
+      <mat-label>Alert Name</mat-label>
       <input matInput formControlName="campaignName">
       <mat-error *ngIf="(submitted || formGroup.get('campaignName')!.touched) && formGroup.get('campaignName')!.invalid">
         The field is required
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field class="form-element">
+    <mat-form-field appearance="outline" class="form-element">
       <mat-label>Subaccount</mat-label>
       <input matInput placeholder="Choose a subaccount" [matAutocomplete]="auto" formControlName="subaccount">
       <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="createSubaccount($event)">
@@ -21,15 +21,6 @@
       </mat-autocomplete>
     </mat-form-field>
   </div>
-
-  <button
-    mat-raised-button
-    class="button form-button create-button"
-    color="primary"
-    (click)="addTab()"
-    type="button">
-    <mat-icon>add</mat-icon>Platform
-  </button>
 
   <mat-tab-group [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
     @for (tab of tabs; track tab; let index = $index) {
@@ -93,7 +84,7 @@
         </ng-template>
         <app-apple-form #appleForm (platformChange)="handlePlatformChange(index, $event)" [platformIndex]="tab.index"></app-apple-form>
       </mat-tab>
-      <mat-tab [label]="tab.name" *ngIf="tab.value === 'linkedin'">
+      x<mat-tab [label]="tab.name" *ngIf="tab.value === 'linkedin'">
         <ng-template mat-tab-label>
           <div class="tab-label">
             <span>{{ tab.name }}&nbsp;</span>
@@ -116,15 +107,10 @@
           </div>
         </ng-template>
         <div class="form-row">
-          <mat-form-field class="form-element">
+          <mat-form-field appearance="outline" class="form-element">
               <mat-label>Select a platform</mat-label>
               <mat-select (valueChange)="getPlatform($event, index)">
-                <mat-option value="dv360" [disabled]="!commonService.isConnected('dv360')">Display & Video 360</mat-option>
-                <mat-option value="facebook" [disabled]="!commonService.isConnected('facebook')">Facebook</mat-option>
-                <mat-option value="googleAds" [disabled]="!commonService.isConnected('googleAds')">Google Ads</mat-option>
-                <mat-option value="bing" [disabled]="!commonService.isConnected('bing')">Bing</mat-option>
-                <mat-option value="apple" [disabled]="!commonService.isConnected('apple')">Apple Search Ads</mat-option>
-                <mat-option value="linkedin" [disabled]="!commonService.isConnected('linkedin')">LinkedIn</mat-option>
+                <mat-option *ngFor="let platform of commonService.platforms" [value]="platform.value" [disabled]="!commonService.isConnected(platform.value)">{{ platform.name }}</mat-option>
               </mat-select>
           </mat-form-field>
           <div class="form-element">
@@ -133,6 +119,15 @@
       </mat-tab>
     }
   </mat-tab-group>
+
+  <button
+    mat-raised-button
+    class="button form-button create-button"
+    color="accent"
+    (click)="addTab()"
+    type="button">
+    <mat-icon>add</mat-icon>Platform
+  </button>
 
   <div class="form-element footer">
     <button mat-raised-button type="submit" class="button form-button" color="primary" (click)="onSubmit()" type="button">Save</button>

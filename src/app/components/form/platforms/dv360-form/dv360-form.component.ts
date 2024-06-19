@@ -1,4 +1,4 @@
-import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Inject, ElementRef, ViewChild, inject, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Validators, FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -90,12 +90,13 @@ export class Dv360FormComponent {
   announcerIO = inject(LiveAnnouncer);
 
   constructor(
-    private formBuilder: FormBuilder, 
+    private formBuilder: FormBuilder,
     public auth: AuthService,
     public externalPlatforms: ExternalPlatformsService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private http: HttpClient,
-    public platformsCommon: CommonService
+    public platformsCommon: CommonService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.isEditMode = !!data;
     if (this.isEditMode) {
@@ -103,7 +104,7 @@ export class Dv360FormComponent {
     }
   }
 
-  get form() { 
+  get form() {
     return this.formGroup ? this.formGroup.controls : {};
   };
 
@@ -112,10 +113,35 @@ export class Dv360FormComponent {
     return this.platformsCommon.truncateName(combinedName, num);
   }
 
-  selectCampaign(event: any, campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
-    event.stopPropagation();
+  selectCampaigns(event: MatAutocompleteSelectedEvent, campaigns: any[], formGroup: FormGroup, selection: SelectionModel<any>, campaignInput: HTMLInputElement) {
+    const campaign = event.option.value;
+    if (!campaigns.some((c: any) => c.campaignId === campaign.campaignId)) {
+      campaigns.push(campaign);
+      formGroup.patchValue({ dv360CampaignId: campaigns });
+    } else {
+      const index = campaigns.findIndex((c: any) => c.campaignId === campaign.campaignId);
+      if (index >= 0) {
+        campaigns.splice(index, 1);
+        formGroup.patchValue({ dv360CampaignId: campaigns });
+      }
+    }
     this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
+
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
     this.filterIOsByCampaigns();
+  }
+
+  selectCampaign(campaigns: any, campaign:any, formGroup: any, selection: any, campaignInput: any) {
+    this.platformsCommon.toggleSelection(campaigns, campaign, 'dv360CampaignId', 'campaignId', formGroup, selection, campaignInput);
+    if (campaignInput) {
+        campaignInput.value = '';
+    }
+
+    this.cdRef.detectChanges();
   }
 
   removeCampaign(campaign: any, campaigns: any, selection: any, announcer: any) {
@@ -184,9 +210,9 @@ export class Dv360FormComponent {
       this.partners$ = this.platformsCommon.setupFilteringWithRetry(this.formGroup, 'dv360Partner', 'displayName', localStorage.getItem("partners"));
       return this.partners;
     }
-  
+
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
-  
+
     try {
       const response$ = this.http.get<DV360Response>('https://displayvideo.googleapis.com/v3/partners', { headers });
       const data = await firstValueFrom(response$);
@@ -244,7 +270,7 @@ export class Dv360FormComponent {
         dv360Budget: this.data?.dv360Budget,
       });
     }
-  
+
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
 
     try {
@@ -287,13 +313,13 @@ export class Dv360FormComponent {
     try {
       const advertiserId = this.formGroup.get('dv360Advertiser')!.value.advertiserId;
       const campaignIds = this.formGroup.get('dv360CampaignId')!.value.map((campaign: any) => campaign.campaignId);
-  
+
       const filter = campaignIds.map((id: any) => `campaignId="${id}"`).join(' OR ');
       const url = `https://displayvideo.googleapis.com/v3/advertisers/${advertiserId}/insertionOrders?filter=${encodeURIComponent(filter)}`;
-  
+
       const response = await firstValueFrom(this.http.get(url, { headers }));
       const allIOs = (response as any).insertionOrders || [];
-  
+
       this.originalIOs$ = of(allIOs);
       await this.filterIOsByCampaigns();
       if (this.isEditMode) {
@@ -306,7 +332,7 @@ export class Dv360FormComponent {
       this.isLoading = false;
       throw new Error(error);
     }
-  }  
+  }
 
   updateIOSelectionInEditMode(): void {
     this.IOs$.subscribe(IOs => {
@@ -323,7 +349,7 @@ export class Dv360FormComponent {
         });
     });
   }
-  
+
   async filterIOsByCampaigns() {
     const selectedCampaignIds = this.campaigns.filter((c: any) => c.selected).map((campaign: any) => campaign.campaignId);
     if (this.originalIOs$) {
@@ -331,7 +357,7 @@ export class Dv360FormComponent {
         const filteredIOs = originalIOs.filter((io: any) => selectedCampaignIds.includes(io.campaignId));
         const sortedIOs = filteredIOs.sort((a: { displayName: string }, b: { displayName: string }) => a.displayName.localeCompare(b.displayName));
         this.IOs$ = of(sortedIOs);
-    
+
         this.IOs.forEach((io: any) => {
           if (!selectedCampaignIds.includes(io.campaignId)) {
             this.selectionIO.deselect(io);
@@ -378,7 +404,7 @@ export class Dv360FormComponent {
       this.campaigns = this.data?.dv360CampaignId;
       this.IOs = this.data?.dv360IO;
     }
-  
+
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('dv360AccessToken')}` };
     try {
       const response$ = this.http.get(`https://displayvideo.googleapis.com/v3/advertisers/${selectedAdvertiser.advertiserId}/campaigns`, { headers });
@@ -408,7 +434,7 @@ export class Dv360FormComponent {
             selected: isSelected,
           };
         });
-  
+
         this.campaigns$ = of(campaigns);
         this.originalCampaigns$ = of(campaigns);
       }

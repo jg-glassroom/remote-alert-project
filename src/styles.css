@@ -1,10 +1,25 @@
-/* You can add global styles to this file, and also import other style files */
 @import 'ngx-toastr/toastr';
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-app-root { /* Le parent direct */
+
+mat-icon {
+    font-family: 'Material Icons';
+}
+
+body {
+    margin: 0;
+    font-family: "Roboto", sans-serif;
+    font-weight: 300;
+    font-style: normal;
+}
+
+app-root {
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
+
+.selected {
+  background-color: #00796b;
+  color: #333;
+} 

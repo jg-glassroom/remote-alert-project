@@ -1,4 +1,5 @@
 <div class="create-container">
+    <h1 class="title">Accounts</h1>
     <button mat-raised-button class="accent-btn" (click)="createAccount()">
         <mat-icon>add</mat-icon>Account
     </button>
@@ -14,6 +15,9 @@
                 <div>
                     <button mat-raised-button color="primary" (click)="addUsers(account.id)">
                         <mat-icon>add</mat-icon>Users
+                    </button>
+                    <button mat-raised-button color="primary" class="delete" (click)="editElement(account.id)">
+                        Edit
                     </button>
                     <button mat-raised-button color="primary" class="delete" (click)="deleteAccount(account)">
                         Delete

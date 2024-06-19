@@ -9,7 +9,7 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { getFirestore, doc, updateDoc, deleteField } from '@firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 
 declare const FB: any;
 
@@ -31,7 +31,7 @@ export class FacebookService {
       FB.login(async (response: any) => {
         if (response.authResponse) {
           const user = getAuth().currentUser;
-  
+
           if (user) {
             const exchangeTokenFunction = this.fns.httpsCallable('exchangeFacebookToken');
             try {
@@ -61,32 +61,31 @@ export class FacebookService {
     });
   }
 
-  facebookDisconnect() {
+  async facebookDisconnect() {
     const url = `https://graph.facebook.com/me/permissions?access_token=${localStorage.getItem('facebookAccessToken')}`;
-  
-    this.http.delete(url).subscribe({
-      next: () => {
-        const db = getFirestore();
-        const user = getAuth().currentUser;
 
-        if (user) {
-          try {
-            updateDoc(doc(db, "user", user.uid), {
-              facebookAccessToken: deleteField()
-            });
-          } catch (error) {
-            this.toaster.error(`Error disconnecting Facebook: ${error}`, "Error");
-          }
-        } else {
-          this.toaster.error("User not logged in");
+    try {
+      await lastValueFrom(this.http.delete(url));
+
+      const db = getFirestore();
+      const user = getAuth().currentUser;
+
+      if (user) {
+        try {
+          await updateDoc(doc(db, "user", user.uid), {
+            facebookAccessToken: deleteField()
+          });
+        } catch (error) {
+          this.toaster.error(`Error disconnecting Facebook: ${error}`, "Error");
         }
-
-        localStorage.removeItem('facebookAccessToken');
-        this.toaster.success("Facebook has been successfully disconnected", "Success");
-      },
-      error: (error) => {
-        this.toaster.error('Error disconnecting Facebook', error);
+      } else {
+        this.toaster.error("User not logged in");
       }
-    });
+
+      localStorage.removeItem('facebookAccessToken');
+      this.toaster.success("Facebook has been successfully disconnected", "Success");
+    } catch (error: any) {
+      this.toaster.error('Error disconnecting Facebook', error);
+    }
   }
 }

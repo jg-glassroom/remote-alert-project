@@ -12,14 +12,9 @@ form {
 }
 
 .form-element {
-    flex: 1; 
+    flex: 1;
 }
 
 .button {
     align-self: flex-start;
-}
-
-.footer {
-    position: absolute;
-    bottom: 5%;
 }
