@@ -82,10 +82,10 @@ mat-divider {
 
 .table-container {
     border-radius: 7px;
-    overflow: hidden;
     margin: 20px 30px;
     margin-bottom: 20px;
-    overflow: hidden;
+    overflow-y: hidden;
+    overflow-x: scroll;
     height: 100%;
 }
 

@@ -56,7 +56,7 @@ export class LineChartComponent {
     this.chartData.platforms.forEach((platform: any) => {
       if (platform.report && platform.report.report) {
         const reports = platform.report.report;
-  
+
         Object.keys(reports).forEach(date => {
           const report = reports[date];
           const existingReport = aggregatedData.find((item: any) => item[this.platformDetails[platform.platform].dateField] === date);

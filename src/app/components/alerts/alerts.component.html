@@ -200,7 +200,7 @@
                                         </div>
                                         <ng-template #noPercBudgetLoading>
                                             <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_days_passed'); else noPercBudget">
-                                                {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-2' }}%
+                                                {{ platform.pacingAlerts[platform.platform + '_perc_days_passed'] | number:'1.0-0' }}%
                                             </span>
                                             <ng-template #noPercBudget>
                                                 <span>Not available</span>
@@ -235,7 +235,7 @@
                                         </div>
                                         <ng-template #noPercSpentLoading>
                                             <span *ngIf="platform.pacingAlerts && platform.pacingAlerts.hasOwnProperty(platform.platform + '_perc_budget_spent'); else noPercSpent">
-                                                {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] | number:'1.0-2' }}%
+                                                {{ platform.pacingAlerts[platform.platform + '_perc_budget_spent'] * 100 | number:'1.0-2' }}%
                                             </span>
                                             <ng-template #noPercSpent>
                                                 <span>Not available</span>
